@@ -1,2 +1,4 @@
 *.zip
 *.aux.xml
+*.gpkg-shm
+*.gpkg-wal
