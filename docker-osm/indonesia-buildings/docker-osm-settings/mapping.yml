@@ -1,0 +1,145 @@
+areas:
+  area_tags: [buildings]
+tables:
+  buildings:
+    columns:
+    - name: osm_id
+      type: id
+    - name: geometry
+      type: geometry
+    - key: name
+      name: name
+      type: string
+    - key: use
+      name: use
+      type: string
+    - key: religion
+      name: religion
+      type: string
+    - key: leisure
+      name: leisure
+      type: string
+    - key: height
+      name: height
+      type: integer
+    - key: "building:levels"
+      name: "building:levels"
+      type: string
+    - key: "building:height"
+      name: "building:height"
+      type: integer
+    - key: "building:min_level"
+      name: "building:min_level"
+      type: integer
+    - key: "roof:direction"
+      name: "roof:direction"
+      type: string
+    - key: "roof:levels"
+      name: "roof:levels"
+      type: integer
+    - key: "roof:shape"
+      name: "roof:shape"
+      type: string
+    - key: surface
+      name: surface
+      type: string
+    - key: "roof:orientation"
+      name: "roof:orientation"
+      type: string
+    - key: "roof:height"
+      name: "roof:height"
+      type: integer
+    - key: "roof:material"
+      name: "roof:material"
+      type: string
+    - key: "building:material"
+      name: "building:material"
+      type: string
+    - name: type
+      type: mapping_value
+    - name: amenity
+      type: mapping_value
+    - name: landuse
+      type: mapping_value
+    mapping:
+      building:
+      - __any__
+      amenity:
+      - __any__
+      landuse:
+      - __any__
+    type: polygon
+  admin:
+    columns:
+      - name: osm_id
+        type: id
+      - name: geometry
+        type: geometry
+      - key: name
+        name: name
+        type: string
+      - name: type
+        type: mapping_value
+      - key: admin_level
+        name: admin_level
+        type: integer
+    mapping:
+      boundary:
+        - administrative
+    type: polygon
+  waterways:
+    columns:
+      - name: osm_id
+        type: id
+      - name: geometry
+        type: geometry
+      - key: name
+        name: name
+        type: string
+      - key: boat
+        name: boat
+        type: bool
+      - key: intermittent
+        name: intermittent
+        type: bool
+      - key: name:af
+        name: name:af
+        type: string
+      - key: osm_type
+        name: osm_type
+        type: string
+      - name: waterway
+        type: mapping_value
+    mapping:
+      waterway:
+        - river
+        - stream
+        - riverbank
+        - canal
+        - drain
+        - ditch
+    type: linestring
+  roads:
+    columns:
+      - name: osm_id
+        type: id
+      - name: geometry
+        type: geometry
+      - name: type
+        type: mapping_value
+      - key: name
+        name: name
+        type: string
+      - name: class
+        type: mapping_key
+    filters:
+      reject:
+        area: ["yes"]
+    mappings:
+      roads:
+        mapping:
+          highway:
+            - __any__
+    type: linestring
+
+
