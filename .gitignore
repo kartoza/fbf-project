@@ -3,3 +3,4 @@
 *.gpkg-shm
 *.gpkg-wal
 ~$*
+*.DS_Store

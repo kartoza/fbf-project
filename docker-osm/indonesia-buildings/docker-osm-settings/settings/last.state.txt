@@ -1,0 +1,3 @@
+timestamp=2019-06-18T20\:14\:02Z
+sequenceNumber=3544997
+replicationUrl=https://planet.openstreetmap.org/replication/minute/
