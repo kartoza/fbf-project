@@ -114,9 +114,9 @@ CREATE TRIGGER building_type_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR
 
 
 -- Function to recode buildings that have been reclassified above using the function building_types_mapper ()
-ALTER table osm_buildings add column building_type_recode numeric;
+ALTER table osm_buildings add column building_type_score numeric;
 
-update osm_buildings set building_type_recode =
+update osm_buildings set building_type_score =
   CASE
             WHEN building_type = 'accomodation' THEN 0.5
             WHEN building_type = 'Commercial' THEN 0.5
@@ -149,7 +149,7 @@ BEGIN
             WHEN new.building_type = 'storage' THEN 0.5
             ELSE 0.3
         END
-     INTO new.building_type_recode
+     INTO new.building_type_score
      FROM osm_buildings
     ;
   RETURN NEW;
@@ -160,9 +160,9 @@ CREATE TRIGGER st_building_recoder BEFORE INSERT OR UPDATE ON osm_buildings FOR 
     building_recode_mapper();
 
 -- Create a column to hold the recoded calculated area in the table
-ALTER table osm_buildings add column area_recode numeric;
+ALTER table osm_buildings add column low_lying_area_score  numeric;
 
-update osm_buildings set area_recode =
+update osm_buildings set low_lying_area_score  =
         CASE
             WHEN ST_Area(geometry::GEOGRAPHY) <= 100 THEN 1
             WHEN ST_Area(geometry::GEOGRAPHY) > 100 and ST_Area(geometry::GEOGRAPHY) <= 300 THEN 0.7
@@ -182,7 +182,7 @@ BEGIN
             WHEN ST_Area(new.geometry::GEOGRAPHY) > 500 THEN 0.3
             ELSE 0.3
         END
-  INTO new.area_recode
+  INTO new.low_lying_area_score
   FROM osm_buildings
     ;
   RETURN NEW;
@@ -193,9 +193,9 @@ CREATE TRIGGER area_recode_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR E
     building_area_mapper();
 
 -- Create a column to hold the building materials class in the table
-ALTER table osm_buildings add column building_material_recode numeric;
+ALTER table osm_buildings add column building_material_score numeric;
 
-update osm_buildings set building_material_recode =
+update osm_buildings set building_material_score =
   CASE
         WHEN "building:material" = 'brick' THEN 0.5
         WHEN "building:material" = 'glass' THEN 0.3
@@ -212,7 +212,7 @@ BEGIN
         WHEN new."building:material" = 'glass' THEN 0.3
         ELSE 0.3
     END
-    INTO new.building_material_recode
+    INTO new.building_material_score
     FROM osm_buildings
     ;
   RETURN NEW;
@@ -223,9 +223,9 @@ CREATE TRIGGER building_material_mapper BEFORE INSERT OR UPDATE ON osm_buildings
     building_materials_mapper();
 
 -- Function to calculate the distance from a river to the centroid of the building
-ALTER table osm_buildings add column river_distance numeric;
+ALTER table osm_buildings add column building_distance  numeric;
 
-update osm_buildings set river_distance=foo.distance FROM (SELECT ST_Distance(ST_Centroid(geometry)::GEOGRAPHY, rt.geometry::GEOGRAPHY) as distance
+update osm_buildings set building_distance =foo.distance FROM (SELECT ST_Distance(ST_Centroid(geometry)::GEOGRAPHY, rt.geometry::GEOGRAPHY) as distance
 
          FROM   osm_waterways AS rt
          ORDER BY
@@ -236,7 +236,7 @@ CREATE OR REPLACE FUNCTION river_distance_mapper () RETURNS trigger LANGUAGE plp
 AS $$
 BEGIN
      SELECT ST_Distance(ST_Centroid(NEW.geometry)::GEOGRAPHY, rt.geometry::GEOGRAPHY)
-         INTO   NEW.river_distance
+         INTO   NEW.building_distance
          FROM   osm_waterways AS rt
          ORDER BY
                 NEW.geometry <-> rt.geometry
@@ -250,9 +250,9 @@ CREATE TRIGGER river_distance_mapper BEFORE INSERT OR UPDATE ON osm_buildings FO
     river_distance_mapper ();
 
 --- Add a new column for river_distance record
-ALTER table osm_buildings add column river_distance_recode numeric;
+ALTER table osm_buildings add column building_distance_score numeric;
 
-update osm_buildings set river_distance_recode =
+update osm_buildings set building_distance_score =
 CASE
             WHEN river_distance > 0 and river_distance <= 100 THEN 1.0
             WHEN river_distance > 100 and river_distance <= 300  THEN 0.7
@@ -272,7 +272,7 @@ BEGIN
             WHEN new.river_distance > 500 THEN 0.3
             ELSE 0.3
         END
-    INTO new.river_distance_recode
+    INTO new.building_distance_score
     FROM osm_buildings
     ;
   RETURN NEW;
@@ -313,9 +313,9 @@ SELECT building_type, COUNT(osm_id) FROM (
 GROUP BY building_type order by count;
 
 -- Create function to calculate the elevation of the nearest river in relation to  building centroid
-ALTER table osm_buildings add column river_elevation numeric;
+ALTER table osm_buildings add column vertical_river_distance numeric;
 
-update osm_buildings set river_elevation =ST_VALUE(foo.rast, foo.geom)
+update osm_buildings set vertical_river_distance =ST_VALUE(foo.rast, foo.geom)
     FROM (WITH location as (
         SELECT ST_X(st_centroid(geometry)) as latitude,ST_Y(st_centroid(geometry)) as longitude,
         ST_SetSRID(St_MakePoint(ST_X(st_centroid(geometry)),ST_Y(st_centroid(geometry))),4326) as geom
@@ -330,7 +330,7 @@ AS $$
 BEGIN
     SELECT
             ST_VALUE(rast, geom)
-    INTO new.river_elevation
+    INTO new.vertical_river_distance
     FROM (WITH location as (
         SELECT ST_X(st_centroid(new.geometry)) as latitude,ST_Y(st_centroid(new.geometry)) as longitude,
         ST_SetSRID(St_MakePoint(ST_X(st_centroid(new.geometry)),ST_Y(st_centroid(new.geometry))),4326) as geom
@@ -383,10 +383,10 @@ ALTER table osm_buildings add column low_lying_area_score numeric;
 
 UPDATE osm_buildings set low_lying_area_score =
         CASE
-            WHEN (building_elevation - river_elevation) <= 0  THEN 1.0
-            WHEN (building_elevation - river_elevation) > 0 and (building_elevation - river_elevation) <= 1   THEN 0.8
-            WHEN (building_elevation - river_elevation) > 1 and (building_elevation - river_elevation) <= 2  THEN 0.5
-            WHEN (building_elevation - river_elevation) > 2 THEN 0.1
+            WHEN (building_elevation - vertical_river_distance) <= 0  THEN 1.0
+            WHEN (building_elevation - vertical_river_distance) > 0 and (building_elevation - vertical_river_distance) <= 1   THEN 0.8
+            WHEN (building_elevation - vertical_river_distance) > 1 and (building_elevation - vertical_river_distance) <= 2  THEN 0.5
+            WHEN (building_elevation - vertical_river_distance) > 2 THEN 0.1
             ELSE 0.3
         END;
 
@@ -396,10 +396,10 @@ AS $$
 BEGIN
     SELECT
         CASE
-            WHEN (new.building_elevation - new.river_elevation) <= 0  THEN 1.0
-            WHEN (new.building_elevation - new.river_elevation) > 0 and (new.building_elevation - new.river_elevation) <= 1   THEN 0.8
-            WHEN (new.building_elevation - new.river_elevation) > 1 and (new.building_elevation - new.river_elevation) <= 2  THEN 0.5
-            WHEN (new.building_elevation - new.river_elevation) > 2 THEN 0.1
+            WHEN (new.building_elevation - new.vertical_river_distance) <= 0  THEN 1.0
+            WHEN (new.building_elevation - new.vertical_river_distance) > 0 and (new.building_elevation - new.vertical_river_distance) <= 1   THEN 0.8
+            WHEN (new.building_elevation - new.vertical_river_distance) > 1 and (new.building_elevation - new.vertical_river_distance) <= 2  THEN 0.5
+            WHEN (new.building_elevation - new.vertical_river_distance) > 2 THEN 0.1
             ELSE 0.3
         END
     INTO new.low_lying_area_score
