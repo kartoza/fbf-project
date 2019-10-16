@@ -28,7 +28,43 @@ CREATE TRIGGER notify_admin
 
 -- Vulnerability reporting and mapping for Buildings
 
+
+
+
 ALTER table osm_buildings add column building_type character varying (100);
+
+-- Initial Update
+update osm_buildings set building_type =
+  CASE
+           WHEN amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' THEN 'School'
+           WHEN amenity ILIKE '%university%' OR amenity ILIKE '%college%' THEN 'University/College'
+           WHEN amenity ILIKE '%government%' THEN 'Government'
+           WHEN amenity ILIKE '%clinic%' OR amenity ILIKE '%doctor%' THEN 'Clinic/Doctor'
+           WHEN amenity ILIKE '%hospital%' THEN 'Hospital'
+           WHEN amenity ILIKE '%fire%' THEN 'Fire Station'
+           WHEN amenity ILIKE '%police%' THEN 'Police Station'
+           WHEN amenity ILIKE '%public building%' THEN 'Public Building'
+           WHEN amenity ILIKE '%worship%' and (religion ILIKE '%islam' or religion ILIKE '%muslim%')
+               THEN 'Place of Worship -Islam'
+           WHEN amenity ILIKE '%worship%' and religion ILIKE '%budd%' THEN 'Place of Worship -Buddhist'
+           WHEN amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' THEN 'Place of Worship -Unitarian'
+           WHEN amenity ILIKE '%mall%' OR amenity ILIKE '%market%' THEN 'Supermarket'
+           WHEN landuse ILIKE '%residential%' OR use = 'residential' THEN 'Residential'
+           WHEN landuse ILIKE '%recreation_ground%' OR (leisure IS NOT NULL AND leisure != '') THEN 'Sports Facility'
+           -- run near the end
+           WHEN use = 'government' AND "type" IS NULL THEN 'Government'
+           WHEN use = 'residential' AND "type" IS NULL THEN 'Residential'
+           WHEN use = 'education' AND "type" IS NULL THEN 'School'
+           WHEN use = 'medical' AND "type" IS NULL THEN 'Clinic/Doctor'
+           WHEN use = 'place_of_worship' AND "type" IS NULL THEN 'Place of Worship'
+           WHEN use = 'school' AND "type" IS NULL THEN 'School'
+           WHEN use = 'hospital' AND "type" IS NULL THEN 'Hospital'
+           WHEN use = 'commercial' AND "type" IS NULL THEN 'Commercial'
+           WHEN use = 'industrial' AND "type" IS NULL THEN 'Industrial'
+           WHEN use = 'utility' AND "type" IS NULL THEN 'Utility'
+           -- Add default type
+           WHEN "type" IS NULL THEN 'Residential'
+        END;
 
 
 CREATE OR REPLACE FUNCTION building_types_mapper () RETURNS trigger LANGUAGE plpgsql
@@ -80,6 +116,21 @@ CREATE TRIGGER building_type_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR
 -- Function to recode buildings that have been reclassified above using the function building_types_mapper ()
 ALTER table osm_buildings add column building_type_recode numeric;
 
+update osm_buildings set building_type_recode =
+  CASE
+            WHEN building_type = 'accomodation' THEN 0.5
+            WHEN building_type = 'Commercial' THEN 0.5
+            WHEN building_type = 'School' THEN 1
+            WHEN building_type = 'Government' THEN 0.5
+            WHEN building_type = 'multipurpose' THEN 0.3
+            WHEN building_type = 'Place of Worship' THEN 0.5
+            WHEN building_type = 'Residential' THEN 1
+            WHEN building_type = 'ruko' THEN 1
+            WHEN building_type = 'shop' THEN 0.5
+            WHEN building_type = 'storage' THEN 0.5
+            ELSE 0.3
+        END;
+
 CREATE OR REPLACE FUNCTION building_recode_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -111,10 +162,19 @@ CREATE TRIGGER st_building_recoder BEFORE INSERT OR UPDATE ON osm_buildings FOR 
 -- Create a column to hold the recoded calculated area in the table
 ALTER table osm_buildings add column area_recode numeric;
 
+update osm_buildings set area_recode =
+        CASE
+            WHEN ST_Area(geometry::GEOGRAPHY) <= 100 THEN 1
+            WHEN ST_Area(geometry::GEOGRAPHY) > 100 and ST_Area(geometry::GEOGRAPHY) <= 300 THEN 0.7
+            WHEN ST_Area(geometry::GEOGRAPHY) > 300 and ST_Area(geometry::GEOGRAPHY) <= 500 THEN 0.5
+            WHEN ST_Area(geometry::GEOGRAPHY) > 500 THEN 0.3
+            ELSE 0.3
+        END;
+
 CREATE OR REPLACE FUNCTION building_area_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
-	SELECT
+  SELECT
         CASE
             WHEN ST_Area(new.geometry::GEOGRAPHY) <= 100 THEN 1
             WHEN ST_Area(new.geometry::GEOGRAPHY) > 100 and ST_Area(new.geometry::GEOGRAPHY) <= 300 THEN 0.7
@@ -122,8 +182,8 @@ BEGIN
             WHEN ST_Area(new.geometry::GEOGRAPHY) > 500 THEN 0.3
             ELSE 0.3
         END
-	INTO new.area_recode
-	FROM osm_buildings
+  INTO new.area_recode
+  FROM osm_buildings
     ;
   RETURN NEW;
   END
@@ -135,6 +195,13 @@ CREATE TRIGGER area_recode_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR E
 -- Create a column to hold the building materials class in the table
 ALTER table osm_buildings add column building_material_recode numeric;
 
+update osm_buildings set building_material_recode =
+  CASE
+        WHEN "building:material" = 'brick' THEN 0.5
+        WHEN "building:material" = 'glass' THEN 0.3
+        ELSE 0.3
+    END;
+
 CREATE OR REPLACE FUNCTION building_materials_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -144,7 +211,7 @@ BEGIN
         WHEN new."building:material" = 'brick' THEN 0.5
         WHEN new."building:material" = 'glass' THEN 0.3
         ELSE 0.3
-        END
+    END
     INTO new.building_material_recode
     FROM osm_buildings
     ;
@@ -157,6 +224,13 @@ CREATE TRIGGER building_material_mapper BEFORE INSERT OR UPDATE ON osm_buildings
 
 -- Function to calculate the distance from a river to the centroid of the building
 ALTER table osm_buildings add column river_distance numeric;
+
+update osm_buildings set river_distance=foo.distance FROM (SELECT ST_Distance(ST_Centroid(geometry)::GEOGRAPHY, rt.geometry::GEOGRAPHY) as distance
+
+         FROM   osm_waterways AS rt
+         ORDER BY
+               geometry <-> rt.geometry
+         LIMIT  1) foo;
 
 CREATE OR REPLACE FUNCTION river_distance_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
@@ -177,6 +251,15 @@ CREATE TRIGGER river_distance_mapper BEFORE INSERT OR UPDATE ON osm_buildings FO
 
 --- Add a new column for river_distance record
 ALTER table osm_buildings add column river_distance_recode numeric;
+
+update osm_buildings set river_distance_recode =
+CASE
+            WHEN river_distance > 0 and river_distance <= 100 THEN 1.0
+            WHEN river_distance > 100 and river_distance <= 300  THEN 0.7
+            WHEN river_distance > 300 and river_distance <= 500  THEN 0.5
+            WHEN river_distance > 500 THEN 0.3
+            ELSE 0.3
+        END;
 
 CREATE OR REPLACE FUNCTION river_distance_recode_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
@@ -232,6 +315,16 @@ GROUP BY building_type order by count;
 -- Create function to calculate the elevation of the nearest river in relation to  building centroid
 ALTER table osm_buildings add column river_elevation numeric;
 
+update osm_buildings set river_elevation =ST_VALUE(foo.rast, foo.geom)
+    FROM (WITH location as (
+        SELECT ST_X(st_centroid(geometry)) as latitude,ST_Y(st_centroid(geometry)) as longitude,
+        ST_SetSRID(St_MakePoint(ST_X(st_centroid(geometry)),ST_Y(st_centroid(geometry))),4326) as geom
+         FROM osm_buildings )
+        SELECT ST_LineInterpolatePoint(b.geometry, 0.5) as geom, e.rast from location as a , osm_waterways as b, dem as e
+        WHERE ST_Intersects(e.rast, a.geom)
+        ORDER BY a.geom <-> b.geometry
+        LIMIT  1) foo;
+
 CREATE OR REPLACE FUNCTION river_elevation_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -257,6 +350,15 @@ CREATE TRIGGER river_elevation_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR
 -- create a function to calculate the elevation of a building's centroid
 ALTER table osm_buildings add column building_elevation numeric;
 
+update osm_buildings set building_elevation =foo.height
+
+    FROM (WITH centroid as (
+ select ST_SetSRID(St_MakePoint(ST_X(st_centroid(geometry)),ST_Y(st_centroid(geometry))),4326) as geom FROM osm_buildings
+ )
+ SELECT ST_VALUE(e.rast, b.geom) as height
+  FROM dem e , centroid as b
+    WHERE ST_Intersects(e.rast, b.geom)) foo;
+
 CREATE OR REPLACE FUNCTION building_elevation_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -278,6 +380,15 @@ CREATE TRIGGER building_elevation_calc BEFORE INSERT OR UPDATE ON osm_buildings 
 
 -- create a function that recodes the values of the building elevation against the river elevation
 ALTER table osm_buildings add column low_lying_area_score numeric;
+
+UPDATE osm_buildings set low_lying_area_score =
+        CASE
+            WHEN (building_elevation - river_elevation) <= 0  THEN 1.0
+            WHEN (building_elevation - river_elevation) > 0 and (building_elevation - river_elevation) <= 1   THEN 0.8
+            WHEN (building_elevation - river_elevation) > 1 and (building_elevation - river_elevation) <= 2  THEN 0.5
+            WHEN (building_elevation - river_elevation) > 2 THEN 0.1
+            ELSE 0.3
+        END;
 
 
 CREATE OR REPLACE FUNCTION elevation_recode_mapper () RETURNS trigger LANGUAGE plpgsql
