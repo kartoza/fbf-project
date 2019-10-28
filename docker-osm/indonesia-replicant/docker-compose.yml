@@ -1,0 +1,58 @@
+version: '2.1'
+
+volumes:
+  pg-indonesia-data-dir:
+
+services:
+  indonesia-pg-replicant:
+    image: kartoza/postgis:11.0-2.5
+    restart: 'unless-stopped'
+    # You can optionally mount to volume, but we're not able to scale it
+    # in that case.
+    # The slave will always destroy its database and copy from master at
+    # runtime
+    volumes:
+      - pg-indonesia-data-dir:/var/lib/postgresql
+
+    environment:
+      # ALLOW_IP_RANGE option is used to specify additionals allowed domains
+      # in pg_hba.
+      # Not really needed in slaves for the replication, but optionally can
+      # be put when slaves are needed to be a failover server when master
+      # is down. The IP Range are generally needed if other services wants to
+      # connect to this slave
+      ALLOW_IP_RANGE: '0.0.0.0/0'
+
+      # REPLICATE_FROM options accepts domain-name or IP address
+      # with this in mind, you can also put docker service name, because it
+      # will be resolved as host name.
+      REPLICATE_FROM: '159.69.20.65'
+
+      # REPLICATE_PORT will default to 5432 if not specified.
+      # REPLICATE_PORT: '5432'
+      # In the case where you need to replicate from outside service,
+      # you can put the server address and port here, as long as the target
+      # where configured as master, and replicable.
+#      REPLICATE_FROM: '192.168.1.8'
+#      REPLICATE_PORT: '7777'
+
+      # DESTROY_DATABASE_ON_RESTART will default to True if not specified.
+      # If specified other than True, it will prevent slave from destroying
+      # database on restart
+      DESTROY_DATABASE_ON_RESTART: 'False'
+
+      # PROMOTE_MASTER Default empty.
+      # If specified with any value, then it will convert current slave into
+      # a writable state. Useful if master is down and the current slave needs
+      # to be promoted until manual recovery.
+#      PROMOTE_MASTER: 'True'
+
+      # For now we don't support different credentials for replication
+      # so we use the same credentials as master's superuser, or anything that
+      # have replication role.
+      POSTGRES_USER: 'docker'
+      POSTGRES_PASS: 'docker'
+    # You can expose the port to observe it in your local machine
+    # For this sample, it was disabled by default to allow scaling test
+    ports:
+      - "5431:5432"
