@@ -660,6 +660,23 @@ CREATE  INDEX mv_idy_ft_bd_area_score ON filtered_osm_buildings_mv (building_are
 CREATE  INDEX mv_idy_ft_bd_rd_score ON filtered_osm_buildings_mv (building_road_density_score);
 CREATE  INDEX mv_idy_ft_bd_vuln_score ON filtered_osm_buildings_mv (total_vulnerability);
 
+CREATE MATERIALIZED VIEW filtered_osm_waterways_mv as
+    select osm_id,waterway, b.id as waterway_id,a.geometry from osm_waterways as a ,waterway_type_class as b where
+ a.waterway=b.waterway_class;
+
+CREATE UNIQUE INDEX mv_idx_ft_osm_id ON filtered_osm_waterways_mv (osm_id);
+CREATE  INDEX mv_idn_ft_waterways_water ON filtered_osm_waterways_mv (waterway);
+CREATE  INDEX mv_idn_ft_waterways_id ON filtered_osm_waterways_mv (waterway_id);
+
+CREATE MATERIALIZED VIEW filtered_osm_roads_mv as
+    select osm_id,road_type, b.id as roads_id,a.geometry from osm_roads as a ,road_type_class as b where
+ a.road_type=b.road_class;
+
+CREATE UNIQUE INDEX mv_idz_ft_osm_id ON filtered_osm_roads_mv (osm_id);
+CREATE  INDEX mv_idn_fz_roads_cond ON filtered_osm_roads_mv (road_type);
+CREATE  INDEX mv_idn_fz_roads_id ON filtered_osm_roads_mv (roads_id);
+
+
 
 -- All triggers will come in the last part
 -- Based on the tables defined in the mapping.yml create triggers
