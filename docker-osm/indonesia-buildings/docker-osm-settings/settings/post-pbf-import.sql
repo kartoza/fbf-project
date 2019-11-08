@@ -1,15 +1,19 @@
 -- Updates for all tables
+-- These are mandatory first
 ALTER table osm_buildings add column building_type character varying (100);
 ALTER table osm_buildings add column building_type_score numeric;
 ALTER table osm_buildings add column building_area  numeric;
 ALTER TABLE osm_buildings add column building_area_score numeric;
 ALTER table osm_buildings add column building_material_score numeric;
+ALTER TABLE osm_buildings add column building_road_length numeric;
+ALTER TABLE osm_buildings add column building_road_density_score numeric;
+ALTER TABLE osm_roads add column road_type character varying (50);
+
+-- These ones are secondary can be run at some point in time
 ALTER table osm_buildings add column building_river_distance  numeric;
 ALTER table osm_buildings add column building_distance_score numeric;
 ALTER table osm_buildings add column vertical_river_distance numeric;
 ALTER table osm_buildings add column building_elevation numeric;
-ALTER TABLE osm_buildings add column building_road_length numeric;
-ALTER TABLE osm_roads add column road_type character varying (50);
 ALTER TABLE osm_buildings add column building_river_distance_score numeric;
 
 -- Add a trigger function to notify QGIS of DB changes
@@ -37,13 +41,14 @@ BEGIN
            WHEN new.amenity ILIKE '%police%' THEN 'Police Station'
            WHEN new.amenity ILIKE '%public building%' THEN 'Public Building'
            WHEN new.amenity ILIKE '%worship%' and (religion ILIKE '%islam' or religion ILIKE '%muslim%')
-               THEN 'Place of Worship -Islam'
-           WHEN new.amenity ILIKE '%worship%' and religion ILIKE '%budd%' THEN 'Place of Worship -Buddhist'
-           WHEN new.amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' THEN 'Place of Worship -Unitarian'
+               THEN 'Place of Worship - Islam'
+           WHEN new.amenity ILIKE '%worship%' and religion ILIKE '%budd%' THEN 'Place of Worship - Buddhist'
+           WHEN new.amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' THEN 'Place of Worship - Unitarian'
            WHEN new.amenity ILIKE '%mall%' OR new.amenity ILIKE '%market%' THEN 'Supermarket'
            WHEN new.landuse ILIKE '%residential%' OR new.use = 'residential' THEN 'Residential'
            WHEN new.landuse ILIKE '%recreation_ground%' OR (leisure IS NOT NULL AND leisure != '') THEN 'Sports Facility'
            -- run near the end
+           WHEN new.amenity ILIKE 'yes' THEN 'Residential'
            WHEN new.use = 'government' AND new."type" IS NULL THEN 'Government'
            WHEN new.use = 'residential' AND new."type" IS NULL THEN 'Residential'
            WHEN new.use = 'education' AND new."type" IS NULL THEN 'School'
@@ -100,6 +105,14 @@ CREATE FUNCTION building_area_mapper() RETURNS trigger
   END
   $$;
 
+CREATE FUNCTION total_vulnerability() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    NEW.total_vulnerability:=((new.building_type_score + new.building_material_score + new.building_area_score) / 3);
+  RETURN NEW;
+  END
+  $$;
 
 
 CREATE OR REPLACE FUNCTION building_area_score_mapper () RETURNS trigger LANGUAGE plpgsql
@@ -107,10 +120,10 @@ AS $$
 BEGIN
   SELECT
         CASE
-            WHEN new.building_area <= 100 THEN 1
-            WHEN new.building_area > 100 and new.building_area <= 300 THEN 0.7
-            WHEN new.building_area > 300 and new.building_area <= 500 THEN 0.5
-            WHEN new.building_area > 500 THEN 0.3
+            WHEN new.building_area <= 10 THEN 1
+            WHEN new.building_area > 10 and new.building_area <= 30 THEN 0.7
+            WHEN new.building_area > 30 and new.building_area <= 100 THEN 0.5
+            WHEN new.building_area > 100 THEN 0.3
             ELSE 0.3
         END
   INTO new.building_area_score
@@ -127,8 +140,8 @@ BEGIN
     SELECT
 
     CASE
-        WHEN new."building:material" = 'brick' THEN 0.5
-        WHEN new."building:material" = 'glass' THEN 0.3
+        WHEN new."building:material" ILIKE 'brick%' THEN 0.5
+        WHEN new."building:material" = 'concrete' THEN 0.1
         ELSE 0.3
     END
     INTO new.building_material_score
@@ -251,13 +264,12 @@ from osm_buildings as a   group by a.geom,gid )
 
   END
   $$;
-
+-- Refresh materialized views
 CREATE FUNCTION refresh_osm_build_stats() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
   BEGIN
-    REFRESH MATERIALIZED VIEW  osm_buildings_mv ;
-  RETURN NEW;
+    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_buildings_mv ;
   END
   $$;
 
@@ -266,8 +278,7 @@ CREATE FUNCTION refresh_osm_roads_stats() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
   BEGIN
-    REFRESH MATERIALIZED VIEW  osm_roads_mv;
-  RETURN NEW;
+    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_roads_mv;
   END
   $$;
 
@@ -275,11 +286,17 @@ CREATE FUNCTION refresh_osm_waterways_stats() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
   BEGIN
-    REFRESH MATERIALIZED VIEW  osm_waterways_mv ;
-  RETURN NEW;
+    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_waterways_mv ;
   END
   $$;
 
+CREATE FUNCTION refresh_filtered_buildings() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY filtered_osm_buildings_mv ;
+  END
+  $$;
 CREATE OR REPLACE FUNCTION road_type_mapping () RETURNS trigger LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -360,32 +377,32 @@ BEGIN
 -- Initial Updates for all tables
 
 -- Initial update for osm_building_type
-update osm_buildings set building_type = 'School'         WHERE amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' ;
-update osm_buildings set building_type = 'University/College'         WHERE amenity ILIKE '%university%' OR amenity ILIKE '%college%' ;
-update osm_buildings set building_type = 'Government'        WHERE amenity ILIKE '%government%' ;
-update osm_buildings set building_type = 'Clinic/Doctor'         WHERE amenity ILIKE '%clinic%' OR amenity ILIKE '%doctor%' ;
-update osm_buildings set building_type = 'Hospital'         WHERE amenity ILIKE '%hospital%' ;
-update osm_buildings set building_type = 'Fire Station'        WHERE amenity ILIKE '%fire%' ;
-update osm_buildings set building_type = 'Police Station'        WHERE amenity ILIKE '%police%' ;
-update osm_buildings set building_type = 'Public Building'         WHERE amenity ILIKE '%public building%' ;
-update osm_buildings set building_type = 'Place of Worship -Islam'         WHERE amenity ILIKE '%worship%' and (religion ILIKE '%islam' or religion ILIKE '%muslim%');
-
-update osm_buildings set building_type = 'Place of Worship -Buddhist'         WHERE amenity ILIKE '%worship%' and religion ILIKE '%budd%';
-update osm_buildings set building_type = 'Place of Worship -Unitarian'         WHERE amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' ;
-update osm_buildings set building_type = 'Supermarket'          WHERE amenity ILIKE '%mall%' OR amenity ILIKE '%market%' ;
- update osm_buildings set building_type = 'Residential'          WHERE landuse ILIKE '%residential%' OR use = 'residential';
-update osm_buildings set building_type = 'Sports Facility'          WHERE landuse ILIKE '%recreation_ground%' OR (leisure IS NOT NULL AND leisure != '') ;
+update osm_buildings set building_type = 'School' WHERE amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' ;
+update osm_buildings set building_type = 'University/College'   WHERE amenity ILIKE '%university%' OR amenity ILIKE '%college%' ;
+update osm_buildings set building_type = 'Government'  WHERE amenity ILIKE '%government%' ;
+update osm_buildings set building_type = 'Clinic/Doctor'  WHERE amenity ILIKE '%clinic%' OR amenity ILIKE '%doctor%' ;
+update osm_buildings set building_type = 'Hospital' WHERE amenity ILIKE '%hospital%' ;
+update osm_buildings set building_type = 'Fire Station'  WHERE amenity ILIKE '%fire%' ;
+update osm_buildings set building_type = 'Police Station' WHERE amenity ILIKE '%police%' ;
+update osm_buildings set building_type = 'Public Building' WHERE amenity ILIKE '%public building%' ;
+update osm_buildings set building_type = 'Place of Worship -Islam' WHERE amenity ILIKE '%worship%' and (religion ILIKE '%islam' or religion ILIKE '%muslim%');
+update osm_buildings set building_type = 'Residential'  WHERE amenity = 'yes' ;
+update osm_buildings set building_type = 'Place of Worship -Buddhist' WHERE amenity ILIKE '%worship%' and religion ILIKE '%budd%';
+update osm_buildings set building_type = 'Place of Worship -Unitarian'  WHERE amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' ;
+update osm_buildings set building_type = 'Supermarket'  WHERE amenity ILIKE '%mall%' OR amenity ILIKE '%market%' ;
+update osm_buildings set building_type = 'Residential'  WHERE landuse ILIKE '%residential%' OR use = 'residential';
+update osm_buildings set building_type = 'Sports Facility' WHERE landuse ILIKE '%recreation_ground%' OR (leisure IS NOT NULL AND leisure != '') ;
            -- run near the end
-update osm_buildings set building_type = 'Government'          WHERE use = 'government' AND "type" IS NULL ;
-update osm_buildings set building_type = 'Residential'          WHERE use = 'residential' AND "type" IS NULL ;
- update osm_buildings set building_type = 'School'         WHERE use = 'education' AND "type" IS NULL ;
-update osm_buildings set building_type = 'Clinic/Doctor'          WHERE use = 'medical' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Place of Worship'         WHERE use = 'place_of_worship' AND "type" IS NULL ;
- update osm_buildings set building_type = 'School'         WHERE use = 'school' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Hospital'         WHERE use = 'hospital' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Commercial'         WHERE use = 'commercial' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Industrial'         WHERE use = 'industrial' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Utility'         WHERE use = 'utility' AND "type" IS NULL ;
+update osm_buildings set building_type = 'Government'  WHERE use = 'government' AND "type" IS NULL ;
+update osm_buildings set building_type = 'Residential'  WHERE use = 'residential' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'School'  WHERE use = 'education' AND "type" IS NULL ;
+update osm_buildings set building_type = 'Clinic/Doctor' WHERE use = 'medical' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Place of Worship'  WHERE use = 'place_of_worship' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'School'   WHERE use = 'school' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Hospital'   WHERE use = 'hospital' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Commercial'   WHERE use = 'commercial' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Industrial'   WHERE use = 'industrial' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Utility'   WHERE use = 'utility' AND "type" IS NULL ;
            -- Add default type
  update osm_buildings set building_type = 'Residential'  WHERE "type" IS NULL ;
 
@@ -411,51 +428,37 @@ update osm_roads set road_type =  "type" = 'Cycleway, footpath, etc.' where  typ
 
 -- Initial update to recode the building_type calculated above for osm_building_type
 
-update osm_buildings set building_type_score =
-  CASE
-            WHEN building_type = 'Clinic/Doctor' THEN 0.7
-            WHEN building_type = 'Commercial' THEN 0.7
-            WHEN building_type = 'School' THEN 1
-            WHEN building_type = 'Government' THEN 0.7
-            WHEN building_type ILIKE 'Place of Worship%' THEN 0.5
-            WHEN building_type = 'Residential' THEN 1
-            WHEN building_type = 'Police Station' THEN 0.7
-            WHEN building_type = 'Fire Station' THEN 0.7
-            WHEN building_type = 'Hospital' THEN 0.7
-            WHEN building_type = 'Supermarket' THEN 0.7
-            WHEN building_type = 'Sports Facility' THEN 0.3
-            WHEN building_type = 'University/College' THEN 1.0
-            ELSE 0.3
-        END;
-
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Clinic/Doctor';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Commercial';
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'School';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Government';
+update osm_buildings set building_type_score = 0.5 WHERE building_type ILIKE 'Place of Worship%' ;
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'Residential';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Police Station' ;
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Fire Station';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Hospital';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Supermarket';
+update osm_buildings set building_type_score = 0.3 WHERE building_type = 'Sports Facility';
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'University/College';
+update osm_buildings set building_type_score = 0.3 WHERE building_type_score is null;
 
 -- Create a column to store the area for osm_buildings
 
-update osm_buildings set building_area  =
-         ST_Area(geometry::GEOGRAPHY) ;
+update osm_buildings set building_area  = ST_Area(geometry::GEOGRAPHY) ;
 
 -- Initial updates to update the building_area
 
-update osm_buildings set building_area_score  =
-        CASE
-            WHEN building_area <= 100 THEN 1
-            WHEN building_area > 100 and building_area <= 300 THEN 0.7
-            WHEN building_area > 300 and building_area <= 500 THEN 0.5
-            WHEN building_area > 500 THEN 0.3
-            ELSE 0.3
-        END;
-
+update osm_buildings set building_area_score  = 1   WHERE building_area <= 10;
+update osm_buildings set building_area_score  = 0.7 WHERE building_area > 10 and building_area <= 30;
+update osm_buildings set building_area_score  = 0.5 WHERE building_area > 30 and building_area <= 100;
+update osm_buildings set building_area_score  = 0.3 WHERE building_area > 100;
 
 
 -- reclassify building material to create building_material score
 
-update osm_buildings set building_material_score =
-  CASE
-        WHEN "building:material" = 'brick' THEN 0.5
-        WHEN "building:material" = 'glass' THEN 0.3
-        ELSE 0.3
-    END;
-
+update osm_buildings set building_material_score = 0.5 WHERE "building:material" ILIKE 'brick%';
+update osm_buildings set building_material_score = 0.1 WHERE "building:material" = 'concrete';
+update osm_buildings set building_material_score = 0.3 WHERE building_material_score is null;
 
 
 
@@ -580,24 +583,40 @@ GROUP BY building_type order by count;
 
 
 -- Create Mviews or views for FBIS dashboards
+--- Create lookup tables
+create table building_type_class (id serial, building_class character varying (100));
+create table road_type_class (id serial, road_class character varying (100));
+create table waterway_type_class (id serial, waterway_class character varying (100));
+
+insert into building_type_class (building_class) select distinct(building_type) from osm_buildings;
+insert into road_type_class (road_class) select distinct(road_type) from osm_roads;
+insert into waterway_type_class (waterway_class) select distinct(waterway) from osm_waterways;
+
+
 
 -- count number or buildings by building_type
 
 CREATE MATERIALIZED VIEW osm_buildings_mv as
-SELECT building_type , COUNT (building_type)
-FROM osm_buildings
-GROUP BY building_type;
+SELECT a.building_type , COUNT (building_type), b.id as building_id
+FROM osm_buildings as a, building_type_class as b
+where a.building_type = b.building_class
+GROUP BY a.building_type,b.id;
 
-CREATE UNIQUE INDEX un_idx_type ON osm_buildings_mv (building_type);
+CREATE UNIQUE INDEX mv_idx_building_type ON osm_buildings_mv (building_type);
+CREATE  INDEX mv_idx_buildings_id ON osm_buildings_mv (building_id);
+
 
 
 -- count number or roads by road_type
 CREATE MATERIALIZED VIEW osm_roads_mv as
-SELECT road_type , COUNT (road_type)
-FROM osm_roads
-GROUP BY road_type;
+SELECT a.road_type , COUNT (road_type), b.id as road_id
+FROM osm_roads as a, road_type_class as b
+where a.road_type = b.road_class
+GROUP BY a.road_type,b.id;
 
-CREATE UNIQUE INDEX un_idx_roads_type ON osm_roads_mv (road_type);
+
+CREATE UNIQUE INDEX mv_idx_road_type ON osm_roads_mv (road_type);
+CREATE  INDEX mv_idx_road_id ON osm_roads_mv (road_id);
 
 
 
@@ -605,11 +624,13 @@ CREATE UNIQUE INDEX un_idx_roads_type ON osm_roads_mv (road_type);
 -- count number or waterways by waterway
 
 CREATE MATERIALIZED VIEW osm_waterways_mv as
-SELECT waterway as type, COUNT (waterway)
-FROM osm_waterways
-GROUP BY waterway;
+SELECT a.waterway , COUNT (waterway), b.id as waterway_id
+FROM osm_waterways as a, waterway_type_class as b
+where a.waterway = b.waterway_class
+GROUP BY a.waterway,b.id;
 
-CREATE UNIQUE INDEX  un_idx_wt_way on osm_waterways_mv ("type");
+CREATE UNIQUE INDEX mv_idx_waterway_type ON osm_waterways_mv (waterway);
+CREATE  INDEX mv_idx_waterway_id ON osm_waterways_mv (waterway_id);
 
 -- Create OSM Flood layer for inserting from dashboard
 
@@ -626,7 +647,18 @@ CREATE INDEX idx_osm_building on osm_buildings (building_type);
 CREATE INDEX idx_osm_waterway on osm_waterways (waterway);
 CREATE INDEX idx_osm_bd_score on osm_buildings (building_type_score);
 
+CREATE MATERIALIZED VIEW filtered_osm_buildings_mv as
+    select a.osm_id,a.building_type,a.building_type_score,a.building_material_score,a.building_area_score,
+           a.building_road_density_score,a.total_vulnerability, b.id as building_id,a.geometry from osm_buildings as a ,building_type_class as b where
+a."amenity" not in ('grass','meadow', 'forest','farm','farm_auxiliary','farmland',
+'farmyard', 'woods','industrial')  and "building_area" < 7000 and building_type is not null and a.building_type=b.building_class;
 
+CREATE UNIQUE INDEX mv_idx_ft_buildings ON filtered_osm_buildings_mv (osm_id);
+CREATE  INDEX mv_idx_ft_buildings ON filtered_osm_buildings_mv (building_type_score);
+CREATE  INDEX mv_idy_ft_bd_mt_score ON filtered_osm_buildings_mv (building_material_score);
+CREATE  INDEX mv_idy_ft_bd_area_score ON filtered_osm_buildings_mv (building_area_score);
+CREATE  INDEX mv_idy_ft_bd_rd_score ON filtered_osm_buildings_mv (building_road_density_score);
+CREATE  INDEX mv_idy_ft_bd_vuln_score ON filtered_osm_buildings_mv (total_vulnerability);
 
 
 -- All triggers will come in the last part
@@ -693,4 +725,7 @@ CREATE TRIGGER waterways_stats_rf BEFORE INSERT OR UPDATE ON osm_waterways FOR E
 
 CREATE TRIGGER road_length_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
     building_road_density_mapper () ;
+
+CREATE TRIGGER z_filtered_osm_build_tg BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+   refresh_filtered_buildings() ;
 
