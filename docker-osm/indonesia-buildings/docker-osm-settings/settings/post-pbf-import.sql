@@ -166,7 +166,7 @@ BEGIN
             FROM
               osm_roads as v,
              (select osm_id,st_buffer(st_transform(ST_SetSRID(ST_Extent(geometry),4326),3857),1000) as geom
-from osm_buildings as a   group by a.geom,osm_id )
+from osm_buildings as a   group by a.geometry,osm_id )
              as m
             WHERE
               ST_Intersects(st_transform(v.geometry,3857), m.geom) and v.highway in ('trunk','road','secondary','trunk_link','secondary_link','tertiary_link', 'primary', 'residential', 'primary_link',
@@ -394,7 +394,7 @@ update osm_buildings set building_road_length =foo.total_length
             FROM
               osm_roads as v,
              (select osm_id,st_buffer(st_transform(ST_SetSRID(ST_Extent(geometry),4326),3857),1000) as geom
-from osm_buildings as a   group by a.geom,osm_id )
+from osm_buildings as a   group by a.geometry,osm_id )
              as m
             WHERE
               ST_Intersects(st_transform(v.geometry,3857), m.geom) and v.highway in ('trunk','road','secondary','trunk_link','secondary_link','tertiary_link', 'primary', 'residential', 'primary_link',
