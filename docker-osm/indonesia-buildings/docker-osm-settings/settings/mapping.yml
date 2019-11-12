@@ -10,12 +10,6 @@ tables:
     - key: name
       name: name
       type: string
-    - key: use
-      name: use
-      type: string
-    - key: religion
-      name: religion
-      type: string
     - key: leisure
       name: leisure
       type: string
@@ -31,21 +25,6 @@ tables:
     - key: "building:min_level"
       name: "building:min_level"
       type: integer
-    - key: "roof:direction"
-      name: "roof:direction"
-      type: string
-    - key: "roof:levels"
-      name: "roof:levels"
-      type: integer
-    - key: "roof:shape"
-      name: "roof:shape"
-      type: string
-    - key: surface
-      name: surface
-      type: string
-    - key: "roof:orientation"
-      name: "roof:orientation"
-      type: string
     - key: "roof:height"
       name: "roof:height"
       type: integer
@@ -54,6 +33,12 @@ tables:
       type: string
     - key: "building:material"
       name: "building:material"
+      type: string
+    - key: use
+      name: use
+      type: string
+    - key: religion
+      name: religon
       type: string
     - name: type
       type: mapping_value
@@ -65,9 +50,39 @@ tables:
       building:
       - __any__
       amenity:
-      - __any__
+        - school
+        - university
+        - government
+        - clinic
+        - hospital
+        - fire
+        - police
+        - public building
+        - worship
+        - mall
+        - doctor
+        - kindergarten
+        - college
+        - market
       landuse:
-      - __any__
+        - residential
+        - recreation_ground
+      religion:
+        - islam
+        - muslim
+        - budd
+        - unitarian
+      use:
+        - government
+        - residential
+        - education
+        - medical
+        - place_of_worship
+        - school
+        - hospital
+        - commercial
+        - industrial
+        - utility
     type: polygon
   admin:
     columns:
@@ -96,18 +111,6 @@ tables:
       - key: name
         name: name
         type: string
-      - key: boat
-        name: boat
-        type: bool
-      - key: intermittent
-        name: intermittent
-        type: bool
-      - key: name:af
-        name: name:af
-        type: string
-      - key: osm_type
-        name: osm_type
-        type: string
       - name: waterway
         type: mapping_value
     mapping:
@@ -130,16 +133,50 @@ tables:
       - key: name
         name: name
         type: string
+      - key: oneway
+        name: oneway
+        type: direction
+      - key: layer
+        name: z_order
+        type: wayzorder
+      - key: service
+        name: service
+        type: string
       - name: class
         type: mapping_key
     filters:
       reject:
         area: ["yes"]
     mappings:
+
       roads:
         mapping:
           highway:
-            - __any__
+            - motorway
+            - motorway_link
+            - trunk
+            - trunk_link
+            - primary
+            - primary_link
+            - secondary
+            - secondary_link
+            - tertiary
+            - tertiary_link
+            - road
+            - path
+            - track
+            - service
+            - footway
+            - bridleway
+            - cycleway
+            - steps
+            - pedestrian
+            - living_street
+            - unclassified
+            - residential
+            - raceway
+          man_made:
+            - pier
+            - groyne
     type: linestring
-
 
