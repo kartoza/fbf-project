@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>fbf project</title>
+    <link href="js/libs/leaflet/1.5.1/leaflet.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="js/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="js/libs/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="js/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="js/libs/ion-rangeslider/2.3.0/css/ion.rangeSlider.min.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="css/dashboard.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+    <link href="css/side-panel.css" rel="stylesheet" type="text/css" media="screen, projection"/>
+</head>
+
+<body>
+<div id="map" class="flex-item"></div>
+<div class="flex-item" style="position: relative">
+    <div id="side-panel">
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#accordion" href="#waterways-filter">
+                    Rivers</a>
+                <div id="waterways-filter" class="panel-collapse collapse">
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#accordion" href="#buildings-filter">
+                    Buildings</a>
+                <div id="buildings-filter" class="panel-collapse collapse">
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#accordion" href="#buliding-vulnerability">
+                    Buliding Vulnerability</a>
+                <div id="buliding-vulnerability" class="panel-collapse collapse">
+                    <div class="inner-panel">
+                        <div>Building type</div>
+                        <input id="building-type-filter"/>
+                    </div>
+                    <div class="inner-panel">
+                        <div>Building material</div>
+                        <input id="building-material-filter"/>
+                    </div>
+                    <div class="inner-panel">
+                        <div>Building area</div>
+                        <input id="building-area-filter"/>
+                    </div>
+                    <div class="inner-panel">
+                        <div>Building road density</div>
+                        <input id="building-road-density-filter"/>
+                    </div>
+                    <div class="inner-panel">
+                        <div>Total Vulnerability</div>
+                        <input id="building-total-vulnerability-filter"/>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#accordion" href="#roads-filter">
+                    Roads</a>
+                <div id="roads-filter" class="panel-collapse collapse">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="side-panel-footer">
+        <a href="https://kartoza.com/id/" style="font-weight: 900;">
+            <img src="images/kartoza-logo.png" height="100"> Kartoza
+        </a>
+        <a href="https://github.com/kartoza/fbf-project/" style="color: #cc9c43" class="pull-right">
+            github</a>
+    </div>
+</div>
+</body>
+
+<script type='text/template' id='-filter-multiselect'>
+    <div class="inner-panel">
+        <% if(options.length > 0) { %>
+        <% _.each(options, function(option){ %>
+        <% if(option['type'] && option['count']) { %>
+        <input type="checkbox" value="<%= option['type_id'] %>" checked> <%= option['type'].capitalize() %> (<span data-type="<%= option['type_id'] %>"><%= option['count'] %></span>)<br>
+        <% } %>
+        <%}) %>
+        <% } else { %>
+        <i class="fa fa-circle-o-notch fa-spin"></i> <i class="loading">fetching list</i>
+        <% } %>
+    </div>
+</script>
+<!--TODO: We need to fix this by just get the geojson -->
+<!--<script type="text/javascript" src="http://159.69.44.205/data/IndonesiaBoundary_3.js"></script>-->
+
+<!-- Correct javascripts-->
+<script type="text/javascript" src="js/libs/require.js/2.3.6/require.min.js"></script>
+<script type="text/javascript" src="js/shared.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+</html>
