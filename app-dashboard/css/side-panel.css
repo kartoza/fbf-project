@@ -1,0 +1,86 @@
+#side-panel {
+    height: 100%;
+    padding-bottom: 48px;
+}
+
+#side-panel #accordion {
+    height: 100%;
+    overflow-y: scroll;
+}
+
+#side-panel-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 48px;
+    padding: 12px;
+    font-size: 16px;
+    padding-right: 30px;
+    padding-left: 20px;
+    border-top: 1px solid #dddddd;
+    cursor: pointer;
+    background-color: #414042;
+    color: white;
+}
+
+#side-panel-footer a {
+    text-decoration: none;
+    color: white;
+    font-family: 'Leto', sans-serif;
+}
+
+#side-panel-footer a:hover {
+    opacity: 0.5;
+}
+
+
+#side-panel-footer img {
+    height: 100%;
+}
+
+#side-panel input[type='checkbox'] {
+    cursor: pointer;
+}
+
+#side-panel .panel-heading {
+    width: 100%;
+    display: inline-block;
+    text-decoration: none;
+}
+
+#side-panel .panel-collapse {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+#side-panel .inner-panel {
+    padding: 10px 15px;
+}
+
+#side-panel .panel-heading:hover {
+    opacity: 0.5;
+}
+
+#side-panel .panel {
+    margin-top: -1px;
+}
+
+#side-panel .panel-heading:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';
+    content: "\e114";
+    float: right;
+    color: grey;
+}
+
+#side-panel .panel-heading.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e080";
+}
+
+#side-panel .panel-group {
+    margin-bottom: 0;
+}
+
+#side-panel .loading {
+    opacity: 0.6;
+}
