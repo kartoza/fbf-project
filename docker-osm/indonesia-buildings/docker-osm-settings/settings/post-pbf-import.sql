@@ -483,24 +483,30 @@ CREATE  INDEX mv_idn_fz_roads_id ON filtered_osm_roads_mv (roads_id);
 
 -- views to use when creating flood polygons
 
-   CREATE OR REPLACE VIEW osm_buildings_flood_v as
-   SELECT b.id as flood_id , a.osm_id, a.geometry from filtered_osm_buildings_mv as a inner join osm_flood as b on ST_Within(a.geometry,b.geometry)
+  CREATE OR REPLACE VIEW osm_buildings_flood_v as
+   SELECT b.id as flood_id , a.osm_id,a.building_type_score,a.building_material_score,a.building_area_score,
+          a.building_road_density_score,a.total_vulnerability , a.geometry from filtered_osm_buildings_mv as a
+       inner join osm_flood as b on ST_Within(a.geometry,b.geometry)
     union
-    SELECT d.id as flood_id , c.osm_id, c.geometry from filtered_osm_buildings_mv as c inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
-
+    SELECT d.id as flood_id , c.osm_id, c.building_type_score,c.building_material_score,c.building_area_score,
+           c.building_road_density_score,c.total_vulnerability , c.geometry from filtered_osm_buildings_mv as c
+               inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
 
    CREATE OR REPLACE VIEW osm_waterways_flood_v as
-   SELECT b.id as flood_id , a.osm_id,a.waterway, a.geometry from filtered_osm_waterways_mv as a inner join osm_flood as b on ST_Within(a.geometry,b.geometry)
+   SELECT b.id as flood_id , a.osm_id,a.waterway, a.geometry from filtered_osm_waterways_mv as a inner join
+       osm_flood as b on ST_Within(a.geometry,b.geometry)
     union
-    SELECT d.id as flood_id , c.osm_id,c.waterway, c.geometry from filtered_osm_waterways_mv as c inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
+    SELECT d.id as flood_id , c.osm_id,c.waterway, c.geometry from filtered_osm_waterways_mv as c inner join
+        osm_flood as d on ST_Intersects(c.geometry,d.geometry);
 
 
 
    CREATE OR REPLACE VIEW osm_roads_flood_v as
-   SELECT b.id as flood_id , a.osm_id, a.geometry from filtered_osm_roads_mv as a inner join osm_flood as b on ST_Within(a.geometry,b.geometry)
+   SELECT b.id as flood_id , a.osm_id, a.geometry from filtered_osm_roads_mv as a inner join osm_flood as b
+       on ST_Within(a.geometry,b.geometry)
     union
-    SELECT d.id as flood_id , c.osm_id, c.geometry from filtered_osm_roads_mv as c inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
-
+    SELECT d.id as flood_id , c.osm_id, c.geometry from filtered_osm_roads_mv as c inner join osm_flood as d
+        on ST_Intersects(c.geometry,d
 
 -- All triggers will come in the last part
 -- Based on the tables defined in the mapping.yml create triggers
