@@ -6,3 +6,4 @@
 *.DS_Store
 srtm_30m_dem/output/*
 srtm_30m_dem/archives/*
+.idea/
