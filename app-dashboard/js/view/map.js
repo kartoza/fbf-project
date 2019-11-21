@@ -5,12 +5,10 @@ define([
     'js/view/layers.js',
 ], function (Backbone, $, Basemap, Layers) {
     return Backbone.View.extend({
-        initBounds: [[-25.232732932266735, 93.85489258365217], [19.985307983544566, 142.16236486638226]],
+        initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
         initialize: function () {
             // constructor
-            this.map = L.map('map', {
-                crs: L.CRS.EPSG4326
-            }).setView([51.505, -0.09], 13).fitBounds(this.initBounds);
+            this.map = L.map('map').setView([51.505, -0.09], 13).fitBounds(this.initBounds);
             this.basemap = new Basemap(this);
             this.layers = new Layers(this);
             L.control.layers(
