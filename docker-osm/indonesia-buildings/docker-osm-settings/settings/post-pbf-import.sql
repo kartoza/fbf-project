@@ -7,6 +7,7 @@ ALTER TABLE osm_buildings add column building_area_score numeric;
 ALTER table osm_buildings add column building_material_score numeric;
 ALTER TABLE osm_buildings add column building_road_length numeric;
 ALTER TABLE osm_buildings add column building_road_density_score numeric;
+ALTER table osm_buildings add column total_vulnerability numeric;
 ALTER TABLE osm_roads add column road_type character varying (50);
 
 -- These ones are secondary can be run at some point in time
@@ -743,3 +744,13 @@ SELECT building_type, COUNT(osm_id) FROM (
     INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
 ) subquery
 GROUP BY building_type order by count;
+
+-- Find all the names of admin areas intersecting a flood layer
+
+create view flood_admin_areas_intersect_v as
+select b.name as village_name,c.name as province_name, d.name as district_name,
+e.name as sub_district_name, a.id as flood_id from osm_flood as a join village as b on
+st_intersects(b.geom,a.geometry) join province as c on c.prov_code = b.prov_code
+join district as d on d.dc_code = b.dc_code
+join sub_district as e on e.sub_dc_code = b.sub_dc_code;
+

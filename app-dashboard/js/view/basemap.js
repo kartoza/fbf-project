@@ -3,7 +3,7 @@ define([
     return Backbone.View.extend({
         basemaps: {
             "Kartoza": L.tileLayer.wms(
-                geoserverUrl, {
+                gwcURL, {
                     layers: 'kartoza:web',
                     format: 'image/png',
                     transparent: true,
