@@ -29,6 +29,7 @@ define([
                 layers: this._layers,
                 format: 'image/png',
                 transparent: true,
+                tiled: true,
             };
             if (cqlFilters) {
                 parameters['cql_filter'] = cqlFilters
