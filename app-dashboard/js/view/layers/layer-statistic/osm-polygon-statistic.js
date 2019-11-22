@@ -18,7 +18,7 @@ define([
             this.polygon = null;
             if (this.polygonID) {
                 AppRequest.delete(
-                    postgresUrl + 'osm_flood?id=eq.' + this.polygonID,
+                    postgresUrl + 'flood?id=eq.' + this.polygonID,
                     {},
                     null,
                     null);
@@ -40,7 +40,7 @@ define([
                 polygonName = polygonName.split('.')[0];
                 polygonName = 'flood_' + polygonName;
                 that.xhrPolygon = AppRequest.post(
-                    postgresUrl + 'osm_flood',
+                    postgresUrl + 'flood',
                     {
                         'geometry': that.polygon,
                         'name': polygonName
@@ -50,7 +50,7 @@ define([
                         if (data['status'] === 201) {
                             // get the id
                             that.xhrPolygon = AppRequest.get(
-                                postgresUrl + 'osm_flood',
+                                postgresUrl + 'flood',
                                 {
                                     order: 'id.desc'
                                 },
