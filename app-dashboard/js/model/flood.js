@@ -17,7 +17,7 @@ define([
      *      - name
      *      - geometry
      */
-    var FloodLayer = Backbone.Model.extend({
+    const FloodLayer = Backbone.Model.extend({
 
             // attribute placeholder
             _url : {
@@ -50,7 +50,7 @@ define([
             },
 
             _createFloodMap: function () {
-                var that = this
+                const that = this
                 return new Promise(function (resolve, reject) {
                     // Create new flood map first, then retrieve the id
                     AppRequest.post(
@@ -60,11 +60,11 @@ define([
                             if(response.status === 201){
                                 // Flood map creation succeed
                                 // get the flood map id
-                                var flood_map_url = response.getResponseHeader('Location')
+                                const flood_map_url = response.getResponseHeader('Location')
                                 AppRequest.get(flood_map_url)
                                     .done(
                                         function (data) {
-                                            var flood_map_id = data.id
+                                            const flood_map_id = data.id
                                             // Create flooded area relationship
                                             that._createFloodedAreas(flood_map_id)
                                             // if succeed, done
@@ -88,18 +88,18 @@ define([
 
             _createFloodedAreas: function (flood_map_id) {
                 // Bulk insert doesn't return ids, so we insert one by one
-                var areas = this.areas
-                var that = this
+                const areas = this.areas
+                const that = this
 
-                var on_post_fails = function (data) {
+                const on_post_fails = function (data) {
                     console.log('Flooded Area post fails: ' + data)
                 }
 
-                var on_post_relations_fails = function (data) {
+                const on_post_relations_fails = function (data) {
                     console.log('Flooded Area relationship post fails: ' + data)
                 }
 
-                var created_areas = areas.map(function(value){
+                const created_areas = areas.map(function(value){
                     // Insert flood area, one by one, as promise.
                     return that._createFloodedArea({
                         [that._table_attrs.flooded_areas.geometry]: 'SRID=4326;' + Wellknown.stringify(value.geometry),
@@ -111,7 +111,7 @@ define([
                     // If all posted areas succeed, insert relationships
                     Promise.all(created_areas).then(function (values) {
                         // Make lists of Flood_Area - Flood_Areas relationship
-                        var relations = values.map(function (value) {
+                        const relations = values.map(function (value) {
                             return {
                                 [that._table_attrs.flooded_area.flood_id]: flood_map_id,
                                 [that._table_attrs.flooded_area.flooded_area_id]: value.id
@@ -144,8 +144,8 @@ define([
             },
             _createFloodedArea: function (area) {
                 // Return promised created flooded area object
-                var that = this
-                return Promise(function (resolve, reject) {
+                const that = this
+                return new Promise(function (resolve, reject) {
                     // Insert an area
                     AppRequest.post(
                         that._url.flooded_areas,
@@ -179,14 +179,14 @@ define([
             uploadFloodMap: function(files, place_name, return_period, notes, forecast_date, acquired_date){
                 // Upload flood map from file specified in HTML input dom
                 // We only handle one single GeoJSON
-                var selected_file = files[0]
-                var reader = new FileReader()
+                const selected_file = files[0]
+                const reader = new FileReader()
 
                 reader.onload = function(e){
-                    var result = e.target.result
+                    const result = e.target.result
 
                     // result must be a GeoJSON
-                    var layer = FloodLayer.fromGeoJSON(result)
+                    const layer = FloodLayer.fromGeoJSON(result)
                     layer.set({
                         place_name: place_name,
                         return_period: return_period,
@@ -215,9 +215,9 @@ define([
                  * geojson_layer is a geojson object
                  */
 
-                var layer = new FloodLayer(attributes)
+                const layer = new FloodLayer(attributes)
                 layer.set('geojson', geojson_layer)
-                var areas = geojson_layer.features.map(function(value){
+                const areas = geojson_layer.features.map(function(value){
                     return {
                         depth_class: value.properties["class"],
                         geometry: value.geometry
@@ -227,5 +227,5 @@ define([
                 return layer
             },
         })
-    return
+    return FloodLayer
 })
