@@ -8,7 +8,6 @@ if __name__ == '__main__':
 	output_file_x = sys.argv[2]
 	output_file_y = sys.argv[3]
 
-
 	line_pattern = r'\s*(?P<lat>\d{2,3})\s+(?P<lat_min>\d{2})\s+(?P<lat_sec>\d{2})\s+(?P<lat_direction>[A-Za-z]{2})\s+'\
                    r'(?P<lon>\d{2,3})\s+(?P<lon_min>\d{2})\s+(?P<lon_sec>\d{2})\s+(?P<lon_direction>[A-Za-z]{2})\s*'
 	pattern = re.compile(line_pattern)
@@ -45,8 +44,6 @@ if __name__ == '__main__':
 
 				lat_degree = int(match_dict['lat']) + int(match_dict['lat_min']) / 60.0 + int(match_dict['lat_sec']) / 3600.0
 				lon_degree = int(match_dict['lon']) + int(match_dict['lon_min']) / 60.0 + int(match_dict['lon_sec']) / 3600.0
-
-
 
 				if match_dict['lat_direction'].upper() == 'LS':
 					# Lintang Selatan

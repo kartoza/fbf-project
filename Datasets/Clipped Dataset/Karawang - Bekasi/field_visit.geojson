@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "field_visit",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "agriculture_relative_height": -1.0, "flood_relative_depth": null }, "geometry": { "type": "Point", "coordinates": [ 107.272773840991206, -6.309645692929887 ] } },
+{ "type": "Feature", "properties": { "fid": 2, "agriculture_relative_height": -1.0, "flood_relative_depth": 1.5 }, "geometry": { "type": "Point", "coordinates": [ 107.262534759915837, -6.307898058609795 ] } },
+{ "type": "Feature", "properties": { "fid": 3, "agriculture_relative_height": -1.0, "flood_relative_depth": null }, "geometry": { "type": "Point", "coordinates": [ 107.257970350279848, -6.30798715369278 ] } },
+{ "type": "Feature", "properties": { "fid": 4, "agriculture_relative_height": -1.3, "flood_relative_depth": null }, "geometry": { "type": "Point", "coordinates": [ 107.253909670536103, -6.307760989251357 ] } },
+{ "type": "Feature", "properties": { "fid": 5, "agriculture_relative_height": -0.8, "flood_relative_depth": 0.3 }, "geometry": { "type": "Point", "coordinates": [ 107.249312125556969, -6.299266949667672 ] } },
+{ "type": "Feature", "properties": { "fid": 6, "agriculture_relative_height": -0.8, "flood_relative_depth": 0.5 }, "geometry": { "type": "Point", "coordinates": [ 107.247088789449066, -6.299716650598959 ] } }
+]
+}
