@@ -45,23 +45,17 @@ define([
                         'geometry': that.polygon,
                         'name': polygonName
                     },
-                    null,
-                    function (data, textStatus, request) {
-                        if (data['status'] === 201) {
+                    function (data, textStatus, response) {
+                        if (response.status === 201) {
                             // get the id
                             that.xhrPolygon = AppRequest.get(
-                                postgresUrl + 'flood',
-                                {
-                                    order: 'id.desc'
-                                },
-                                {
-                                    'Range-Unit': 'items',
-                                    'Range': '0-0',
-                                    'Prefer': 'count=exact'
-                                },
-                                function (data, textStatus, request) {
-                                    if (data[0]) {
-                                        that.polygonID = data[0].id;
+                                // created object were given via Location header
+                                response.getResponseHeader('Location'),
+                                null,
+                                null,
+                                function (data) {
+                                    if (data) {
+                                        that.polygonID = data.id;
                                         that.polygonName = polygonName;
                                         that.updateStats();
                                         dispatcher.trigger('map:redraw');

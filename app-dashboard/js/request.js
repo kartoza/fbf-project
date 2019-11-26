@@ -32,7 +32,6 @@ define([
             return $.ajax({
                 url: url,
                 data: data,
-                dataType: 'json',
                 type: 'POST',
                 success: function (data, textStatus, request) {
                     if (successCallback) {
