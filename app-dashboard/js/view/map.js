@@ -1,9 +1,11 @@
 define([
     'backbone',
     'jquery',
+    'airDatepicker',
+    'airDatepickerEN',
     'js/view/basemap.js',
     'js/view/layers.js',
-], function (Backbone, $, Basemap, Layers) {
+], function (Backbone, $, airDatepicker, airDatepickerEN, Basemap, Layers) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
         initialize: function () {
@@ -40,14 +42,39 @@ define([
                     edit: false
                 }
             });
-            this.map.addControl(this.drawControl);
+            
+            $('#draw-flood').click(function () {
+                if ($(this).hasClass('enable')) {
+                    that.map.removeControl(that.drawControl);
+                    $(this).removeClass('enable');
+                } else {
+                    that.map.addControl(that.drawControl);
+                    $(this).addClass('enable');
+                }
+            });
+            
             this.map.addLayer(this.drawGroup);
 
             this.map.on('draw:created', (e) => {
                 that.drawGroup.clearLayers();
                 that.drawGroup.addLayer(e.layer);
-                dispatcher.trigger('map:update-polygon', that.postgrestFilter());
+                $('#draw-flood-form').show();
+
+                $('#cancel-draw').click(function () {
+                    that.drawGroup.removeLayer(e.layer);
+                    $('#draw-flood').removeClass('enable');
+                    that.map.removeControl(that.drawControl);
+                });
+
+                $("#draw-form").submit(function(e){
+                    e.preventDefault();
+                    dispatcher.trigger('map:update-polygon', that.postgrestFilter());
+                    $('#draw-flood').removeClass('enable');
+                    that.map.removeControl(that.drawControl);
+                    $('#draw-flood-form').hide();
+                });
             });
+
             this.map.on('draw:deleted', (evt) => {
                 dispatcher.trigger('map:update-polygon', that.postgrestFilter());
                 that.redraw();

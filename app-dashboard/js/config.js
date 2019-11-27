@@ -8,7 +8,9 @@ require.config({
         'underscore': 'libs/underscore.js/1.9.1/underscore-min',
         'rangeSlider': 'libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min',
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
-        'wellknown': 'libs/wellknown.js/0.5.0/wellknown.js'
+        'wellknown': 'libs/wellknown.js/0.5.0/wellknown.js',
+        'airDatepicker': 'libs/airdatepicker/js/datepicker.min',
+        'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en'
     },
     shim: {
         leaflet: {
@@ -24,6 +26,12 @@ require.config({
             deps: ['leaflet'],
             exports: 'LeafletDraw'
         },
+        airDatepicker: {
+            deps: ['jquery']
+        },
+        airDatepickerEN: {
+            deps: ['jquery', 'airDatepicker']
+        }
     }
 });
 require([
@@ -39,4 +47,10 @@ require([
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
     mapView = new MAP();
+
+    $('#forecast_date').datepicker({
+        language: 'en',
+        timepicker: true,
+        position: 'left top'
+    });
 });

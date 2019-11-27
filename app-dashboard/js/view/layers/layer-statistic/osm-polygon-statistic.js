@@ -1,6 +1,6 @@
 define([
-    'backbone', 'leaflet'], function (
-    Backbone, L) {
+    'backbone', 'leaflet', 'js/view/layers/flood-form.js'], function (
+    Backbone, L, FloodForm) {
     return Backbone.View.extend({
         xhrPolygon: null,
         polygon: null,
@@ -34,17 +34,12 @@ define([
                 statistic.loading();
             });
             if (this.polygon) {
-                let polygonName = (new Date()).toISOString().replaceAll(':', '_');
-                polygonName = polygonName.replaceAll('-', '_');
-                polygonName = polygonName.replaceAll('T', '_');
-                polygonName = polygonName.split('.')[0];
-                polygonName = 'flood_' + polygonName;
+                let flood_form = new FloodForm(this.polygon);
+                let post_data = flood_form.post_data;
+
                 that.xhrPolygon = AppRequest.post(
                     postgresUrl + 'flood',
-                    {
-                        'geometry': that.polygon,
-                        'name': polygonName
-                    },
+                    post_data,
                     function (data, textStatus, response) {
                         if (response.status === 201) {
                             // get the id
