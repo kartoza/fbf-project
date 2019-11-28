@@ -9,6 +9,7 @@ require.config({
         'underscore': 'libs/underscore.js/1.9.1/underscore-min',
         'rangeSlider': 'libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min',
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
+        'wellknown': 'libs/wellknown.js/0.5.0/wellknown',
         'airDatepicker': 'libs/airdatepicker/js/datepicker.min',
         'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en'
     },
