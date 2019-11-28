@@ -1,11 +1,10 @@
 define([
     'backbone',
     'jquery',
-    'airDatepicker',
-    'airDatepickerEN',
     'js/view/basemap.js',
     'js/view/layers.js',
-], function (Backbone, $, airDatepicker, airDatepickerEN, Basemap, Layers) {
+    'js/view/side-panel.js'
+], function (Backbone, $, Basemap, Layers, SidePanelView) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
         initialize: function () {
@@ -58,7 +57,11 @@ define([
             this.map.on('draw:created', (e) => {
                 that.drawGroup.clearLayers();
                 that.drawGroup.addLayer(e.layer);
-                $('#draw-flood-form').show();
+                let $drawFormWrapper = $('#draw-flood-form').parent();
+                let $drawFormParent = $drawFormWrapper.parent();
+                $drawFormParent.prev().hide();
+                $drawFormWrapper.show();
+                $drawFormParent.show("slide", { direction: "right" }, 400);
 
                 $('#cancel-draw').click(function () {
                     that.drawGroup.removeLayer(e.layer);
@@ -71,7 +74,9 @@ define([
                     dispatcher.trigger('map:update-polygon', that.postgrestFilter());
                     $('#draw-flood').removeClass('enable');
                     that.map.removeControl(that.drawControl);
-                    $('#draw-flood-form').hide();
+                    $drawFormWrapper.hide();
+                    $drawFormParent.hide("slide", { direction: "right" }, 200);
+                    $drawFormParent.prev().show("slide", { direction: "right" }, 400);
                 });
             });
 
@@ -79,6 +84,8 @@ define([
                 dispatcher.trigger('map:update-polygon', that.postgrestFilter());
                 that.redraw();
             });
+
+            this.side_panel = new SidePanelView()
         },
         polygonDrawn: function () {
             if (this.drawGroup && this.drawGroup.getLayers().length > 0) {

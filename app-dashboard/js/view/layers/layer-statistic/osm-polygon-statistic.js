@@ -57,7 +57,7 @@ define([
                                 function (data, textStatus, request) {
                                     if (data[0]) {
                                         that.polygonID = data[0].id;
-                                        that.polygonName = polygonName;
+                                        that.polygonName = post_data['name'];
                                         that.updateStats();
                                         dispatcher.trigger('map:redraw');
                                     }

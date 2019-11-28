@@ -19,118 +19,178 @@
 <div class="flex-item" style="position: relative">
     <div id="side-panel">
         <div class="panel-group" id="accordion">
-            <div class="panel panel-default">
-                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#accordion" href="#flood-scenario-options">
-                    Add Flood Scenario</a>
-                <div id="flood-scenario-options" class="panel-collapse collapse">
-                    <div class="panel-option" id="draw-flood">Draw Flood</div>
+            <div class="panel-body-wrapper panel-body panel-welcome">
+                <div class="panel-title" style="text-align: center; font-weight: bold">
+                    Welcome to FBF !
+                </div>
+                <div class="panel-body" style="text-align: justify">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sagittis ullamcorper elit eget feugiat. Morbi sem urna, porttitor vel lacus nec, facilisis vestibulum urna.
+                </div>
+                <div class="panel-body">
+                    <button class="btn btn-warning btn-primary-1 btn-full-width add-flood-scenario">Add Flood Scenario</button>
+                    <button class="btn btn-success btn-primary-1 btn-full-width" disabled>Browse Flood</button>
+                </div>
+            </div>
+            <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
+                <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                <div class="panel-title" style="text-align: center; font-weight: bold">
+                    Add Flood Scenario
+                </div>
+                <div class="panel-body">
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="draw-flood">Draw Flood</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="upload-flood">Upload Flood</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="glofas" disabled>Latest GloFAS</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="signature-flood" disabled>Latest Signature Flood Event</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="existing-scenario-flood" disabled>Use Existing Scenario</button>
+                </div>
+            </div>
+            <div class="panel-body-wrapper panel-body panel-flood-form" style="display: none">
+                <div class="form-wrapper panel-draw-flood flood-form" style="display: none">
+                    <button class="btn btn-back pull-left" id="cancel-draw"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                    <div class="panel-title" style="text-align: center; font-weight: bold">
+                        Draw Flood
+                    </div>
                     <div id="draw-flood-form">
                         <form role="form" id="draw-form" enctype="multipart/form-data" class="form-horizontal">
                             <div class="form-group">
-                                <input type="checkbox" id="enable_forecast_date" onchange="$('#forecast_date').prop('disabled', function(i, v) { return !v; })">&nbsp;<label for="forecast_date">Forecast date: </label>
-                                <input class="form-control" type="text" id="forecast_date" disabled><br/>
-                                <input type="checkbox" id="enable_station" onchange="$('#station').prop('disabled', function(i, v) { return !v; })">&nbsp;<label for="station">Station: </label><input class="form-control" type="text" id="station" disabled><br/>
-                                <button type="submit" value="submit" class="btn btn-primary">Save</button>
-                                <button type="button" id="cancel-draw" class="btn btn-default" onclick="$('#draw-flood-form').hide()">Cancel</button>
+                                <input type="checkbox" id="enable_forecast_date" onchange="$('#forecast_date').prop('disabled', function(i, v) { return !v; })">&nbsp;
+                                <label for="forecast_date">Forecast date: </label>
+                                <input class="form-control datepicker-form default-disabled" data-position="left top" type="text" id="forecast_date" disabled><br/>
+                                <input type="checkbox" id="enable_station" onchange="$('#station').prop('disabled', function(i, v) { return !v; })">&nbsp;
+                                <label for="station">Station: </label>
+                                <input class="form-control default-disabled" type="text" id="station" disabled><br/>
+                                <button type="submit" value="submit" class="btn btn-warning btn-primary-1 pull-right">Save</button>
                             </div>
                         </form>
                     </div>
-                    <a class="panel-heading collapsed disabled" data-toggle="collapse" data-parent="#flood-scenario-options" href="#upload-flood-form-wrapper" style="width: 100%">
-                        Upload Flood</a>
-                    <!--<div id="upload-flood-form-wrapper" class="panel-collapse collapse">-->
-                        <!--<form role="form" id="upload-flood-form" enctype="multipart/form-data" class="form-horizontal">-->
-                            <!--<div class="form-group">-->
-                                <!--<label for="place_name">Place name:</label>-->
-                                <!--<input class="form-control" name="place_name" id="place_name" type="text">-->
-                                <!--<label for="source">Souce:</label>-->
-                                <!--<input class="form-control" name="source" id="source" type="text">-->
-                                <!--<label for="event_notes">Event notes:</label>-->
-                                <!--<input class="form-control" name="event_notes" id="event_notes" type="text">-->
-                                <!--<label for="flood_model_notes">Flood model notes:</label>-->
-                                <!--<input class="form-control" name="flood_model_notes" id="flood_model_notes" type="text">-->
-                                <!--<label for="source_url">Source url:</label>-->
-                                <!--<input class="form-control" name="source_url" id="source_url" type="text">-->
-                                <!--<label for="geojson">Geojson:</label>-->
-                                <!--<input class="form-control" name="geojson" id="geojson" type="file">-->
-                                <!--<label for="geojson">Return period:</label>-->
-                                <!--<select class="form-control" name="return_period" id="return_period">-->
-                                    <!--<option>Unspecified</option>-->
-                                    <!--<option>5</option>-->
-                                    <!--<option>10</option>-->
-                                    <!--<option>100</option>-->
-                                <!--</select>-->
-                                <!--<button type="submit" value="submit" class="btn btn-primary">Upload</button>-->
-                                <!--<button type="reset" class="btn btn-primary">Reset</button>-->
-                            <!--</div>-->
-                        <!--</form>-->
+                </div>
+                <div class="form-wrapper panel-upload-flood flood-form" style="display: none">
+                    <button type="reset" class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                    <div class="panel-title" style="text-align: center; font-weight: bold">
+                        Upload Flood
+                    </div>
+                    <div id="upload-flood-form-wrapper">
+                        <form role="form" id="upload-flood-form" enctype="multipart/form-data" class="form-horizontal">
+                            <div class="form-group">
+                                <label for="place_name">Place name:</label>
+                                <input class="form-control" name="place_name" id="place_name" type="text">
+                                <label for="source">Souce:</label>
+                                <input class="form-control" name="source" id="source" type="text">
+                                <label for="event_notes">Event notes:</label>
+                                <input class="form-control" name="event_notes" id="event_notes" type="text">
+                                <label for="flood_model_notes">Flood model notes:</label>
+                                <input class="form-control" name="flood_model_notes" id="flood_model_notes" type="text">
+                                <label for="source_url">Source url:</label>
+                                <input class="form-control" name="source_url" id="source_url" type="text">
+                                <label for="geojson">Geojson:</label>
+                                <input class="form-control" name="geojson" id="geojson" type="file">
+                                <label for="geojson">Return period:</label>
+                                <select class="form-control" name="return_period" id="return_period">
+                                    <option>Unspecified</option>
+                                    <option>5</option>
+                                    <option>10</option>
+                                    <option>100</option>
+                                </select>
+                                <div class="row">
+                                    <div class="col-lg-6" style="padding-right: 5px">
+                                        <label for="acquisition_date_upload">Acquisition date: </label>
+                                        <input class="form-control datepicker-form" data-position="left bottom" type="text" id="acquisition_date_upload" style="font-size: 10px;">
+                                    </div>
+                                    <div class="col-lg-6" style="padding-left: 5px">
+                                        <label for="forecast_date_upload">Forecast date: </label>
+                                        <input class="form-control datepicker-form" data-position="left bottom" type="text" id="forecast_date_upload" style="font-size: 10px;">
+                                    </div>
+                                </div>
+                                <br/>
+                                <button type="submit" value="submit" class="btn btn-warning btn-primary-1 pull-right">Upload</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-------------------------------- old side panel (filters), we might use later ---------------------------------------->
+            <!--<div class="panel panel-default">-->
+            <!--<div class="panel panel-default" id="filter-wrapper">-->
+                <!--<a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#all-filters">-->
+                    <!--Filters</a>-->
+                <!--<div id="all-filters" class="panel-collapse collapse">-->
+                    <!--<div class="panel panel-option">-->
+                        <!--<a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#waterways-filter">-->
+                            <!--Rivers</a>-->
+                        <!--<div id="waterways-filter" class="panel-collapse collapse">-->
+                        <!--</div>-->
                     <!--</div>-->
-                    <div class="panel-option disabled">Latest GloFAS</div>
-                    <div class="panel-option disabled">Use Existing Scenario</div>
-                </div>
-            </div>
-            <div class="panel panel-default" id="filter-wrapper">
-                <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#all-filters">
-                    Filters</a>
-                <div id="all-filters" class="panel-collapse collapse">
-                    <div class="panel panel-option">
-                        <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#waterways-filter">
-                            Rivers</a>
-                        <div id="waterways-filter" class="panel-collapse collapse">
-                        </div>
-                    </div>
-                    <div class="panel panel-option">
-                        <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#buildings-filter">
-                            Buildings</a>
-                        <div id="buildings-filter" class="panel-collapse collapse">
-                        </div>
-                    </div>
-                    <div class="panel panel-option">
-                        <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#buliding-vulnerability">
-                            Buliding Vulnerability</a>
-                        <div id="buliding-vulnerability" class="panel-collapse collapse">
-                            <div class="inner-panel">
-                                <div>Building type</div>
-                                <input id="building-type-filter"/>
-                            </div>
-                            <div class="inner-panel">
-                                <div>Building material</div>
-                                <input id="building-material-filter"/>
-                            </div>
-                            <div class="inner-panel">
-                                <div>Building area</div>
-                                <input id="building-area-filter"/>
-                            </div>
-                            <div class="inner-panel">
-                                <div>Building road density</div>
-                                <input id="building-road-density-filter"/>
-                            </div>
-                            <div class="inner-panel">
-                                <div>Total Vulnerability</div>
-                                <input id="building-total-vulnerability-filter"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel panel-option">
-                        <a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#roads-filter">
-                            Roads</a>
-                        <div id="roads-filter" class="panel-collapse collapse">
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    <!--<div class="panel panel-option">-->
+                        <!--<a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#buildings-filter">-->
+                            <!--Buildings</a>-->
+                        <!--<div id="buildings-filter" class="panel-collapse collapse">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="panel panel-option">-->
+                        <!--<a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#buliding-vulnerability">-->
+                            <!--Buliding Vulnerability</a>-->
+                        <!--<div id="buliding-vulnerability" class="panel-collapse collapse">-->
+                            <!--<div class="inner-panel">-->
+                                <!--<div>Building type</div>-->
+                                <!--<input id="building-type-filter"/>-->
+                            <!--</div>-->
+                            <!--<div class="inner-panel">-->
+                                <!--<div>Building material</div>-->
+                                <!--<input id="building-material-filter"/>-->
+                            <!--</div>-->
+                            <!--<div class="inner-panel">-->
+                                <!--<div>Building area</div>-->
+                                <!--<input id="building-area-filter"/>-->
+                            <!--</div>-->
+                            <!--<div class="inner-panel">-->
+                                <!--<div>Building road density</div>-->
+                                <!--<input id="building-road-density-filter"/>-->
+                            <!--</div>-->
+                            <!--<div class="inner-panel">-->
+                                <!--<div>Total Vulnerability</div>-->
+                                <!--<input id="building-total-vulnerability-filter"/>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="panel panel-option">-->
+                        <!--<a class="panel-heading collapsed" data-toggle="collapse" data-parent="#filter-wrapper" href="#roads-filter">-->
+                            <!--Roads</a>-->
+                        <!--<div id="roads-filter" class="panel-collapse collapse">-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!------------------------------------------------------------------------------------------------>
         </div>
     </div>
     <div id="side-panel-footer">
+        <span>Made with <i class="fa fa-heart"></i> by</span>
         <a href="https://kartoza.com/id/" target="_blank" style="font-weight: 900;">
-            <img src="images/kartoza-logo.png" height="100"> Kartoza
+            <img src="images/kartoza-logo.png" height="100"> Kartoza.
         </a>
-        <a href="http://inasafe.org/" target="_blank" style="font-weight: 900;">
-            <img src="images/inasafe-logo.png" style="filter: invert(100%)" height="100"> InaSAFE
-        </a>
-        <a href="https://github.com/kartoza/fbf-project/" target="_blank" style="color: #cc9c43; float: right; margin-top: 3px">
+        <div style="float: right; margin-top: 3px">
+        <span>Available in </span>
+        <a href="https://github.com/kartoza/fbf-project/" target="_blank" style="color: #cc9c43">
             github</a>
+            </div>
     </div>
 </div>
+
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="row">
+        <div class="col-lg-4 navbar-logo">
+            <a href="http://inasafe.org/" target="_blank" style="font-weight: 900; color: white !important;">
+                <div class="col-lg-1"><img src="images/inasafe-logo.png" style="filter: invert(100%)" height="45"></div><div class="col-lg-8"><div class="logo-inasafe-text">InaSAFE FBF</div><div class="logo-subtext">Forecast based financing</div></div>
+            </a>
+        </div>
+        <div class="col-lg-4 pull-right" style="text-align: right; padding-right: 35px; padding-top: 7px">
+            <button class="btn btn-warning btn-primary-1 add-flood-scenario">Add Flood Scenario</button>
+            <button class="btn btn-success btn-primary-1" disabled>Browse Flood</button>
+        </div>
+    </div>
+</nav>
+
 </body>
 
 <script type='text/template' id='-filter-multiselect'>
