@@ -1,21 +1,92 @@
 -- Updates for all tables
 -- These are mandatory first
 ALTER table osm_buildings add column building_type character varying (100);
-ALTER table osm_buildings add column building_type_score numeric;
-ALTER table osm_buildings add column building_area  numeric;
-ALTER TABLE osm_buildings add column building_area_score numeric;
-ALTER table osm_buildings add column building_material_score numeric;
-ALTER TABLE osm_buildings add column building_road_length numeric;
-ALTER TABLE osm_buildings add column building_road_density_score numeric;
-ALTER table osm_buildings add column total_vulnerability numeric;
+ALTER table osm_buildings add column building_type_score double precision;
+ALTER table osm_buildings add column building_area  double precision;
+ALTER TABLE osm_buildings add column building_area_score double precision;
+ALTER table osm_buildings add column building_material_score double precision;
+ALTER TABLE osm_buildings add column building_road_length double precision;
+ALTER TABLE osm_buildings add column building_road_density_score double precision;
+ALTER table osm_buildings add column total_vulnerability double precision;
 ALTER TABLE osm_roads add column road_type character varying (50);
+ALTER table osm_waterways add column waterway_id integer;
 
 -- These ones are secondary can be run at some point in time
-ALTER table osm_buildings add column building_river_distance  numeric;
-ALTER table osm_buildings add column building_distance_score numeric;
-ALTER table osm_buildings add column vertical_river_distance numeric;
-ALTER table osm_buildings add column building_elevation numeric;
-ALTER TABLE osm_buildings add column building_river_distance_score numeric;
+ALTER table osm_buildings add column building_river_distance  double precision;
+ALTER table osm_buildings add column building_distance_score double precision;
+ALTER table osm_buildings add column vertical_river_distance double precision;
+ALTER table osm_buildings add column building_elevation double precision;
+ALTER TABLE osm_buildings add column building_river_distance_score double precision;
+ALTER table osm_roads add column roads_id integer;
+
+-- new schema tables
+CREATE table flood_map (
+    id serial primary key ,
+    place_name character varying (255),
+    notes character varying (255),
+    return_period timestamp,
+    measuring_station_id integer
+);
+
+
+
+create table forecast_flood_event (
+  id serial primary key ,
+  flood_map_id integer references flood_map(id),
+  acquisition_date timestamp not null default now(),
+  forecast_date timestamp ,
+  source character varying (255),
+  notes character varying (255),
+  link text
+);
+
+create table depth_class (
+    id serial primary key ,
+    min_m double precision,
+    max_m double precision,
+    label character varying (255)
+);
+
+create table flooded_area (
+    id serial primary key ,
+    depth_class integer references depth_class(id),
+    geometry geometry(MultiPolygon,4326)
+);
+
+create table flooded_areas (
+    id serial primary key ,
+    flood_map_id integer references flood_map(id),
+    flooded_area_id integer references flooded_area (id)
+);
+
+
+
+
+create table forecast_flood_event_buildings (
+    id serial primary key ,
+    forecast_flood_event_id integer  references forecast_flood_event(id),
+    building_id integer references filtered_osm_buildings_mv(osm_id),
+    depth_class_id integer references  depth_class(id)
+);
+
+
+create table flood_event_villages (
+    forecast_flood_event_id integer  references forecast_flood_event(id),
+    village_id integer references village(village_code),
+    depth_class_id integer references depth_class(id)
+);
+
+create table flood_event_sub_districts (
+    forecast_flood_event_id integer  references forecast_flood_event(id),
+    village_id integer references sub_district(sub_dc_code),
+    depth_class_id integer references depth_class(id)
+);
+
+create table flood_event_districts (
+    forecast_flood_event_id integer  references forecast_flood_event(id),
+    village_id integer references district(dc_code),
+    depth_class_id integer references depth_class(id)
+);
 
 
 -- Add a trigger function to notify QGIS of DB changes
@@ -244,6 +315,7 @@ CREATE FUNCTION refresh_osm_build_stats() RETURNS trigger
     AS $$
   BEGIN
     REFRESH MATERIALIZED VIEW CONCURRENTLY osm_buildings_mv ;
+    RETURN NULL;
   END
   $$;
 
@@ -253,6 +325,7 @@ CREATE FUNCTION refresh_osm_roads_stats() RETURNS trigger
     AS $$
   BEGIN
     REFRESH MATERIALIZED VIEW CONCURRENTLY osm_roads_mv;
+    RETURN NULL;
   END
   $$;
 
@@ -261,6 +334,7 @@ CREATE FUNCTION refresh_osm_waterways_stats() RETURNS trigger
     AS $$
   BEGIN
     REFRESH MATERIALIZED VIEW CONCURRENTLY osm_waterways_mv ;
+    RETURN NULL;
   END
   $$;
 
@@ -269,6 +343,7 @@ CREATE FUNCTION refresh_filtered_buildings() RETURNS trigger
     AS $$
   BEGIN
     REFRESH MATERIALIZED VIEW CONCURRENTLY filtered_osm_buildings_mv ;
+    RETURN NULL;
   END
   $$;
 
@@ -276,6 +351,7 @@ CREATE FUNCTION refresh_filtered_buildings() RETURNS trigger
 
 
 -- Initial Updates for all tables
+
 
 -- Initial update for osm_building_type
 update osm_buildings set building_type = 'School' WHERE amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' ;
@@ -368,24 +444,29 @@ update osm_buildings set building_material_score = 0.3 WHERE building_material_s
 
 -- Update to calculate the road density length (still to write the recoding function )
 
-update osm_buildings set building_road_length =foo.total_length
+WITH clipped AS (
+                 SELECT m.osm_id, area_sq_km, ST_Intersection(m.geom, v.geometry::geography) AS clipped_geom
+                 FROM building_buffer m
+                 JOIN osm_roads v ON ST_Intersects(m.geom, v.geometry::geography)
 
-    FROM (
-         WITH clipping AS
-            (SELECT
-            ST_Intersection(v.geometry,m.geom) AS intersection_geom,
-            v.*,
-            m.osm_id as osm_fid
-            FROM
-              osm_roads as v,
-             (select osm_id,st_buffer(ST_SetSRID(ST_Extent(new.geometry),4326)::geography,1000) as geom
-FROM osm_buildings    group by geometry,osm_id )
-             as m
-            WHERE
-              ST_Intersects(v.geometry, m.geom) and v.highway in ('trunk','road','secondary','trunk_link','secondary_link','tertiary_link', 'primary', 'residential', 'primary_link',
-'motorway_link','motorway')    )
-            (SELECT osm_fid,sum(st_length(intersection_geom)) as total_length FROM clipping group by osm_fid)
-             ) foo WHERE foo.osm_fid = osm_buildings.osm_id;
+             ),
+             agg AS  (
+                 SELECT osm_id, (sum(st_length(clipped_geom))/max(area_sq_km))::int AS density_m_per_sq_km
+                    FROM clipped
+
+                    GROUP BY osm_id
+             )
+        UPDATE osm_buildings a SET building_road_density = density_m_per_sq_km
+                 FROM agg
+                 WHERE a.osm_id = agg.osm_id;
+
+-- Initial updates to update the building_road_density
+
+update osm_buildings set building_road_density_score  = 1   WHERE building_road_density <= 5;
+update osm_buildings set building_road_density_score  = 0.8 WHERE building_road_density > 5 and building_road_density <= 15;
+update osm_buildings set building_road_density_score  = 0.5 WHERE building_road_density > 15 and building_road_density <= 50;
+update osm_buildings set building_road_density_score  = 0.3 WHERE building_road_density > 50 and building_road_density <= 200;
+update osm_buildings set building_road_density_score  = 0.1 WHERE building_road_density > 200;
 
 -- Create m views or views for FBIS dashboards
 --- Create lookup tables for each distinct type we use for classification in front end
@@ -397,6 +478,18 @@ INSERT INTO building_type_class (building_class) select distinct(building_type) 
 INSERT INTO road_type_class (road_class) select distinct(road_type) FROM osm_roads;
 INSERT INTO waterway_type_class (waterway_class) select distinct(waterway) FROM osm_waterways;
 
+update osm_roads set roads_id = foo.roads_id from (
+     select b.id as roads_id, a.osm_id from osm_roads a, road_type_class b
+  WHERE a.road_type::text = b.road_class::text
+     ) foo where foo.osm_id = osm_roads.osm_id;
+
+
+ update osm_waterways set waterway_id = foo.id from (
+ 	SELECT a.osm_id, b.id
+   FROM osm_waterways a,
+    waterway_type_class b
+  WHERE a.waterway::text = b.waterway_class::text
+ 	) foo where foo.osm_id = osm_waterways.osm_id;
 
 
 -- Default count for all buildings by building_type - This is the default count shown in the dashboard
@@ -485,29 +578,22 @@ CREATE  INDEX mv_idn_fz_roads_id ON filtered_osm_roads_mv (roads_id);
 -- views to use when creating flood polygons
 
   CREATE OR REPLACE VIEW osm_buildings_flood_v as
-   SELECT b.id as flood_id , a.osm_id,a.building_type_score,a.building_material_score,a.building_area_score,
-          a.building_road_density_score,a.total_vulnerability , a.geometry from filtered_osm_buildings_mv as a
-       inner join osm_flood as b on ST_Within(a.geometry,b.geometry)
-    union
+
     SELECT d.id as flood_id , c.osm_id, c.building_type_score,c.building_material_score,c.building_area_score,
            c.building_road_density_score,c.total_vulnerability , c.geometry from filtered_osm_buildings_mv as c
                inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
 
    CREATE OR REPLACE VIEW osm_waterways_flood_v as
-   SELECT b.id as flood_id , a.osm_id,a.waterway, a.geometry from filtered_osm_waterways_mv as a inner join
-       osm_flood as b on ST_Within(a.geometry,b.geometry)
-    union
+
     SELECT d.id as flood_id , c.osm_id,c.waterway, c.geometry from filtered_osm_waterways_mv as c inner join
         osm_flood as d on ST_Intersects(c.geometry,d.geometry);
 
 
+-- View for intersection between uploaded flood layer and osm_roads
+   CREATE OR REPLACE VIEW flood_roads_bbox_v as
 
-   CREATE OR REPLACE VIEW osm_roads_flood_v as
-   SELECT b.id as flood_id , a.osm_id, a.geometry from filtered_osm_roads_mv as a inner join osm_flood as b
-       on ST_Within(a.geometry,b.geometry)
-    union
-    SELECT d.id as flood_id , c.osm_id, c.geometry from filtered_osm_roads_mv as c inner join osm_flood as d
-        on ST_Intersects(c.geometry,d
+    SELECT d.id as flood_id , c.osm_id, c.geometry from osm_roads as c inner join flood as d
+        on ST_Intersects(c.geometry,d.geometry);
 
 -- All triggers will come in the last part
 -- Based on the tables defined in the mapping.yml create triggers
