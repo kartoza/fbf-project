@@ -55,7 +55,7 @@
                             <div class="form-group">
                                 <input type="checkbox" id="enable_forecast_date" onchange="$('#forecast_date').prop('disabled', function(i, v) { return !v; })">&nbsp;
                                 <label for="forecast_date">Forecast date: </label>
-                                <input class="form-control datepicker-form default-disabled" data-position="left top" type="text" id="forecast_date" disabled><br/>
+                                <input class="form-control datepicker-here default-disabled" data-timepicker="true" data-language="en" data-position="left top" type="text" id="forecast_date" disabled><br/>
                                 <input type="checkbox" id="enable_station" onchange="$('#station').prop('disabled', function(i, v) { return !v; })">&nbsp;
                                 <label for="station">Station: </label>
                                 <input class="form-control default-disabled" type="text" id="station" disabled><br/>
@@ -94,11 +94,11 @@
                                 <div class="row">
                                     <div class="col-lg-6" style="padding-right: 5px">
                                         <label for="acquisition_date_upload">Acquisition date: </label>
-                                        <input class="form-control datepicker-form" data-position="left bottom" type="text" id="acquisition_date_upload" style="font-size: 10px;">
+                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" id="acquisition_date_upload" style="font-size: 10px;">
                                     </div>
                                     <div class="col-lg-6" style="padding-left: 5px">
                                         <label for="forecast_date_upload">Forecast date: </label>
-                                        <input class="form-control datepicker-form" data-position="left bottom" type="text" id="forecast_date_upload" style="font-size: 10px;">
+                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" id="forecast_date_upload" style="font-size: 10px;">
                                     </div>
                                 </div>
                                 <br/>

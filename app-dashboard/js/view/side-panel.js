@@ -3,10 +3,8 @@ define([
     'underscore',
     'jquery',
     'jqueryUi',
-    'airDatepicker',
-    'airDatepickerEN',
     'js/view/layers/upload-flood.js'
-], function (Backbone, _, $, JqueryUi, AirDatepicker, AirDatepickerEN, FloodUploadView) {
+], function (Backbone, _, $, JqueryUi, FloodUploadView) {
     return Backbone.View.extend({
         el: "#side-panel",
         events: {
@@ -20,12 +18,6 @@ define([
             $('.add-flood-scenario').click(function () {
                 that.openPanelFloodScenario()
             });
-
-            $('.datepicker-form').datepicker({
-                language: 'en',
-                timepicker: true,
-                autoClose: true
-            })
 
             // Initialize view
             this.flood_upload_view = new FloodUploadView()

@@ -10,7 +10,7 @@ require.config({
         'rangeSlider': 'libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min',
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
         'wellknown': 'libs/wellknown.js/0.5.0/wellknown',
-        'airDatepicker': 'libs/airdatepicker/js/datepicker.min',
+        'airDatepicker': 'libs/airdatepicker/js/datepicker',
         'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en'
     },
     shim: {
@@ -43,7 +43,9 @@ require([
     'leaflet',
     'leafletDraw',
     'js/view/map.js',
-    'js/request.js'
+    'js/request.js',
+    'airDatepicker',
+    'airDatepickerEN',
 ], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView) {
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
