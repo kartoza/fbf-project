@@ -32,13 +32,18 @@ define([
                     return_period: 'return_period'
                 },
                 flooded_area: {
-                    flood_id: 'flood_id',
+                    flood_id: 'flood_map_id',
                     flooded_area_id: 'flooded_area_id'
                 },
                 flooded_areas: {
                     depth_class: 'depth_class',
                     geometry: 'geometry'
                 }
+            },
+        
+            initialize: function (){
+                this._uploaded_features = 0;
+                this.on('feature-uploaded', this.featureUploaded, this);
             },
 
             getFloodMapAttributes: function(){
@@ -47,6 +52,27 @@ define([
                     [this._table_attrs.flood_map.notes]: this.get('notes'),
                     [this._table_attrs.flood_map.return_period]: this.get('return_period')
                 }
+            },
+
+            featureCount: function(){
+                const areas = this.get('areas');
+                if(areas) {
+                    return areas.length;
+                }
+                return 0;
+            },
+        
+            featureUploaded: function(feature){
+                if(feature) {
+                    this._uploaded_features++;
+                }
+                if ( this._uploaded_features > this.featureCount()) {
+                    this._uploaded_features = this.featureCount();
+                }
+            },
+
+            uploadedFeatures: function(){
+                return this._uploaded_features
             },
 
             _createFloodMap: function () {
@@ -60,22 +86,24 @@ define([
                             if(response.status === 201){
                                 // Flood map creation succeed
                                 // get the flood map id
-                                const flood_map_url = response.getResponseHeader('Location')
+                                const flood_map_url = postgresBaseUrl + response.getResponseHeader('Location')
                                 AppRequest.get(flood_map_url)
                                     .done(
                                         function (data) {
-                                            const flood_map_id = data.id
-                                            // Create flooded area relationship
-                                            that._createFloodedAreas(flood_map_id)
-                                            // if succeed, done
-                                                .then(function () {
-                                                    resolve({
-                                                        id: flood_map_id,
-                                                        url: flood_map_url
+                                            if (data && data[0]) {
+                                                const flood_map_id = data[0].id
+                                                // Create flooded area relationship
+                                                that._createFloodedAreas(flood_map_id)
+                                                // if succeed, done
+                                                    .then(function () {
+                                                        resolve({
+                                                            id: flood_map_id,
+                                                            url: flood_map_url
+                                                        })
                                                     })
-                                                })
-                                                // if fails, reject
-                                                .catch(reject)
+                                                    // if fails, reject
+                                                    .catch(reject)
+                                            }
                                         }
                                     ).catch(reject)
                             }
@@ -88,7 +116,7 @@ define([
 
             _createFloodedAreas: function (flood_map_id) {
                 // Bulk insert doesn't return ids, so we insert one by one
-                const areas = this.areas
+                const areas = this.get('areas')
                 const that = this
 
                 const on_post_fails = function (data) {
@@ -119,8 +147,11 @@ define([
                         })
                         // Bulk insert relationship
                         AppRequest.post(
-                            that._url.flooded_area,
-                            relations)
+                            that._url.flooded_areas,
+                            relations,
+                            null,
+                            null,
+                            'application/json')
                             .done(
                                 function (data, textStatus, response) {
                                     if(response.status === 201) {
@@ -148,21 +179,28 @@ define([
                 return new Promise(function (resolve, reject) {
                     // Insert an area
                     AppRequest.post(
-                        that._url.flooded_areas,
+                        that._url.flooded_area,
                         area)
                         .done(
                             // callback to get area id
                             function (data, textStatus, response) {
                                 if(response.status === 201){
                                     // get object
+                                    const flooded_area_url = postgresBaseUrl + response.getResponseHeader('Location')
                                     AppRequest.get(
                                         // created object were given via Location header
-                                        data.getResponseHeader('Location'),
+                                        flooded_area_url,
                                         null,
                                         null,
                                         function (data) {
                                             // send the newly created object
-                                            resolve(data)
+                                            if(data && data[0]){
+                                                that.trigger('feature-uploaded', data[0])
+                                                resolve(data[0])
+                                            }
+                                            else {
+                                                reject(data)
+                                            }
                                         },
                                         reject
                                     )
@@ -176,38 +214,53 @@ define([
             }
         },
         {
-            uploadFloodMap: function(files, place_name, return_period, notes, forecast_date, acquired_date){
-                // Upload flood map from file specified in HTML input dom
-                // We only handle one single GeoJSON
-                const selected_file = files[0]
-                const reader = new FileReader()
+            uploadFloodMap: function(flood_map_attributes){
+                return new Promise(function (resolve, reject) {
+                    // Upload flood map from file specified in HTML input dom
+                    // We only handle one single GeoJSON
+                    const selected_file = flood_map_attributes.files[0]
+                    const place_name = flood_map_attributes.place_name
+                    const return_period = flood_map_attributes.return_period
+                    const flood_model_notes = flood_map_attributes.flood_model_notes
 
-                reader.onload = function(e){
-                    const result = e.target.result
+                    const reader = new FileReader()
 
-                    // result must be a GeoJSON
-                    const layer = FloodLayer.fromGeoJSON(result)
-                    layer.set({
-                        place_name: place_name,
-                        return_period: return_period,
-                        notes: notes
-                    })
+                    reader.onload = function(e){
+                        const result = e.target.result
 
-                    // Perform upload to backend
-                    layer._createFloodMap()
-                        .then(function (data) {
-                            // what to do when succeed
-                            console.log(data)
-                        })
-                        .catch(function (data) {
-                            // what to do when upload fails
-                            console.log(data)
-                        })
-                }
+                        // result must be a GeoJSON
+                        try {
+                            const layer = FloodLayer.fromGeoJSON(JSON.parse(result))
+                            layer.set({
+                                place_name: place_name,
+                                return_period: return_period,
+                                notes: flood_model_notes
+                            })
 
-                // Read the file as GeoJSON text
-                reader.readAsText(selected_file)
+                            // send the layer object
+                            resolve(layer)
 
+                            // Perform upload to backend in async
+                            layer._createFloodMap()
+                                .then(function (data) {
+                                    // what to do when succeed
+                                    layer.trigger('upload-finished', layer)
+                                })
+                                .catch(function (data) {
+                                    // what to do when upload fails
+                                    reject(data)
+                                })
+                        }
+                        catch (e) {
+                            reject(e)
+                        }
+                    }
+
+                    // Read the file as GeoJSON text
+                    reader.readAsText(selected_file)
+
+
+                })
             },
 
             fromGeoJSON: function (geojson_layer, attributes) {

@@ -45,12 +45,12 @@ define([
                             // get the id
                             that.xhrPolygon = AppRequest.get(
                                 // created object were given via Location header
-                                response.getResponseHeader('Location'),
+                                postgresBaseUrl + response.getResponseHeader('Location'),
                                 null,
                                 null,
                                 function (data) {
-                                    if (data) {
-                                        that.polygonID = data.id;
+                                    if (data && data[0]) {
+                                        that.polygonID = data[0].id;
                                         that.polygonName = post_data['name'];
                                         that.updateStats();
                                         dispatcher.trigger('map:redraw');

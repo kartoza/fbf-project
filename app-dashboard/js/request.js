@@ -27,11 +27,15 @@ define([
                 }
             });
         },
-        post: function (url, data, successCallback, errorCallback) {
+        post: function (url, data, successCallback, errorCallback, contentType) {
             /** GET Request that receive url and handle callback **/
+            if(contentType === 'application/json'){
+                data = JSON.stringify(data)
+            }
             return $.ajax({
                 url: url,
                 data: data,
+                contentType: contentType || 'application/x-www-form-urlencoded; charset=UTF-8',
                 type: 'POST',
                 success: function (data, textStatus, request) {
                     if (successCallback) {
