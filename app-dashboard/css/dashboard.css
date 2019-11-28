@@ -27,6 +27,7 @@ body {
 
 .flex-item {
     height: 100%;
+    padding-top: 62px
 }
 
 .flex-item:nth-child(1) {
@@ -52,7 +53,14 @@ body {
     -webkit-align-self: auto;
     -ms-flex-item-align: auto;
     align-self: auto;
-    width: 20%;
+    width: 25%;
+}
+
+.panel-title {
+    border-bottom: 1px solid #ddd;
+    margin-left: -15px;
+    margin-right: -15px;
+    padding-bottom: 10px;
 }
 
 .leaflet-control-layers-list input {
@@ -65,10 +73,78 @@ body {
     background-size: 20px;
 }
 
+.leaflet-top {
+    margin-top: 62px
+}
+
 #cancel-draw {
     margin-left: 5px;
 }
 
 .datepickers-container {
     z-index: 1000000 !important;
+}
+
+.navbar {
+    padding-top: 7px;
+    height: 62px;
+    background: #2F87A6;
+    border: none;
+}
+
+.navbar-logo .col-lg-1 {
+    padding-left: 10px;
+    margin-right: 7px;
+}
+
+.logo-inasafe-text {
+    margin-top: 9px
+}
+
+.logo-subtext {
+    font-size: 12px;
+    margin-top: -2px;
+}
+
+.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar  {
+    border: 2px solid #23657D;
+}
+
+.btn-primary-1 {
+    margin-right: 5px;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.btn-warning:hover {
+    background-color: #FDC066;
+}
+
+.btn-back:hover {
+    opacity: 0.5;
+}
+
+.btn-full-width {
+    width: 100%;
+}
+
+.btn-back {
+    color: #f0ad4e;
+    background: transparent !important;
+    font-size: 20pt;
+    border: transparent !important;
+    padding: 0;
+    line-height: 20pt;
+    margin-top: -3px;
+}
+
+.btn-back:hover {
+    color: #ec971f;
+}
+
+.btn-warning.enable {
+    color: #fff;
+    background-color: #ec971f;
+    border-color: #d58512;
 }

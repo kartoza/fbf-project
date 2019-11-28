@@ -6,6 +6,7 @@
 #side-panel #accordion {
     height: 100%;
     overflow-y: scroll;
+    border-left: 1px solid #dddddd;
 }
 
 #side-panel-footer {
@@ -14,7 +15,7 @@
     width: 100%;
     height: 48px;
     padding: 12px;
-    font-size: 13px;
+    font-size: 12px;
     padding-right: 30px;
     padding-left: 20px;
     border-top: 1px solid #dddddd;
@@ -86,7 +87,7 @@
     opacity: 0.6;
 }
 
-#side-panel .panel-option:hover, #draw-flood.enable, #side-panel .panel-heading.collapsed:hover {
+#side-panel .panel-option:hover, #side-panel .panel-heading.collapsed:hover {
     background-color: #f5f5f5;
 }
 
@@ -109,11 +110,6 @@
 
 #draw-flood-form, #upload-flood-form-wrapper {
     padding: 10px 30px !important;
-    background-color: #f9f9f9;
-}
-
-#draw-flood-form {
-    display: none;
 }
 
 #side-panel .panel-heading.collapsed {
@@ -122,4 +118,15 @@
 
 .form-control {
     margin-bottom: 5px;
+}
+
+form input, form select {
+    border: 1px solid #6D6E71 !important;
+    border-radius: 4px !important;
+    height: 30px !important;
+}
+
+form label {
+    font-weight: normal;
+    font-size: 10pt;
 }
