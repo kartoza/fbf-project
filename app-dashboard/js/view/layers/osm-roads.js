@@ -11,7 +11,7 @@ define([
             let that = this;
             let filter = new MultiselectFilter(
                 'roads-filter',
-                this._id, 'roads_id', 'filtered_osm_roads_mv', []);
+                this._id, 'roads_id', 'osm_roads', []);
 
             // call filters from api
             AppRequest.get(

@@ -11,7 +11,7 @@ define([
             let that = this;
             let filter = new MultiselectFilter(
                 'waterways-filter',
-                this._id, 'waterway_id', 'filtered_osm_waterways_mv', []);
+                this._id, 'waterway_id', 'osm_waterways', []);
 
             // call filters from api
             AppRequest.get(
