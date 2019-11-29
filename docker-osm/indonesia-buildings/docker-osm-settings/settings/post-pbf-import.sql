@@ -64,16 +64,20 @@ create table flooded_areas (
 
 create table forecast_flood_event_buildings (
     id serial primary key ,
+    fd_osm_id bigint not null ,
+    building_id int not null ,
     forecast_flood_event_id integer  references forecast_flood_event(id),
-    building_id integer references filtered_osm_buildings_mv(osm_id),
+    foreign key (building_id, fd_osm_id)references osm_buildings(id, osm_id),
     depth_class_id integer references  depth_class(id)
 );
 
 
 create table flood_event_villages (
+    id serial primary key ,
     forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id integer references village(village_code),
-    depth_class_id integer references depth_class(id)
+    village_id double precision references village(village_code),
+    depth_class_id integer references depth_class(id),
+    building_count integer
 );
 
 create table flood_event_sub_districts (
@@ -242,7 +246,7 @@ BEGIN
 FROM osm_buildings   group by geometry,osm_id )
              as m
             WHERE
-              ST_Intersects(v.geometry, m.geom) and v.highway in
+              ST_Intersects(v.geometry, m.geom) and v.road_type in
                                                     ('trunk','road','secondary','trunk_link','secondary_link',
                                                      'tertiary_link', 'primary', 'residential', 'primary_link',
 'motorway_link','motorway')    )
@@ -810,7 +814,7 @@ SELECT type, COUNT(osm_id) FROM (
     FROM osm_roads as a
     INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
 ) subquery
-GROUP BY type order by count;
+GROUP BY type ;
 
 
 -- count number of rivers intersecting surabaya
@@ -820,7 +824,7 @@ SELECT waterway, COUNT(osm_id) FROM (
     FROM osm_waterways as a
     INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
 ) subquery
-GROUP BY waterway order by count;
+GROUP BY waterway ;
 
 -- count number of buildings intersecting surabaya
 CREATE OR REPLACE VIEW osm_buildings_surabaya_stats as
@@ -829,7 +833,7 @@ SELECT building_type, COUNT(osm_id) FROM (
     FROM osm_buildings as a
     INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
 ) subquery
-GROUP BY building_type order by count;
+GROUP BY building_type ;
 
 -- Find all the names of admin areas intersecting a flood layer
 

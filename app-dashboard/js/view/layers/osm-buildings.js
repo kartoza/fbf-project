@@ -10,7 +10,7 @@ define([
         _layersByNotIntersect: 'kartoza:osm_buildings',
         filters: function () {
             let that = this;
-            let databaseModel = 'filtered_osm_buildings_mv';
+            let databaseModel = 'osm_buildings';
             let filter = new MultiselectFilter(
                 'buildings-filter',
                 this._id, 'building_id', databaseModel, []);
