@@ -9,7 +9,8 @@ require.config({
         'underscore': 'libs/underscore.js/1.9.1/underscore-min',
         'rangeSlider': 'libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min',
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
-        'airDatepicker': 'libs/airdatepicker/js/datepicker.min',
+        'wellknown': 'libs/wellknown.js/0.5.0/wellknown',
+        'airDatepicker': 'libs/airdatepicker/js/datepicker',
         'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en'
     },
     shim: {
@@ -27,10 +28,10 @@ require.config({
             exports: 'LeafletDraw'
         },
         airDatepicker: {
-            deps: ['jquery']
+            deps: ['jquery', 'jqueryUi', 'bootstrap']
         },
         airDatepickerEN: {
-            deps: ['jquery', 'airDatepicker']
+            deps: ['jquery', 'jqueryUi', 'bootstrap', 'airDatepicker']
         }
     }
 });
@@ -42,9 +43,13 @@ require([
     'leaflet',
     'leafletDraw',
     'js/view/map.js',
-    'js/request.js'
-], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView) {
+    'js/request.js',
+    'airDatepicker',
+    'airDatepickerEN',
+    'js/view/flood-collection.js',
+], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView, AirDatepicker, AirDatepickerEN, FloodCollectionView) {
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
     mapView = new MAP();
+    floodCollectionView = new FloodCollectionView();
 });

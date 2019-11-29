@@ -2,8 +2,11 @@ var dispatcher;
 var geoserverUrl = 'http://78.47.62.69/geoserver/wms';
 var gwcURL = 'http://78.47.62.69/geoserver/gwc/service/wms';
 var postgresUrl = 'http://159.69.44.205:3000/';
+// for appending Location url
+var postgresBaseUrl = 'http://159.69.44.205:3000'
 var mapView;
 var AppRequest;
+var floodCollectionView;
 
 String.prototype.replaceAll = function (search, replacement) {
     var target = this;
