@@ -17,6 +17,8 @@ define([
                 this.layers.groups, {position: 'topleft'}).addTo(this.map);
             this.initDraw();
             this.listenTo(dispatcher, 'map:redraw', this.redraw);
+            this.listenTo(dispatcher, 'map:draw-geojson', this.drawGeojsonLayer);
+            this.listenTo(dispatcher, 'map:remove-geojson', this.removeGeojsonLayer);
         },
         redraw: function () {
             $.each(this.layers.layers, function (index, layer) {
@@ -122,8 +124,21 @@ define([
             } else {
                 return null
             }
-
-
+        },
+        drawGeojsonLayer: function (polygon) {
+            let that = this;
+            if(that.geojson_layer){
+                that.map.removeLayer(that.geojson_layer)
+            }
+            that.geojson_layer = new L.GeoJSON(polygon).addTo(that.map);
+            that.map.fitBounds(that.geojson_layer.getBounds());
+        },
+        removeGeojsonLayer: function () {
+            let that = this;
+            if(that.geojson_layer){
+                that.map.removeLayer(that.geojson_layer)
+            }
+            that.map.fitBounds(this.initBounds);
         }
     });
 });

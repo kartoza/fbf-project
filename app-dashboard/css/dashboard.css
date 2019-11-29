@@ -2,6 +2,7 @@ html, body {
     margin: 0;
     height: 100%;
     width: 100%;
+    font-family: Ubuntu, SansSerif;
 }
 
 body {
@@ -121,6 +122,10 @@ body {
     background-color: #FDC066;
 }
 
+.btn-success:hover {
+    background-color: #72CA7A;
+}
+
 .btn-back:hover {
     opacity: 0.5;
 }
@@ -129,7 +134,7 @@ body {
     width: 100%;
 }
 
-.btn-back {
+.btn-back, .btn-arrow, .btn-arrow-small {
     color: #f0ad4e;
     background: transparent !important;
     font-size: 20pt;
@@ -139,7 +144,15 @@ body {
     margin-top: -3px;
 }
 
-.btn-back:hover {
+.btn-arrow {
+    color: #DC923A;
+}
+
+.btn-arrow, .btn-arrow-small {
+    margin: 3px 0 0 0 !important;
+}
+
+.btn-back:hover, .btn-back:focus, .btn-arrow:hover, .btn-arrow:focus {
     color: #ec971f;
 }
 

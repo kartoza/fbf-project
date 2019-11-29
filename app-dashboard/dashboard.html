@@ -28,7 +28,7 @@
                 </div>
                 <div class="panel-body">
                     <button class="btn btn-warning btn-primary-1 btn-full-width add-flood-scenario">Add Flood Scenario</button>
-                    <button class="btn btn-success btn-primary-1 btn-full-width" disabled>Browse Flood</button>
+                    <button class="btn btn-success btn-primary-1 btn-full-width browse-floods">Browse Flood</button>
                 </div>
             </div>
             <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="panel-body-wrapper panel-body panel-flood-form" style="display: none">
-                <div class="form-wrapper panel-draw-flood flood-form" style="display: none">
+                <div class="form-wrapper panel-draw-flood flood-form panel-body-subwrapper" style="display: none">
                     <button class="btn btn-back pull-left" id="cancel-draw"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                     <div class="panel-title" style="text-align: center; font-weight: bold">
                         Draw Flood
@@ -64,7 +64,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="form-wrapper panel-upload-flood flood-form" style="display: none">
+                <div class="form-wrapper panel-upload-flood flood-form panel-body-subwrapper" style="display: none">
                     <button type="reset" class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                     <div class="panel-title" style="text-align: center; font-weight: bold">
                         Upload Flood
@@ -113,6 +113,69 @@
                         </form>
                     </div>
                 </div>
+            </div>
+            <div class="panel-body panel-browse-flood" style="display: none">
+                <div class="panel-body-wrapper">
+                    <div class="panel-body" style="text-align: center; font-weight: bold">
+                        Browse Floods
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <button class="btn btn-success btn-primary-1" id="btn-browse-forecast">By Forecast Date</button>
+                        </div>
+                        <div class="col-lg-6">
+                            <button class="btn btn-success btn-primary-1" id="btn-browse-return-period">By Return Period</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body-wrapper" style="display: none">
+                    <div class="panel-body-subwrapper panel-browse-by-forecast" style="display: none">
+                        <div>
+                            <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                            <div class="panel-body" style="text-align: center; font-weight: bold">
+                                Browse Floods by Forecast Date
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <button class="btn btn-arrow btn-primary-1 pull-right btn-change-date" id="prev-date" disabled><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            </div>
+                            <div class="col-lg-6">
+                                <input class="form-control datepicker-browse" value="Fetching list.." data-position="left bottom" type="button" id="date-browse-flood">
+                            </div>
+                            <div class="col-lg-3">
+                                <button class="btn btn-arrow btn-primary-1 pull-left btn-change-date" id="next-date" disabled><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                            </div>
+                            <div class="col-lg-6 flood-info">
+                            </div>
+                            <div class="col-lg-3 browse-control-arrow-group">
+                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-up" data-flood-id="" disabled><i class="fa fa-chevron-up" aria-hidden="true"></i></button><br/>
+                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-down" data-flood-id="" disabled><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body-subwrapper panel-browse-by-return-period" style="display: none;">
+                        <div>
+                            <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                            <div class="panel-body" style="text-align: center; font-weight: bold">
+                                Browse Floods by Return Period
+                            </div>
+                        </div>
+                        <div>
+                            <select class="form-control">
+                                <option value="">Select a return period</option>
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-warning btn-primary-1 hide-browse-flood pull-right">Hide</button>
             </div>
 
             <!-------------------------------- old side panel (filters), we might use later ---------------------------------------->
@@ -192,7 +255,7 @@
         </div>
         <div class="col-lg-4 pull-right" style="text-align: right; padding-right: 35px; padding-top: 7px">
             <button class="btn btn-warning btn-primary-1 add-flood-scenario">Add Flood Scenario</button>
-            <button class="btn btn-success btn-primary-1" disabled>Browse Flood</button>
+            <button class="btn btn-success btn-primary-1 browse-floods">Browse Flood</button>
         </div>
     </div>
 </nav>

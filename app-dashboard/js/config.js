@@ -28,10 +28,10 @@ require.config({
             exports: 'LeafletDraw'
         },
         airDatepicker: {
-            deps: ['jquery']
+            deps: ['jquery', 'jqueryUi', 'bootstrap']
         },
         airDatepickerEN: {
-            deps: ['jquery', 'airDatepicker']
+            deps: ['jquery', 'jqueryUi', 'bootstrap', 'airDatepicker']
         }
     }
 });
@@ -46,8 +46,10 @@ require([
     'js/request.js',
     'airDatepicker',
     'airDatepickerEN',
-], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView) {
+    'js/view/flood-collection.js',
+], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView, AirDatepicker, AirDatepickerEN, FloodCollectionView) {
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
     mapView = new MAP();
+    floodCollectionView = new FloodCollectionView();
 });

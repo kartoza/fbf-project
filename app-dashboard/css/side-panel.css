@@ -130,3 +130,50 @@ form label {
     font-weight: normal;
     font-size: 10pt;
 }
+
+.panel-browse-flood {
+    position: absolute;
+    width: 100%;
+    bottom: 47px;
+    background-color: white;
+    border: 1px solid #ddd;
+}
+
+.panel-browse-flood .panel-body {
+    padding-top: 0;
+}
+
+.flood-date {
+    background-color: #eea236;
+    border-radius: 25px;
+}
+
+.flood-info {
+    word-break: break-all;
+    font-size: 9pt;
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
+    float: none;
+}
+
+.btn-arrow-small {
+    font-size: 10pt;
+    color: green;
+    line-height: 10pt;
+    margin: 0 !important;
+}
+
+.hide-browse-flood {
+    margin-top: 15px;
+}
+
+.browse-control-arrow-group {
+    float: none;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.browse-arrow {
+    display: none;
+}
