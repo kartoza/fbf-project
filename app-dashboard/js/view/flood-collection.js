@@ -4,10 +4,15 @@ define([
     return Backbone.View.extend({
         flood_collection: null,
         flood_on_date: null,
+        displayed_flood: null,
+        building_type: {},
+        flood_dates: null,
         initialize: function () {
+            this.fetchBuildingType();
             this.fetchFloodCollection();
             dispatcher.on('flood:fetch-flood', this.fetchFlood, this);
-            dispatcher.on('flood:fetch-flood-by-id', this.fetchFloodByID, this)
+            dispatcher.on('flood:fetch-flood-by-id', this.fetchFloodByID, this);
+            dispatcher.on('flood:fetch-flood-vulnerability', this.fetchVulnerability, this);
         },
         fetchFloodCollection: function () {
             let $floodListBtn = $('#date-browse-flood');
@@ -44,6 +49,7 @@ define([
                         }
                     });
                     that.flood_collection = flood_collection_array;
+                    that.flood_dates = flood_dates;
 
                     $('.datepicker-browse').datepicker({
                         language: 'en',
@@ -62,6 +68,8 @@ define([
                         onSelect: function onSelect(fd, date) {
                             let flood_data = that.fetchFlood(date);
                             if(flood_data != null) {
+                                that.displayed_flood = flood_data[0];
+                                that.fetchVulnerability(flood_data[0]['id']);
                                 let polygon = Wellknown.parse('SRID=4326;' + flood_data[0]['st_astext']);
                                 dispatcher.trigger('map:draw-geojson', polygon);
                                 $('.flood-info').html('<div>' + flood_data[0].name + '</div>');
@@ -82,7 +90,7 @@ define([
                     $('.btn-change-date').prop('disabled', false)
                 },
                 function (data, textStatus, request) {
-                    $floodListBtn.val('Fetching flood data failed.');
+                    $floodListBtn.val('Fetch failed.');
                     console.log(data);
                 });
         },
@@ -107,6 +115,8 @@ define([
             for(var i=0; i<lengthArray + 1; i++) {
                 let flood = that.flood_on_date[i];
                 if(flood['id'] === parseInt(id)){
+                    that.displayed_flood = flood;
+                    that.fetchVulnerability(flood['id']);
                     let prev = '';
                     let after = '';
 
@@ -127,10 +137,66 @@ define([
 
                     let polygon = Wellknown.parse('SRID=4326;' + flood['st_astext']);
                     dispatcher.trigger('map:draw-geojson', polygon);
-
                     break;
                 }
             }
+        },
+        fetchBuildingType: function () {
+            let that = this;
+            this.xhrBuildingType = AppRequest.get(
+                postgresUrl + 'building_type_class',
+                {
+                    order: 'id.asc'
+                },
+                {
+                    'Range-Unit': 'items',
+                    'Range': '',
+                    'Prefer': ''
+                },
+                function (data, textStatus, request) {
+                    $.each(data, function (id, value) {
+                        that.building_type[value['id']] = value['building_class']
+                    });
+                },function (data, textStatus, request) {
+                    console.log('Building type request failed');
+                    console.log(data)
+                })
+        },
+        fetchVulnerability: function (flood_id) {
+            let that = this;
+            this.xhrBuildingType = AppRequest.get(
+                postgresUrl + 'osm_buildings_intersect_v?flood_id=eq.' + flood_id,
+                {
+                    order: 'building_id.asc'
+                },
+                {
+                    'Range-Unit': 'items',
+                    'Range': '',
+                    'Prefer': ''
+                },
+                function (data, textStatus, request) {
+                    let affected_buildings = {};
+                    let labels = [];
+                    $.each(data, function (idx, value) {
+                        let building_type = that.building_type[value['building_id']];
+                        if(affected_buildings[building_type]){
+                            affected_buildings[building_type]['vulnerability'] += value['total_vulnerability'];
+                            affected_buildings[building_type]['count'] += 1;
+                        }else {
+                            affected_buildings[building_type] = {
+                                vulnerability: value['total_vulnerability'],
+                                count: 1
+                            };
+                            labels.push(building_type)
+                        }
+
+                    });
+                    dispatcher.trigger('dashboard:render-chart', affected_buildings, labels)
+                },function (data, textStatus, request) {
+                    console.log('Vulnerability request failed');
+                    console.log(data);
+                    return null
+                })
         }
     })
 });

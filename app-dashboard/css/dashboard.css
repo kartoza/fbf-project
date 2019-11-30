@@ -59,9 +59,9 @@ body {
 
 .panel-title {
     border-bottom: 1px solid #ddd;
-    margin-left: -15px;
-    margin-right: -15px;
     padding-bottom: 10px;
+    text-align: center;
+    font-weight: bold
 }
 
 .leaflet-control-layers-list input {

@@ -132,6 +132,7 @@ define([
             }
             that.geojson_layer = new L.GeoJSON(polygon).addTo(that.map);
             that.map.fitBounds(that.geojson_layer.getBounds());
+            dispatcher.trigger('side-panel:open-dashboard');
         },
         removeGeojsonLayer: function () {
             let that = this;
@@ -139,6 +140,7 @@ define([
                 that.map.removeLayer(that.geojson_layer)
             }
             that.map.fitBounds(this.initBounds);
+            dispatcher.trigger('dashboard:reset')
         }
     });
 });

@@ -20,7 +20,7 @@
     <div id="side-panel">
         <div class="panel-group" id="accordion">
             <div class="panel-body-wrapper panel-body panel-welcome">
-                <div class="panel-title" style="text-align: center; font-weight: bold">
+                <div class="panel-title">
                     Welcome to FBF !
                 </div>
                 <div class="panel-body" style="text-align: justify">
@@ -33,7 +33,7 @@
             </div>
             <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
                 <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                <div class="panel-title" style="text-align: center; font-weight: bold">
+                <div class="panel-title">
                     Add Flood Scenario
                 </div>
                 <div class="panel-body">
@@ -47,7 +47,7 @@
             <div class="panel-body-wrapper panel-body panel-flood-form" style="display: none">
                 <div class="form-wrapper panel-draw-flood flood-form panel-body-subwrapper" style="display: none">
                     <button class="btn btn-back pull-left" id="cancel-draw"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                    <div class="panel-title" style="text-align: center; font-weight: bold">
+                    <div class="panel-title">
                         Draw Flood
                     </div>
                     <div id="draw-flood-form">
@@ -66,7 +66,7 @@
                 </div>
                 <div class="form-wrapper panel-upload-flood flood-form panel-body-subwrapper" style="display: none">
                     <button type="reset" class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                    <div class="panel-title" style="text-align: center; font-weight: bold">
+                    <div class="panel-title">
                         Upload Flood
                     </div>
                     <div id="upload-flood-form-wrapper">
@@ -124,7 +124,7 @@
                             <button class="btn btn-success btn-primary-1" id="btn-browse-forecast">By Forecast Date</button>
                         </div>
                         <div class="col-lg-6">
-                            <button class="btn btn-success btn-primary-1" id="btn-browse-return-period">By Return Period</button>
+                            <button class="btn btn-success btn-primary-1" id="btn-browse-return-period" disabled>By Return Period</button>
                         </div>
                     </div>
                 </div>
@@ -176,6 +176,13 @@
                     </div>
                 </div>
                 <button class="btn btn-warning btn-primary-1 hide-browse-flood pull-right">Hide</button>
+            </div>
+            <div id="panel-dashboard" style="display: none">
+                <div id="status">
+                    <span>Action Status: </span><span id="action-status">-</span>
+                </div>
+                <div id="flood-general-summary"></div>
+                <div id="flood-sub-summary"></div>
             </div>
 
             <!-------------------------------- old side panel (filters), we might use later ---------------------------------------->
@@ -277,6 +284,26 @@
         <% } %>
     </div>
 </script>
+
+<script type="text/template" id="dashboard-template">
+    <div class="panel-title">
+        Summary for Flood <%= flood_name %>
+    </div>
+    <div class="col-lg-12">
+        <div class="col-lg-5 box-vulnerability">
+            <div id="vulnerability-score">-</div>
+            <div class="subtext">Vulnerability Score Total</div>
+        </div>
+        <div class="col-lg-5 box-building">
+            <div id="building-count">-</div>
+            <div class="subtext">Flooded Building Count</div>
+        </div>
+    </div>
+    <div class="panel-chart">
+        <canvas id="summary-chart"></canvas>
+    </div>
+</script>
+
 <!--TODO: We need to fix this by just get the geojson -->
 <!--<script type="text/javascript" src="http://159.69.44.205/data/IndonesiaBoundary_3.js"></script>-->
 

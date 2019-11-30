@@ -3,8 +3,9 @@ define([
     'underscore',
     'jquery',
     'jqueryUi',
-    'js/view/layers/upload-flood.js'
-], function (Backbone, _, $, JqueryUi, FloodUploadView) {
+    'js/view/layers/upload-flood.js',
+    'js/view/panel-dashboard.js',
+], function (Backbone, _, $, JqueryUi, FloodUploadView, DashboardView) {
     return Backbone.View.extend({
         el: "#side-panel",
         events: {
@@ -30,7 +31,9 @@ define([
             });
 
             // Initialize view
-            this.flood_upload_view = new FloodUploadView()
+            this.flood_upload_view = new FloodUploadView();
+            dispatcher.on('side-panel:open-dashboard', this.openDashboard, this)
+            dispatcher.on('side-panel:open-welcome', this.openWelcome, this)
         },
         openPanelFloodScenario: function () {
             $('.panel-body-wrapper').not('.panel-flood-scenario').not('.floating-panel').hide();
@@ -85,6 +88,16 @@ define([
             let date = datepicker_data.date;
             date.setDate(date.getDate() + 1);
             datepicker_data.selectDate(date);
+        },
+        openDashboard: function () {
+            this.dashboard = new DashboardView();
+            $('.panel-body-wrapper').not('.floating-panel').hide();
+            $('#panel-dashboard').show("slide", { direction: "right" }, 400);
+        },
+        openWelcome: function () {
+            $('#panel-dashboard').hide();
+            $('.panel-body-wrapper').not('.panel-welcome').not('.floating-panel').hide();
+            $('.panel-welcome').show("slide", { direction: "right" }, 400);
         }
     })
 });

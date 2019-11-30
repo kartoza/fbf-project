@@ -11,7 +11,8 @@ require.config({
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
         'wellknown': 'libs/wellknown.js/0.5.0/wellknown',
         'airDatepicker': 'libs/airdatepicker/js/datepicker',
-        'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en'
+        'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en',
+        'chartjs': 'libs/chart/Chart-2.7.2'
     },
     shim: {
         leaflet: {

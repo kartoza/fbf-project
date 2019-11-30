@@ -176,3 +176,41 @@ form label {
 .browse-arrow {
     display: none;
 }
+
+#status {
+    height: 50px;
+    vertical-align: middle;
+    line-height: 50px;
+    text-align: center;
+    background-color: #D1D3D4;
+    font-weight: bold;
+    color: white;
+}
+
+#panel-dashboard .panel-title {
+    font-weight: normal !important;
+    font-size: 11pt;
+    padding-top: 10px;
+}
+
+.box-vulnerability, .box-building {
+    height: 60px;
+    border: 2px solid #CA6060;
+    margin-top: 10px;
+    text-align: center;
+    width: 48%;
+    padding: 0;
+}
+
+#building-count, #vulnerability-score {
+    font-size: 30px;
+}
+
+.box-building {
+    float: right;
+}
+
+.subtext {
+    margin-top: -5px;
+    font-size: 10px;
+}
