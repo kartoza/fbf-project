@@ -48,6 +48,7 @@ define([
                     $('.datepicker-browse').datepicker({
                         language: 'en',
                         autoClose: true,
+                        dateFormat: 'dd/mm/yyyy',
                         onRenderCell: function (date, cellType) {
                             let _date = new Date(date);
                             _date.setTime(_date.getTime() - _date.getTimezoneOffset() * 60 * 1000);

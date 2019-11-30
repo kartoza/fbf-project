@@ -93,9 +93,9 @@ body {
     border: none;
 }
 
-.navbar-logo .col-lg-1 {
-    padding-left: 10px;
-    margin-right: 7px;
+.navbar-logo {
+    margin-left: 15px;
+    margin-top: 3px;
 }
 
 .logo-inasafe-text {

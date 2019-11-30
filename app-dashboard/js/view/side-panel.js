@@ -33,7 +33,7 @@ define([
             this.flood_upload_view = new FloodUploadView()
         },
         openPanelFloodScenario: function () {
-            $('.panel-body-wrapper').not('.panel-flood-scenario').hide();
+            $('.panel-body-wrapper').not('.panel-flood-scenario').not('.floating-panel').hide();
             $('.panel-flood-scenario').show("slide", { direction: "right" }, 400);
         },
         backButtonAction: function (e) {
@@ -45,7 +45,7 @@ define([
             $wrapper.prev().show("slide", { direction: "right" }, 400);
         },
         openUploadFloodForm: function (e) {
-            $('.panel-body-wrapper').not('.panel-flood-form').hide();
+            $('.panel-body-wrapper').not('.panel-flood-form').not('.floating-panel').hide();
             let $wrapper = $('.panel-flood-form');
             $wrapper.show();
             $wrapper.find('.panel-upload-flood').show("slide", { direction: "right" }, 500);
