@@ -75,19 +75,49 @@ define([
             $wrapper.show();
             $wrapper.parent().show("slide", { direction: "right" }, 400);
         },
-        clickPrevDate: function () {
+        clickPrevDate: function (e) {
             let $datepicker = $('.datepicker-browse');
             let datepicker_data = $datepicker.datepicker().data('datepicker');
-            let date = datepicker_data.date;
-            date.setDate(date.getDate() - 1);
-            datepicker_data.selectDate(date);
+            let date = datepicker_data.lastSelectedDate;
+
+            let flood_dates = floodCollectionView.flood_dates;
+            let beforedates = flood_dates.filter(function(d) {
+                return d - date < 0;
+            });
+
+            beforedates.sort(function(a, b) {
+                var distancea = Math.abs(date - a);
+                var distanceb = Math.abs(date - b);
+                return distancea - distanceb;
+            });
+
+            datepicker_data.selectDate(beforedates[0]);
+
+            if(beforedates.length <= 1){
+                $(e.target).closest('button').prop('disabled', true)
+            }
         },
-        clickNextDate: function () {
+        clickNextDate: function (e) {
             let $datepicker = $('.datepicker-browse');
             let datepicker_data = $datepicker.datepicker().data('datepicker');
-            let date = datepicker_data.date;
-            date.setDate(date.getDate() + 1);
-            datepicker_data.selectDate(date);
+            let date = datepicker_data.lastSelectedDate;
+
+            let flood_dates = floodCollectionView.flood_dates;
+            let afterdates = flood_dates.filter(function(d) {
+                return d - date > 0;
+            });
+
+            afterdates.sort(function(a, b) {
+                var distancea = Math.abs(date - a);
+                var distanceb = Math.abs(date - b);
+                return distancea - distanceb;
+            });
+
+            datepicker_data.selectDate(afterdates[0]);
+
+            if(afterdates.length <= 1){
+                $(e.target).closest('button').prop('disabled', true)
+            }
         },
         openDashboard: function () {
             this.dashboard = new DashboardView();

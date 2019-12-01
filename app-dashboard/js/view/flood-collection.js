@@ -6,7 +6,7 @@ define([
         flood_on_date: null,
         displayed_flood: null,
         building_type: {},
-        flood_dates: null,
+        flood_dates: [],
         initialize: function () {
             this.fetchBuildingType();
             this.fetchFloodCollection();
@@ -41,15 +41,14 @@ define([
 
                             if(!flood_collection_array.hasOwnProperty(string_date)){
                                 flood_collection_array[string_date] = [value]
+                                flood_dates.push(string_date);
+                                that.flood_dates.push(new Date(string_date))
                             }else {
                                 flood_collection_array[string_date].push(value)
                             }
-
-                            flood_dates.push(string_date)
                         }
                     });
                     that.flood_collection = flood_collection_array;
-                    that.flood_dates = flood_dates;
 
                     $('.datepicker-browse').datepicker({
                         language: 'en',
@@ -84,10 +83,34 @@ define([
                                 dispatcher.trigger('map:remove-geojson');
                                 $('.browse-arrow').prop('disabled', true).hide();
                             }
+
+                            // Enable or disable next and previous button.
+                            let _date = new Date(date);
+                            _date.setTime(_date.getTime() - _date.getTimezoneOffset() * 60 * 1000);
+                            _date.setUTCHours(0,0,0,0);
+                            let flood_dates = that.flood_dates;
+                            let beforedates = flood_dates.filter(function(d) {
+                                return d - _date < 0;
+                            });
+
+                            let afterdates = flood_dates.filter(function(d) {
+                                return d - _date > 0;
+                            });
+
+                            if(beforedates.length < 1){
+                                $('#prev-date').prop('disabled', true)
+                            }else {
+                                $('#prev-date').prop('disabled', false)
+                            }
+
+                            if(afterdates.length < 1){
+                                $('#next-date').prop('disabled', true)
+                            }else {
+                                $('#next-date').prop('disabled', false)
+                            }
+
                         }
                     });
-
-                    $('.btn-change-date').prop('disabled', false)
                 },
                 function (data, textStatus, request) {
                     $floodListBtn.val('Fetch failed.');
