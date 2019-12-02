@@ -156,13 +156,6 @@ form label {
     float: none;
 }
 
-.btn-arrow-small {
-    font-size: 10pt;
-    color: green;
-    line-height: 10pt;
-    margin: 0 !important;
-}
-
 .hide-browse-flood {
     margin-top: 15px;
 }

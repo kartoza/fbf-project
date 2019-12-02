@@ -111,6 +111,7 @@ body {
     border: 2px solid #23657D;
 }
 
+/* Buttons */
 .btn-primary-1 {
     margin-right: 5px;
     font-weight: bold;
@@ -118,12 +119,25 @@ body {
     margin-bottom: 10px;
 }
 
+.btn-primary-1:disabled {
+    background-color: #D1D3D4 !important;
+    border: #A7A9AC !important;
+}
+
+.btn-warning {
+    background-color: #FCB040;
+}
+
+.btn-success {
+    background-color: #82CA96;
+}
+
 .btn-warning:hover {
     background-color: #FDC066;
 }
 
 .btn-success:hover {
-    background-color: #72CA7A;
+    background-color: #A3EAB7;
 }
 
 .btn-back:hover {
@@ -135,7 +149,7 @@ body {
 }
 
 .btn-back, .btn-arrow, .btn-arrow-small {
-    color: #f0ad4e;
+    color: #FCB040;
     background: transparent !important;
     font-size: 20pt;
     border: transparent !important;
@@ -144,20 +158,41 @@ body {
     margin-top: -3px;
 }
 
+.btn-arrow-small {
+    font-size: 10pt;
+    color: #82CA96;
+    line-height: 10pt;
+    margin: 0 !important;
+}
+
+.btn-arrow-small:focus {
+    border: transparent;
+}
+
 .btn-arrow {
-    color: #DC923A;
+    color: #FCB040;
+}
+
+.btn-arrow:disabled, .btn-arrow-small:disabled {
+    color: #D1D3D4 !important;
+    background: transparent !important;
+    border: transparent !important;
 }
 
 .btn-arrow, .btn-arrow-small {
     margin: 3px 0 0 0 !important;
 }
 
-.btn-back:hover, .btn-back:focus, .btn-arrow:hover, .btn-arrow:focus {
-    color: #ec971f;
+.btn-back:focus, .btn-arrow:focus {
+    color: #DC923A;
+}
+
+.btn-back:hover, .btn-arrow:hover {
+    color: #FDC066;
 }
 
 .btn-warning.enable {
     color: #fff;
-    background-color: #ec971f;
+    background-color: #DC923A;
     border-color: #d58512;
 }

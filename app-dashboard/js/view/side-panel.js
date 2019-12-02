@@ -36,6 +36,7 @@ define([
             dispatcher.on('side-panel:open-welcome', this.openWelcome, this)
         },
         openPanelFloodScenario: function () {
+            dispatcher.trigger('dashboard:hide');
             $('.panel-body-wrapper').not('.panel-flood-scenario').not('.floating-panel').hide();
             $('.panel-flood-scenario').show("slide", { direction: "right" }, 400);
         },

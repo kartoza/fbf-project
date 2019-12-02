@@ -14,12 +14,13 @@ define([
         el: '#panel-dashboard',
         colour_code: {
             'stop': '#CA6060',
-            'standby': '#D39858',
+            'stand by': '#D39858',
             'go': '#72CA7A'
         },
         initialize: function () {
             dispatcher.on('dashboard:render-chart', this.renderChart, this);
             dispatcher.on('dashboard:reset', this.resetDashboard, this);
+            dispatcher.on('dashboard:hide', this.hideDashboard, this);
 
             this.$el = $(this.el);
             this.render();
@@ -42,6 +43,7 @@ define([
             let backgroundColours = [];
             let vulnerability_score_total = 0;
             let building_count_total = 0;
+
             $.each(data, function (key, value) {
                 graph_data.push({
                     y: key,
@@ -52,6 +54,12 @@ define([
                 building_count_total += value['count']
             });
 
+            graph_data.sort(function(a, b){return b.x - a.x});
+            var label = [];
+            for(var o in graph_data) {
+                label.push(graph_data[o].y);
+            }
+
             $('#vulnerability-score').html(vulnerability_score_total.toFixed(2));
             $('#building-count').html(building_count_total);
 
@@ -59,13 +67,13 @@ define([
             if(vulnerability_score_total > 200){
                 status = 'go'
             }else if(vulnerability_score_total >100){
-                status = 'standby'
+                status = 'stand by'
             }
             this.changeStatus(status);
 
             var ctx = document.getElementById('summary-chart').getContext('2d');
             var datasets = {
-                labels: labels,
+                labels: label,
                 datasets: [
                     {
                         label: "Flooded",
@@ -102,8 +110,17 @@ define([
         },
         resetDashboard: function () {
             $('#status').css('background-color', '#D1D3D4');
-            $(this.general_summary).empty();
-            dispatcher.trigger('side-panel:open-welcome');
+            $(this.status_wrapper).html('-');
+            $(this.general_summary).empty().html('' +
+                '<div class="panel-title">' +
+                '        Please select a date to see flood forecast data.' +
+                '    </div>');
+        },
+        hideDashboard: function () {
+            let $datepicker = $('.datepicker-browse');
+            let datepicker_data = $datepicker.datepicker().data('datepicker');
+            datepicker_data.clear();
+            $('#panel-dashboard').hide();
         }
     })
 });
