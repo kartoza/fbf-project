@@ -6,6 +6,7 @@ define([
         _layers: '',
         _layersByIntersect: '',
         _layersByNotIntersect: '',
+        _bbox_layer: '',
         initialize: function (mapView) {
             this.mapView = mapView;
             this.map = mapView.map;
@@ -26,24 +27,36 @@ define([
                 // get the cql filter
             let cqlFilters = this.cqlFilters();
             let parameters = {
-                layers: this._layers,
+                layers: this._layersByNotIntersect,
                 format: 'image/png',
                 transparent: true,
                 tiled: true,
             };
+
+            let parameters_bbox = {
+                layers: this._bbox_layer,
+                format: 'image/png',
+                transparent: true,
+                tiled: true,
+            };
+
             if (cqlFilters) {
-                parameters['cql_filter'] = cqlFilters
+                parameters_bbox['cql_filter'] = cqlFilters
             }
             if (!this.layer) {
                 // add the layer
+                this.bbox_layer = L.tileLayer.wms(
+                    this._url, parameters_bbox);
+
                 this.layer = L.tileLayer.wms(
                     this._url, parameters);
-                this.group = L.layerGroup([this.layer])
+                this.group = L.layerGroup([this.layer, this.bbox_layer]);
                 this.map.addLayer(this.group);
                 this._id = this.layer._leaflet_id;
             } else {
-                delete (this.layer.wmsParams.cql_filter);
+                delete (this.bbox_layer.wmsParams.cql_filter);
                 this.layer.setParams(parameters);
+                this.bbox_layer.setParams(parameters_bbox)
             }
         },
         cqlFilters: function () {
@@ -51,10 +64,10 @@ define([
             let filters = [];
 
             let mapCqlFilter = this.mapView.cqlFilter();
-            this._layers = this._layersByNotIntersect;
+            this._bbox_layer = '';
             if (mapCqlFilter) {
                 filters.push(mapCqlFilter);
-                this._layers = this._layersByIntersect;
+                this._bbox_layer = this._layersByIntersect;
             }
             $.each(this._filters, (index, filter) => {
                 let layerCqlFilter = filter.cqlFilter();

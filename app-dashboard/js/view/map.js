@@ -109,8 +109,14 @@ define([
             if (!this.layers) {
                 return null;
             }
-            let flood_id = this.layers.polygonStatistic.polygonID;
-            if (flood_id) {
+            let flood_id = null;
+            try {
+                flood_id = floodCollectionView.displayed_flood.id;
+            }catch (err){
+
+            }
+
+            if (flood_id !== null) {
                 return "flood_id=" + flood_id;
             } else {
                 return null
@@ -130,6 +136,7 @@ define([
             if(that.geojson_layer){
                 that.map.removeLayer(that.geojson_layer)
             }
+            this.redraw();
             that.geojson_layer = new L.GeoJSON(polygon).addTo(that.map);
             that.map.fitBounds(that.geojson_layer.getBounds());
             dispatcher.trigger('side-panel:open-dashboard');
@@ -139,6 +146,7 @@ define([
             if(that.geojson_layer){
                 that.map.removeLayer(that.geojson_layer)
             }
+            this.redraw();
             that.map.fitBounds(this.initBounds);
             dispatcher.trigger('dashboard:reset')
         }

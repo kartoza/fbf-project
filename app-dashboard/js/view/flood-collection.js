@@ -79,6 +79,7 @@ define([
                                     $('.browse-arrow').prop('disabled', true).hide();
                                 }
                             }else {
+                                that.displayed_flood = null;
                                 $('.flood-info').html('');
                                 dispatcher.trigger('map:remove-geojson');
                                 $('.browse-arrow').prop('disabled', true).hide();
