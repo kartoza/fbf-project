@@ -40,6 +40,10 @@ define([
                     geometry: 'geometry'
                 }
             },
+
+            _geojson_attrs: {
+                flood_class_field: "class"
+            },
         
             initialize: function (){
                 this._uploaded_features = 0;
@@ -173,6 +177,7 @@ define([
                     }).catch(on_post_fails)
                 })
             },
+
             _createFloodedArea: function (area) {
                 // Return promised created flooded area object
                 const that = this
@@ -211,6 +216,53 @@ define([
                             })
                         .catch(reject)
                 })
+            },
+
+            _validateMultiPolygonFeature: function(){
+                let geojson = this.get('geojson');
+                const areas = geojson.features;
+                const that = this;
+                if(areas !== undefined && areas.length > 0){
+                    let feature = areas[0];
+                    let geom = feature.geometry;
+                    let geom_type = geom.type;
+                    if(geom_type === 'MultiPolygon'){
+                        return true;
+                    }
+                    else if(geom_type === "Polygon"){
+                        // convert to multipolygon
+                        let new_areas = areas.map(function (feature) {
+                            let geom = {
+                                'type': 'MultiPolygon',
+                                'coordinates': [feature.geometry.coordinates]
+                            };
+                            feature.geometry = geom;
+                            return feature;
+                        });
+
+                        let geojson = that.get('geojson');
+                        geojson.features = new_areas;
+                        that.set('geojson', geojson);
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                return false;
+            },
+        
+            _validateDepthClassAttribute: function () {
+                const geojson = this.get('geojson');
+                const areas = geojson.features;
+                const that = this;
+                if(areas !== undefined && areas.length > 0) {
+                    let feature = areas[0];
+                    return (that._geojson_attrs.flood_class_field in feature.properties)
+                }
+                else {
+                    return false;
+                }
             }
         },
         {
@@ -270,9 +322,32 @@ define([
 
                 const layer = new FloodLayer(attributes)
                 layer.set('geojson', geojson_layer)
-                const areas = geojson_layer.features.map(function(value){
+
+                // validations
+                let is_valid_geom = layer._validateMultiPolygonFeature();
+                if(! is_valid_geom){
+                    let e = {
+                        'layer': layer,
+                        'message': 'Invalid geometry types'
+                    }
+                    throw e
+                }
+
+                let is_valid_attributes = layer._validateDepthClassAttribute();
+                if(! is_valid_attributes){
+
+                    let e = {
+                        'layer': layer,
+                        'message': `Depth class attribute "${layer._geojson_attrs.flood_class_field}" does not exists in the flood layer`
+                    }
+                    throw e
+                }
+
+                const validated_geojson = layer.get('geojson');
+
+                const areas = validated_geojson.features.map(function(value){
                     return {
-                        depth_class: value.properties["class"],
+                        depth_class: value.properties[layer._geojson_attrs.flood_class_field],
                         geometry: value.geometry
                     }
                 })

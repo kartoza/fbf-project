@@ -44,7 +44,18 @@ define([
                     that.flood.on('feature-uploaded', that.updateProgress, that);
                     that.setProgressBar(0);
 
-                })
+                }).catch(function (error) {
+                    console.log(error);
+                    if("message" in error){
+                        let message = error.message;
+                        alert("Upload Failed. " + message);
+                    }
+                    else {
+                        alert("Upload Failed. GeoJSON file parsing failed");
+                    }
+                    that.$el.find('[type=submit]').show();
+                    that.progressbar.hide();
+            });
             return false;
         },
 
