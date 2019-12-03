@@ -2,8 +2,9 @@ define([
     'backbone',
     'underscore',
     'jquery',
-    'js/model/flood.js'
-], function (Backbone, _, $, FloodModel) {
+    'js/model/flood.js',
+    'js/model/forecast_event.js'
+], function (Backbone, _, $, FloodModel, ForecastEvent) {
     return Backbone.View.extend({
         el: "#upload-flood-form",
         events: {
@@ -29,6 +30,20 @@ define([
             const source_url = $form.find("#source_url").val();
             const geojson = $form.find("#geojson")[0].files;
             const return_period = $form.find("#return_period").val();
+            const acquisition_date = new Date($('#acquisition_date_upload').val()).toMysqlFormat();
+            const forecast_date = new Date($('#forecast_date_upload').val()).toMysqlFormat();
+
+
+            const forecast_event_attr = {
+                source: source,
+                link: source_url,
+                notes: event_notes,
+                acquisition_date: acquisition_date,
+                forecast_date: forecast_date
+            };
+
+            const forecast_event = new ForecastEvent(forecast_event_attr);
+            this.forecast_event = forecast_event;
 
             const that = this;
             FloodModel.uploadFloodMap({
@@ -59,7 +74,13 @@ define([
             return false;
         },
 
-        uploadFloodFinished: function (e) {
+        uploadFloodFinished: function (layer) {
+            // upload forecast event
+            this.forecast_event.set({
+                flood_map_id: layer.get('id')
+            });
+            this.forecast_event.save();
+
             alert('Flood map successfully uploaded.');
             this.$el.find('[type=submit]').show();
             this.progressbar.hide();
