@@ -82,34 +82,34 @@
                     <div id="draw-flood-form">
                         <form role="form" id="draw-form" enctype="multipart/form-data" class="form-horizontal">
                             <div class="form-group">
-                                <label for="place_name">Place name</label>
-                                <input class="form-control" name="place_name" type="text">
-                                <label for="source">Source</label>
-                                <input class="form-control" name="source" type="text">
-                                <label for="station">Station</label>
-                                <input class="form-control" type="text" id="station" name="station">
-                                <label for="event_notes">Event notes</label>
-                                <input class="form-control" name="event_notes" type="text">
-                                <label for="flood_model_notes">Flood model notes</label>
-                                <input class="form-control" name="flood_model_notes" type="text">
-                                <label for="source_url">Source url</label>
-                                <input class="form-control" name="source_url" type="text">
-                                <label for="geojson">Return period</label>
-                                <select class="form-control" name="return_period">
+                                <label for="draw_place_name">Place name</label>
+                                <input class="form-control" name="place_name" id="draw_place_name" type="text">
+                                <label for="draw_event_notes">Event notes</label>
+                                <input class="form-control" name="event_notes" id="draw_event_notes" type="text">
+                                <label for="draw_return_period">Return period</label>
+                                <select class="form-control" name="return_period" id="draw_return_period">
                                     <option value="0">Unspecified</option>
                                     <option value="1">1 year</option>
                                     <option value="5">5 years</option>
                                     <option value="10">10 years</option>
+                                    <option value="20">20 years</option>
                                     <option value="100">100 years</option>
+                                </select>
+                                <label for="draw_depth_class">Depth Class</label>
+                                <select class="form-control" name="depth_class" id="draw_depth_class">
+                                    <option value="1">0 - 0.7m</option>
+                                    <option value="2">0.7 - 1.5m</option>
+                                    <option value="3">1.5 - 3.0m</option>
+                                    <option value="4">3.0 or greater</option>
                                 </select>
                                 <div class="row">
                                     <div class="col-lg-6" style="padding-right: 5px">
-                                        <label for="acquisition_date_upload">Acquisition date </label>
-                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" id="acquisition_date" style="font-size: 10px;">
+                                        <label for="draw_acquisition_date">Acquisition date </label>
+                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" name="acquisition_date" id="draw_acquisition_date" style="font-size: 10px;">
                                     </div>
                                     <div class="col-lg-6" style="padding-left: 5px">
-                                        <label for="forecast_date_upload">Forecast date </label>
-                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" id="forecast_date" style="font-size: 10px;">
+                                        <label for="draw_forecast_date">Forecast date </label>
+                                        <input class="form-control datepicker-here" data-language="en" data-timepicker="true" data-position="left bottom" type="text" name="forecast_date" id="draw_forecast_date" style="font-size: 10px;">
                                     </div>
                                 </div>
                                 <button type="submit" value="submit" class="btn btn-warning btn-primary-1 pull-right">Save</button>
@@ -127,7 +127,7 @@
                             <div class="form-group">
                                 <label for="upload_place_name">Place name</label>
                                 <input class="form-control" name="place_name" id="upload_place_name" type="text">
-                                <label for="upload_source">Souce</label>
+                                <label for="upload_source">Source</label>
                                 <input class="form-control" name="source" id="upload_source" type="text">
                                 <label for="upload_event_notes">Event notes</label>
                                 <input class="form-control" name="event_notes" id="upload_event_notes" type="text">
