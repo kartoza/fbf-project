@@ -9,6 +9,7 @@ define([
      *      - geometry
      *      - depth_class
      *  - geojson
+     *  - id
      *  - place_name
      *  - notes
      *  - return_period
@@ -161,6 +162,9 @@ define([
                                     if(response.status === 201) {
                                         // Bulk insert succeed
                                         // we resolve but nothing to return since the REST API doesn't have anything useful returned
+                                        that.set({
+                                            id: flood_map_id
+                                        })
                                         resolve()
                                     }
                                     else {
