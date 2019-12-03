@@ -23,7 +23,7 @@ define([
                     flood_id: 'flood_map_id',
                     acquisition_date: 'acquisition_date',
                     forecast_date: 'forecast_date',
-                    source: 'source',
+                    source: 'upload_source',
                     notes: 'notes',
                     link: 'link',
                     trigger_status: 'trigger_status'

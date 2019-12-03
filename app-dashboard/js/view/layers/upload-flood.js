@@ -14,24 +14,34 @@ define([
         initialize: function(){
             this.progressbar = this.$el.find("#upload-progress-bar");
             this.progressbar.hide();
+            const $form = this.$el;
+            this.$place_name = $form.find("input[name='place_name']");
+            this.$source = $form.find("input[name='source']");
+            this.$event_notes = $form.find("input[name='event_notes']");
+            this.$flood_model_notes = $form.find("input[name='flood_model_notes']");
+            this.$source_url = $form.find("input[name='source_url']");
+            this.$geojson = $form.find("input[name='geojson']");
+            this.$return_period = $form.find("input[name='return_period']");
+            this.$acquisition_date = $form.find("input[name='acquisition_date']");
+            this.$forecast_date = $form.find("input[name='forecast_date']");
         },
 
         submitForm: function(e){
             e.preventDefault();
             this.$el.find('[type=submit]').hide();
             this.progressbar.show();
+            const that = this;
 
             // make flood model map
-            const $form = this.$el;
-            const place_name = $form.find("#place_name").val();
-            const source = $form.find("#source").val();
-            const event_notes = $form.find("#event_notes").val();
-            const flood_model_notes = $form.find("#flood_model_notes").val();
-            const source_url = $form.find("#source_url").val();
-            const geojson = $form.find("#geojson")[0].files;
-            const return_period = $form.find("#return_period").val();
-            const acquisition_date = new Date($('#acquisition_date_upload').val()).toMysqlFormat();
-            const forecast_date = new Date($('#forecast_date_upload').val()).toMysqlFormat();
+            const place_name = this.$place_name.val();
+            const source = this.$source.val();
+            const event_notes = this.$event_notes.val();
+            const flood_model_notes = this.$flood_model_notes.val();
+            const source_url = this.$source_url.val();
+            const geojson = this.$geojson[0].files;
+            const return_period = this.$return_period.val();
+            const acquisition_date = new Date(this.$acquisition_date.val()).toMysqlFormat();
+            const forecast_date = new Date(this.$forecast_date.val()).toMysqlFormat();
 
 
             const forecast_event_attr = {
@@ -44,8 +54,7 @@ define([
 
             const forecast_event = new ForecastEvent(forecast_event_attr);
             this.forecast_event = forecast_event;
-
-            const that = this;
+            
             FloodModel.uploadFloodMap({
                 files: geojson,
                 place_name: place_name,
@@ -76,14 +85,26 @@ define([
 
         uploadFloodFinished: function (layer) {
             // upload forecast event
-            this.forecast_event.set({
-                flood_map_id: layer.get('id')
-            });
-            this.forecast_event.save();
+            const that = this;
+            this.forecast_event.save(
+                {
+                    flood_map_id: layer.get('id')
+                })
+                .fail(function(response, textStatus)
+                {
+                    if(textStatus === "parsererror" && response.status === 201){
+                        // parser error but successfully sent to server
+                        alert('Flood map successfully uploaded.');
+                        that.$el.find('[type=submit]').show();
+                        that.progressbar.hide();
+                    }
+                    else if(textStatus !== 'success') {
+                        alert('Upload Failed. Forecast information failed to save');
+                        that.$el.find('[type=submit]').show();
+                        that.progressbar.hide();
+                    }
+                });
 
-            alert('Flood map successfully uploaded.');
-            this.$el.find('[type=submit]').show();
-            this.progressbar.hide();
         },
 
         setProgressBar: function(value){
