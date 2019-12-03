@@ -136,6 +136,7 @@ form label {
     bottom: 47px;
     background-color: white;
     border: 1px solid #ddd;
+    height: 180px;
 }
 
 .panel-browse-flood .panel-body {
@@ -180,6 +181,10 @@ form label {
     color: white;
 }
 
+.panel-title {
+    font-weight: normal !important;
+}
+
 #panel-dashboard .panel-title {
     font-weight: normal !important;
     font-size: 11pt;
@@ -206,4 +211,40 @@ form label {
 .subtext {
     margin-top: -5px;
     font-size: 10px;
+}
+
+.landing-page-icon img {
+    width: 30px;
+}
+
+.Infographics {
+    margin-top: 10px
+}
+
+.browse-header {
+    background-color: #6AA47A;
+    margin-top: -15px;
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 5px 15px;
+    margin-bottom: 15px;
+}
+
+.browse-header img {
+    height: 25px;
+}
+
+.arrow-start {
+    position: absolute;
+    bottom: 27px;
+    right: 110px;
+}
+
+.arrow-start img {
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+    height: 60px;
 }

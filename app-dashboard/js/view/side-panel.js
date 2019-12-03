@@ -55,10 +55,13 @@ define([
             $wrapper.find('.panel-upload-flood').show("slide", { direction: "right" }, 500);
         },
         openBrowseFlood: function (e) {
-            $('.panel-browse-flood').show("slide", { direction: "right" }, 400);
+            $('.browse-btn-icon').hide();
+            $('.panel-browse-flood').show("slide", { direction: "down" }, 400);
+            $('.arrow-start').hide();
         },
         hideBrowseFlood: function () {
-            $('.panel-browse-flood').hide("slide", { direction: "right" }, 400);
+            $('.browse-btn-icon').show();
+            $('.panel-browse-flood').hide("slide", { direction: "down" }, 400);
         },
         fetchFloodById: function (e) {
             let flood_id = $(e.target).closest('.browse-arrow').attr('data-flood-id');

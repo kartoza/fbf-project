@@ -148,7 +148,7 @@ body {
     width: 100%;
 }
 
-.btn-back, .btn-arrow, .btn-arrow-small {
+.btn-back, .btn-arrow, .btn-arrow-small, .btn-arrow-white {
     color: #FCB040;
     background: transparent !important;
     font-size: 20pt;
@@ -156,6 +156,10 @@ body {
     padding: 0;
     line-height: 20pt;
     margin-top: -3px;
+}
+
+.btn-arrow-white {
+    color: white !important;
 }
 
 .btn-arrow-small {
@@ -169,11 +173,7 @@ body {
     border: transparent;
 }
 
-.btn-arrow {
-    color: #FCB040;
-}
-
-.btn-arrow:disabled, .btn-arrow-small:disabled {
+.btn-arrow:disabled, .btn-arrow-small:disabled, btn-arrow-white:disabled {
     color: #D1D3D4 !important;
     background: transparent !important;
     border: transparent !important;
@@ -181,6 +181,10 @@ body {
 
 .btn-arrow, .btn-arrow-small {
     margin: 3px 0 0 0 !important;
+}
+
+.btn-arrow-white {
+    margin: 0 !important;
 }
 
 .btn-back:focus, .btn-arrow:focus {
@@ -196,3 +200,52 @@ body {
     background-color: #DC923A;
     border-color: #d58512;
 }
+
+.add-flood-scenario img {
+    vertical-align: text-bottom;
+    height: 16px;
+    margin-right: 7px;
+}
+
+/* Bouncy browse icon */
+.browse-btn-icon {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+}
+
+.browse-btn-icon button {
+    background: transparent !important;
+    border: none !important;
+    height: 45px;
+    outline: none !important;
+}
+
+.stage {
+    display: flex;
+    width: 100%;
+}
+
+.box {
+    align-self: flex-end;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    margin: 0 auto 0 auto;
+    transform-origin: bottom;
+}
+
+.bounce-7 {
+    animation-name: bounce-7;
+    animation-timing-function: cubic-bezier(0.280, 0.840, 0.420, 1);
+}
+
+@keyframes bounce-7 {
+    0%   { transform: scale(1,1)      translateY(0); }
+    10%  { transform: scale(1.1,.9)   translateY(0); }
+    30%  { transform: scale(.9,1.1)   translateY(-10px); }
+    50%  { transform: scale(1.05,.95) translateY(0); }
+    57%  { transform: scale(1,1)      translateY(-7px); }
+    64%  { transform: scale(1,1)      translateY(0); }
+    100% { transform: scale(1,1)      translateY(0); }
+}
+

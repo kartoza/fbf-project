@@ -17,19 +17,47 @@
 
 <body>
 <div id="map" class="flex-item"></div>
-<div class="flex-item" style="position: relative">
+<div class="flex-item" style="position: relative; overflow: hidden">
     <div id="side-panel">
         <div class="panel-group" id="accordion">
             <div class="panel-body-wrapper panel-body panel-welcome">
                 <div class="panel-title">
-                    Welcome to FBF !
+                    Welcome to FBF
                 </div>
-                <div class="panel-body" style="text-align: justify">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sagittis ullamcorper elit eget feugiat. Morbi sem urna, porttitor vel lacus nec, facilisis vestibulum urna.
+                <div class="panel-body" style="text-align: justify; max-height: 15em; overflow-y: auto;">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris neque mi, suscipit vel ullamcorper quis, malesuada ut nibh. Nam nibh dui, ultricies vehicula eleifend vel, viverra a leo. Aenean porttitor lacinia porta. Etiam placerat iaculis facilisis. Morbi facilisis rhoncus ante, molestie congue massa sollicitudin vel.
                 </div>
                 <div class="panel-body">
-                    <button class="btn btn-warning btn-primary-1 btn-full-width add-flood-scenario">Add Flood Scenario</button>
-                    <button class="btn btn-success btn-primary-1 btn-full-width browse-floods">Browse Flood</button>
+                    <div class="row Infographics">
+                        <div class="col-lg-2 landing-page-icon">
+                            <img src="images/download-icon.svg">
+                        </div>
+                        <div class="col-lg-10 text-justify">
+                            <span>
+                                Click the download button on the top right of the flood summary to download the flood data.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row Infographics">
+                        <div class="col-lg-2 landing-page-icon">
+                            <img src="images/add-flood.svg">
+                        </div>
+                        <div class="col-lg-10 text-justify">
+                            <span>
+                                Click the Add flood button on the right side of the Nav bar to Add your flood layer.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row Infographics">
+                        <div class="col-lg-2 landing-page-icon">
+                            <img src="images/browse-icon.svg">
+                        </div>
+                        <div class="col-lg-10 text-justify">
+                            <span>
+                                Click the Browse Flood button on the bottom right of InaSAFE FBF to Browse Floods.
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
@@ -118,25 +146,23 @@
             </div>
             <div class="panel-body panel-browse-flood" style="display: none">
                 <div class="panel-body-wrapper floating-panel">
-                    <div class="panel-body" style="text-align: center; font-weight: bold">
-                        Browse Floods
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-6 text-center">
-                            <button class="btn btn-success btn-primary-1 btn-full-width" id="btn-browse-forecast">By Forecast Date</button>
-                        </div>
-                        <div class="col-lg-6 text-center">
-                            <button class="btn btn-success btn-primary-1 btn-full-width" id="btn-browse-return-period" disabled>By Return Period</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-body-wrapper floating-panel" style="display: none">
-                    <div class="panel-body-subwrapper panel-browse-by-forecast" style="display: none">
-                        <div>
-                            <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                            <div class="panel-body" style="text-align: center; font-weight: bold">
-                                Browse Floods by Forecast Date
+                    <div class="panel-body-subwrapper panel-browse-by-forecast">
+                        <div class="panel-header browse-header">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <img src="images/browse-icon-transparent.svg">
+                                </div>
+                                <div class="col-lg-6">
+                                    <div style="text-align: center; line-height: 26px; color: white">
+                                        Browse Floods
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 text-right">
+                                    <button class="btn btn-arrow-white btn-primary-1 hide-browse-flood"><i class="fa fa-chevron-circle-down" aria-hidden="true"></i></button>
+                                </div>
                             </div>
+                        </div>
+                        <div>
                         </div>
                         <div class="row">
                             <div class="col-lg-3">
@@ -160,24 +186,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="panel-body-subwrapper panel-browse-by-return-period" style="display: none;">
-                        <div>
-                            <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                            <div class="panel-body" style="text-align: center; font-weight: bold">
-                                Browse Floods by Return Period
-                            </div>
-                        </div>
-                        <div>
-                            <select class="form-control">
-                                <option value="">Select a return period</option>
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="100">100</option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
-                <button class="btn btn-warning btn-primary-1 hide-browse-flood pull-right">Hide</button>
             </div>
             <div id="panel-dashboard" style="display: none">
                 <div id="status">
@@ -243,6 +252,16 @@
         </div>
     </div>
     <div id="side-panel-footer">
+        <div class="arrow-start">
+            <span style="color: black; margin-right: 35px">Click here to get started </span><img src="images/arrow-green.svg">
+        </div>
+        <div class="browse-btn-icon">
+            <div class="stage">
+                <button class="box bounce-7 browse-floods">
+                    <img src="images/browse-icon.svg">
+                </button>
+            </div>
+        </div>
         <div>
             <span>Made with <i class="fa fa-heart"></i> by</span>
             <a href="https://kartoza.com/id/" target="_blank" style="font-weight: 900;">
@@ -265,8 +284,7 @@
             </a>
         </div>
         <div class="col-lg-4 pull-right" style="text-align: right; padding-right: 35px; padding-top: 7px">
-            <button class="btn btn-warning btn-primary-1 add-flood-scenario">Add Flood Scenario</button>
-            <button class="btn btn-success btn-primary-1 browse-floods">Browse Flood</button>
+            <button class="btn btn-warning btn-primary-1 add-flood-scenario"><img src="images/add-flood-icon.svg"><span>ADD FLOOD</span></button>
         </div>
     </div>
 </nav>
