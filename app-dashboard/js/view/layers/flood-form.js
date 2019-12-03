@@ -19,11 +19,11 @@ define([
                 'source': 'user'
             };
 
-            if ($('#enable_forecast_date').is(':checked')) {
+            if ($('#forecast_date').val() !== undefined && $('#forecast_date').val() !== '') {
                 post_data['forecast_date_time'] = new Date($('#forecast_date').val()).toMysqlFormat();
             }
 
-            if ($('#enable_station').is(':checked')) {
+            if ($('#station').val() !== undefined && $('#station').val() !== '') {
                 post_data['station'] = $('#station').val();
             }
             this.post_data = post_data
