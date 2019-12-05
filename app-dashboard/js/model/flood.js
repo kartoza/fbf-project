@@ -275,18 +275,14 @@ define([
                     // Upload flood map from file specified in HTML input dom
                     // We only handle one single GeoJSON
                     const selected_file = flood_map_attributes.files[0]
+                    const geojson = flood_map_attributes.geojson
                     const place_name = flood_map_attributes.place_name
                     const return_period = flood_map_attributes.return_period
                     const flood_model_notes = flood_map_attributes.flood_model_notes
 
-                    const reader = new FileReader()
-
-                    reader.onload = function(e){
-                        const result = e.target.result
-
-                        // result must be a GeoJSON
+                    function _process_geojson(geojson){
                         try {
-                            const layer = FloodLayer.fromGeoJSON(JSON.parse(result))
+                            const layer = FloodLayer.fromGeoJSON(JSON.parse(geojson));
                             layer.set({
                                 place_name: place_name,
                                 return_period: return_period,
@@ -312,10 +308,23 @@ define([
                         }
                     }
 
-                    // Read the file as GeoJSON text
-                    reader.readAsText(selected_file)
+                    if("geojson" in flood_map_attributes){
+                        _process_geojson(geojson);
+                    }
+                    else {
 
+                        const reader = new FileReader()
 
+                        reader.onload = function (e) {
+                            const result = e.target.result
+
+                            // result must be a GeoJSON
+                            _process_geojson(result);
+                        }
+
+                        // Read the file as GeoJSON text
+                        reader.readAsText(selected_file)
+                    }
                 })
             },
 
