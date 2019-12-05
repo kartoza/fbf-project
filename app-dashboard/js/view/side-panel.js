@@ -81,7 +81,7 @@ define([
         },
         clickPrevDate: function (e) {
             let $datepicker = $('.datepicker-browse');
-            let datepicker_data = $datepicker.datepicker().data('datepicker');
+            let datepicker_data = $datepicker.data('datepicker');
             let date = datepicker_data.lastSelectedDate;
 
             let flood_dates = floodCollectionView.flood_dates;
@@ -103,7 +103,7 @@ define([
         },
         clickNextDate: function (e) {
             let $datepicker = $('.datepicker-browse');
-            let datepicker_data = $datepicker.datepicker().data('datepicker');
+            let datepicker_data = $datepicker.data('datepicker');
             let date = datepicker_data.lastSelectedDate;
 
             let flood_dates = floodCollectionView.flood_dates;

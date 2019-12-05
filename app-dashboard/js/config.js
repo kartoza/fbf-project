@@ -16,8 +16,11 @@ require.config({
         'chartjs': 'libs/chart/Chart-2.7.2'
     },
     shim: {
+        moment: {
+            exports: 'moment'
+        },
         leaflet: {
-            exports: ['L']
+            exports: 'L'
         },
         bootstrap: {
             deps: ["jquery"]
@@ -34,6 +37,10 @@ require.config({
         },
         airDatepickerEN: {
             deps: ['jquery', 'jqueryUi', 'bootstrap', 'airDatepicker']
+        },
+        utils: {
+            deps: ['moment'],
+            exports: 'utils'
         }
     }
 });
@@ -45,20 +52,15 @@ require([
     'moment',
     'leaflet',
     'leafletDraw',
-    'js/view/map.js',
-    'js/request.js',
     'airDatepicker',
     'airDatepickerEN',
+    'utils',
+    'js/view/map.js',
+    'js/request.js',
     'js/view/flood-collection.js',
-], function ($, bootstrap, Backbone, _, moment, L, LDraw, MAP, RequestView, AirDatepicker, AirDatepickerEN, FloodCollectionView) {
+], function ($, bootstrap, Backbone, _, moment, L, LDraw, AirDatepicker, AirDatepickerEN,  utils, MAP, RequestView, FloodCollectionView) {
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
     mapView = new MAP();
     floodCollectionView = new FloodCollectionView();
-    window.moment = moment;
-
-    // add helper function for moment
-    moment.fromAirDateTimePicker = function (value) {
-        return moment(value, 'YYYY-MM-DD HH:mm');
-    }
 });

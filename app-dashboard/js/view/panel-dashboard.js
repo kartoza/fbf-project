@@ -118,7 +118,7 @@ define([
         },
         hideDashboard: function () {
             let $datepicker = $('.datepicker-browse');
-            let datepicker_data = $datepicker.datepicker().data('datepicker');
+            let datepicker_data = $datepicker.data('datepicker');
             datepicker_data.clear();
             $('#panel-dashboard').hide();
         }
