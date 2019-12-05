@@ -1,12 +1,12 @@
 define([
     'backbone',
-    'wellknown'
-    ], function (Backbone, Wellknown) {
+    'wellknown'],
+    function (Backbone, Wellknown) {
     /**
      * Attributes:
      *  - flood_map_id
      *  - acquisition_date
-     *  - forecast_date
+     *  - forecast_datex
      *  - source
      *  - notes
      *  - link
@@ -34,7 +34,11 @@ define([
                 ACTIVATION_TRIGGER: 2
             },
 
-            urlRoot: postgresUrl + 'flood_event'
+            urlRoot: postgresUrl + 'flood_event',
+
+            url: function () {
+                return `${this.urlRoot}?id=eq.${this.get('id')}`;
+            },
         },
         {
             fromFloodLayer: function (flood_layer) {
