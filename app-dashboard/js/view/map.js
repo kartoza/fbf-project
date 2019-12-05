@@ -19,6 +19,40 @@ define([
             this.listenTo(dispatcher, 'map:redraw', this.redraw);
             this.listenTo(dispatcher, 'map:draw-geojson', this.drawGeojsonLayer);
             this.listenTo(dispatcher, 'map:remove-geojson', this.removeGeojsonLayer);
+
+            // dispatcher registration
+            dispatcher.on('map:draw-forecast-layer', this.drawForecastLayer, this);
+            dispatcher.on('map:remove-forecast-layer', this.removeForecastLayer, this);
+        },
+        removeForecastLayer: function(){
+            if(this.forecast_layer){
+                this.map.removeLayer(this.forecast_layer)
+                this.forecast_layer = null;
+            }
+            dispatcher.trigger('map:redraw');
+            this.map.fitBounds(this.initBounds);
+            dispatcher.trigger('dashboard:reset')
+        },
+        drawForecastLayer: function(forecast){
+            const that = this;
+            // get zoom bbox
+            forecast.fetchExtent()
+                .then(function (extent) {
+                    // create WMS layer
+                    let forecast_layer = forecast.leafletLayer();
+                    // add layer to leaflet
+                    if(that.forecast_layer){
+                        that.map.removeLayer(that.forecast_layer);
+                    }
+                    dispatcher.trigger('map:redraw');
+                    forecast_layer.addTo(that.map);
+                    // zoom to bbox
+                    that.map.fitBounds(extent.leaflet_bounds);
+                    // register layer to view
+                    that.forecast_layer = forecast_layer;
+                    dispatcher.trigger('side-panel:open-dashboard');
+                })
+
         },
         redraw: function () {
             $.each(this.layers.layers, function (index, layer) {
