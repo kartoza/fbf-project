@@ -1,7 +1,8 @@
 define([
     'backbone',
-    'wellknown'],
-    function (Backbone, Wellknown) {
+    'wellknown',
+    'leaflet'],
+    function (Backbone, Wellknown, L) {
     /**
      * Attributes:
      *  - flood_map_id
@@ -18,7 +19,8 @@ define([
     const ForecastEvent = Backbone.Model.extend({
             // attribute placeholder
             _url: {
-                forecast_flood: _forecast_flood_url
+                forecast_flood: _forecast_flood_url,
+                forecast_flood_extent: postgresUrl + 'flood_event_extent_v'
             },
             _table_attrs: {
                 forecast_flood: {
@@ -33,7 +35,8 @@ define([
             },
             _constants: {
                 PRE_ACTIVATION_TRIGGER: 1,
-                ACTIVATION_TRIGGER: 2
+                ACTIVATION_TRIGGER: 2,
+                WMS_LAYER_NAME: 'kartoza:flood_forecast_layer'
             },
 
             urlRoot: postgresUrl + 'flood_event',
@@ -41,6 +44,47 @@ define([
             url: function () {
                 return `${this.urlRoot}?id=eq.${this.get('id')}`;
             },
+        
+            fetchExtent: function () {
+                const that = this;
+                return new Promise(function (resolve, reject) {
+                    AppRequest.get(
+                        that._url.forecast_flood_extent,
+                        {
+                            id: `eq.${that.get('id')}`
+                        },
+                        {
+                            'Accept': 'application/vnd.pgrst.object+json'
+                        })
+                        .done(function (data) {
+                            let extent = {
+                                x_min: data.x_min,
+                                x_max: data.x_max,
+                                y_min: data.y_min,
+                                y_max: data.y_max,
+                                leaflet_bounds: [
+                                    [data.y_min, data.x_min],
+                                    [data.y_max, data.x_max]
+                                ]
+                            }
+                            that.set('extent', extent);
+                            resolve(extent);
+                        })
+                        .fail(reject);
+                });
+            },
+        
+            leafletLayer: function () {
+                return L.tileLayer.wms(
+                    geoserverUrl,
+                    {
+                        layers: this._constants.WMS_LAYER_NAME,
+                        format: 'image/png',
+                        transparent: true,
+                        srs: 'EPSG:4326',
+                        cql_filter: `id=${this.get('id')}`
+                    });
+            }
         },
         {
             fromFloodLayer: function (flood_layer) {

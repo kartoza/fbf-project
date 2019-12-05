@@ -13,6 +13,11 @@ define([
         event_date_hash: null,
         selected_flood: null,
         building_type: {},
+
+        events: {
+            'click #prev-date': 'clickNavigateForecast',
+            'click #next-date': 'clickNavigateForecast'
+        },
         initialize: function () {
             this.fetchBuildingType();
             this.fetchFloodCollection();
@@ -27,7 +32,7 @@ define([
 
             // dispatcher registration
             dispatcher.on('flood:fetch-flood', this.fetchForecast, this);
-            dispatcher.on('flood:fetch-flood-by-id', this.fetchFloodByID, this);
+            dispatcher.on('flood:fetch-flood-by-id', this.clickNavigateForecast, this);
             dispatcher.on('flood:fetch-flood-vulnerability', this.fetchVulnerability, this);
         },
         fetchFloodCollection: function () {
@@ -68,7 +73,13 @@ define([
                             }
                         },
                         onSelect: function onSelect(fd, date) {
-                            that.fetchForecast(date);
+                            if(date) {
+                                that.fetchForecast(date);
+                            }
+                            else {
+                                // empty date or deselcted;
+                                that.deselectForecast();
+                            }
                         }
                     });
 
@@ -88,26 +99,39 @@ define([
         },
         updateForecastsPager: function(current_date){
             // check if there are previous date
-            let prev_date = this.forecasts_list.filter(forecast => current_date - forecast.forecast_date.local().momentDateOnly());
+            let prev_forecasts = this.forecasts_list.filter(forecast => current_date - forecast.forecast_date.local().momentDateOnly() > 0);
             // do not disable if there are previous date
-            this.$prev_date_arrow.prop('disabled', !(prev_date.length > 0));
+            this.$prev_date_arrow.prop('disabled', !(prev_forecasts.length > 0));
+            // find newest date
+            if(prev_forecasts.length > 0 ) {
+                let prev_forecast = prev_forecasts.reduce((accumulator, value) => value.forecast_date > accumulator.forecast_date ? value : accumulator, prev_forecasts[0]);
+                this.$prev_date_arrow.attr('data-forecast-date', prev_forecast.forecast_date.local().formatDate());
+            }
             // check if there are next date
-            let next_date = this.forecasts_list.filter(forecast =>  forecast.forecast_date.local().momentDateOnly() - current_date);
+            let next_forecasts = this.forecasts_list.filter(forecast =>  forecast.forecast_date.local().momentDateOnly() - current_date > 0);
             // do not disable if there are previous date
-            this.$next_date_arrow.prop('disabled', !(next_date.length > 0));
+            this.$next_date_arrow.prop('disabled', !(next_forecasts.length > 0));
+            // find oldest date
+            if(next_forecasts.length > 0 ) {
+                let next_forecast = next_forecasts.reduce((accumulator, value) => value.forecast_date > accumulator.forecast_date ? value : accumulator, next_forecasts[0]);
+                this.$next_date_arrow.attr('data-forecast-date', next_forecast.forecast_date.local().formatDate());
+            }
+
+            // update date text
+            this.$datepicker_browse.val(current_date.local().format('DD/MM/YYYY'));
         },
         selectForecast: function(forecast){
             this.selected_forecast = forecast;
             // dispatch event to draw flood
             dispatcher.trigger('map:draw-forecast-layer', forecast);
             // change flood info
-            console.log(forecast);
             this.$flood_info.html(`<div>${forecast.get('notes')}</div>`);
         },
         deselectForecast: function(){
             // when no forecast, deselect
             this.selected_forecast = null;
             this.$flood_info.empty();
+            this.$datepicker_browse.val('Select forecast date');
             dispatcher.trigger('map:remove-forecast-layer');
         },
         fetchForecast: function (date) {
@@ -115,6 +139,13 @@ define([
             // get event aggregate information from date string hash
             let date_string = moment(date).formatDate();
             let forecast_events_aggregate = this.event_date_hash[date_string];
+
+            // if no forecast, do nothing
+            if(!forecast_events_aggregate) {
+                this.deselectForecast();
+                return;
+            }
+
             // fetch forecasts list for the date
             forecast_events_aggregate.available_forecasts()
                 .then(function (data) {
@@ -128,51 +159,11 @@ define([
                     that.updateForecastsList(data);
                     that.updateForecastsPager(moment(date));
                 });
-            if(date) {
-                let that = this;
-                let _date = new Date(date);
-                _date.setTime(_date.getTime() - _date.getTimezoneOffset() * 60 * 1000);
-                _date.setUTCHours(0, 0, 0, 0);
-                let string_date = _date.toISOString();
-                that.flood_on_date = that.forecasts_list[string_date];
-                
-                return that.flood_on_date
-            }else {
-                return null
-            }
         },
-        fetchFloodByID: function (id) {
-            let that = this;
-            let lengthArray = that.flood_on_date.length - 1;
-
-            for(var i=0; i<lengthArray + 1; i++) {
-                let flood = that.flood_on_date[i];
-                if(flood['id'] === parseInt(id)){
-                    that.displayed_flood = flood;
-                    that.fetchVulnerability(flood['id']);
-                    let prev = '';
-                    let after = '';
-
-                    if (i > 0) {
-                        prev = that.flood_on_date[i - 1]['id'];
-                        $('.arrow-up').prop('disabled', false).attr('data-flood-id', prev);
-                    } else {
-                        $('.arrow-up').prop('disabled', true)
-                    }
-
-                    if (i < lengthArray) {
-                        after = that.flood_on_date[i + 1]['id'];
-                        $('.arrow-down').prop('disabled', false).attr('data-flood-id', after);
-                    } else {
-                        $('.arrow-down').prop('disabled', true)
-                    }
-                    $('.flood-info').html('<div>' + flood['name'] + '</div>');
-
-                    let polygon = Wellknown.parse('SRID=4326;' + flood['st_astext']);
-                    dispatcher.trigger('map:draw-geojson', polygon);
-                    break;
-                }
-            }
+        clickNavigateForecast: function (e) {
+            let date_string = $(e.currentTarget).attr('data-forecast-date');
+            let selected_date = moment(date_string);
+            this.fetchForecast(selected_date);
         },
         fetchBuildingType: function () {
             let that = this;

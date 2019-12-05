@@ -16,9 +16,7 @@ define([
             'click .hide-browse-flood': 'hideBrowseFlood',
             'click .browse-arrow': 'fetchFloodById',
             'click #btn-browse-forecast': 'openBrowseByForecast',
-            'click #btn-browse-return-period': 'openBrowseByReturnPeriod',
-            'click #prev-date': 'clickPrevDate',
-            'click #next-date': 'clickNextDate'
+            'click #btn-browse-return-period': 'openBrowseByReturnPeriod'
         },
         initialize: function () {
             let that = this;
@@ -78,50 +76,6 @@ define([
             let $wrapper = $('.panel-browse-by-return-period');
             $wrapper.show();
             $wrapper.parent().show("slide", { direction: "right" }, 400);
-        },
-        clickPrevDate: function (e) {
-            let $datepicker = $('.datepicker-browse');
-            let datepicker_data = $datepicker.data('datepicker');
-            let date = datepicker_data.lastSelectedDate;
-
-            let flood_dates = floodCollectionView.flood_dates;
-            let beforedates = flood_dates.filter(function(d) {
-                return d - date < 0;
-            });
-
-            beforedates.sort(function(a, b) {
-                var distancea = Math.abs(date - a);
-                var distanceb = Math.abs(date - b);
-                return distancea - distanceb;
-            });
-
-            datepicker_data.selectDate(beforedates[0]);
-
-            if(beforedates.length <= 1){
-                $(e.target).closest('button').prop('disabled', true)
-            }
-        },
-        clickNextDate: function (e) {
-            let $datepicker = $('.datepicker-browse');
-            let datepicker_data = $datepicker.data('datepicker');
-            let date = datepicker_data.lastSelectedDate;
-
-            let flood_dates = floodCollectionView.flood_dates;
-            let afterdates = flood_dates.filter(function(d) {
-                return d - date > 0;
-            });
-
-            afterdates.sort(function(a, b) {
-                var distancea = Math.abs(date - a);
-                var distanceb = Math.abs(date - b);
-                return distancea - distanceb;
-            });
-
-            datepicker_data.selectDate(afterdates[0]);
-
-            if(afterdates.length <= 1){
-                $(e.target).closest('button').prop('disabled', true)
-            }
         },
         openDashboard: function () {
             this.dashboard = new DashboardView();
