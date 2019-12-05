@@ -7,6 +7,7 @@ require.config({
         'leaflet': 'libs/leaflet/1.5.1/leaflet-src',
         'bootstrap': 'libs/bootstrap/3.3.5/js/bootstrap.min',
         'underscore': 'libs/underscore.js/1.9.1/underscore-min',
+        'moment': 'libs/moment/2.24.0/moment.min',
         'rangeSlider': 'libs/ion-rangeslider/2.3.0/js/ion.rangeSlider.min',
         'leafletDraw': 'libs/leaflet.draw/1.0.4/leaflet.draw',
         'wellknown': 'libs/wellknown.js/0.5.0/wellknown',
@@ -41,6 +42,7 @@ require([
     'bootstrap',
     'backbone',
     'underscore',
+    'moment',
     'leaflet',
     'leafletDraw',
     'js/view/map.js',
@@ -48,9 +50,15 @@ require([
     'airDatepicker',
     'airDatepickerEN',
     'js/view/flood-collection.js',
-], function ($, bootstrap, Backbone, _, L, LDraw, MAP, RequestView, AirDatepicker, AirDatepickerEN, FloodCollectionView) {
+], function ($, bootstrap, Backbone, _, moment, L, LDraw, MAP, RequestView, AirDatepicker, AirDatepickerEN, FloodCollectionView) {
     AppRequest = new RequestView();
     dispatcher = _.extend({}, Backbone.Events);
     mapView = new MAP();
     floodCollectionView = new FloodCollectionView();
+    window.moment = moment;
+
+    // add helper function for moment
+    moment.fromAirDateTimePicker = function (value) {
+        return moment(value, 'YYYY-MM-DD HH:mm');
+    }
 });

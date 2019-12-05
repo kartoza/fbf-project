@@ -40,8 +40,8 @@ define([
             const source_url = this.$source_url.val();
             const geojson = this.$geojson[0].files;
             const return_period = this.$return_period.val();
-            const acquisition_date = new Date(this.$acquisition_date.val()).toMysqlFormat();
-            const forecast_date = new Date(this.$forecast_date.val()).toMysqlFormat();
+            const acquisition_date = moment.fromAirDateTimePicker(this.$acquisition_date.val()).format();
+            const forecast_date = moment.fromAirDateTimePicker(this.$forecast_date.val()).format();
 
 
             const forecast_event_attr = {
