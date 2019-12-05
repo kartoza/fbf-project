@@ -20,7 +20,7 @@ define([
         },
         initialize: function () {
             this.fetchBuildingType();
-            this.fetchFloodCollection();
+            this.fetchForecastCollection();
             // jquery element
             this.$flood_info = this.$el.find('.flood-info');
             this.$prev_date_arrow = this.$el.find('#prev-date');
@@ -28,14 +28,48 @@ define([
             this.$datepicker_browse = this.$el.find('#date-browse-flood');
             this.$forecast_arrow_up = this.$el.find('.browse-arrow.arrow-up');
             this.$forecast_arrow_down = this.$el.find('.browse-arrow.arrow-down');
-            this.datepicker_browse = this.$datepicker_browse.data('datepicker');
+            this.datepicker_browse = null;
 
             // dispatcher registration
-            dispatcher.on('flood:fetch-flood', this.fetchForecast, this);
-            dispatcher.on('flood:fetch-flood-by-id', this.clickNavigateForecast, this);
+            dispatcher.on('flood:fetch-forecast-collection', this.fetchForecastCollection, this);
+            dispatcher.on('flood:update-forecast-collection', this.initializeDatePickerBrowse, this);
+            dispatcher.on('flood:fetch-forecast', this.fetchForecast, this);
             dispatcher.on('flood:fetch-flood-vulnerability', this.fetchVulnerability, this);
         },
-        fetchFloodCollection: function () {
+        initializeDatePickerBrowse: function(){
+            const that = this;
+            if(this.datepicker_browse){
+                // we need to recreate datepicker
+                // because the forecast lists has changed
+                this.datepicker_browse.destroy();
+            }
+            this.$datepicker_browse.datepicker({
+                language: 'en',
+                autoClose: true,
+                dateFormat: 'dd/mm/yyyy',
+                onRenderCell: function (date, cellType) {
+                    let date_string = moment(date).formatDate();
+                    if (cellType === 'day' && date_string in that.event_date_hash) {
+                        return {
+                            classes: 'flood-date'
+                        };
+                    }
+                },
+                onSelect: function onSelect(fd, date) {
+                    if (date) {
+                        that.fetchForecast(date);
+                    } else {
+                        // empty date or deselected;
+                        that.deselectForecast();
+                    }
+                }
+            });
+
+            // change message
+            this.$datepicker_browse.val('Select forecast date');
+            this.datepicker_browse = this.$datepicker_browse.data('datepicker');
+        },
+        fetchForecastCollection: function () {
             const today = moment().utc();
             const that = this;
 
@@ -58,33 +92,8 @@ define([
 
                     that.event_date_hash = date_hash;
 
-
                     // decorate the date picker here
-                    $('.datepicker-browse').datepicker({
-                        language: 'en',
-                        autoClose: true,
-                        dateFormat: 'dd/mm/yyyy',
-                        onRenderCell: function (date, cellType) {
-                            let date_string = moment(date).formatDate();
-                            if( cellType === 'day' && date_string in date_hash){
-                                return {
-                                    classes: 'flood-date'
-                                };
-                            }
-                        },
-                        onSelect: function onSelect(fd, date) {
-                            if(date) {
-                                that.fetchForecast(date);
-                            }
-                            else {
-                                // empty date or deselcted;
-                                that.deselectForecast();
-                            }
-                        }
-                    });
-
-                    // change message
-                    that.$datepicker_browse.val('Select forecast date');
+                    dispatcher.trigger('flood:update-forecast-collection', that);
             })
         },
         updateForecastsList: function(forecasts){
@@ -134,7 +143,7 @@ define([
             this.$datepicker_browse.val('Select forecast date');
             dispatcher.trigger('map:remove-forecast-layer');
         },
-        fetchForecast: function (date) {
+        fetchForecast: function (date, optional_forecast_id) {
             const that = this;
             // get event aggregate information from date string hash
             let date_string = moment(date).formatDate();
@@ -149,7 +158,11 @@ define([
             // fetch forecasts list for the date
             forecast_events_aggregate.available_forecasts()
                 .then(function (data) {
-                    if(data && data[0]){
+                    if(data && data.length > 0 && optional_forecast_id){
+                        // if forecast id specified, select that instead of first forecast.
+                        data = data.filter(forecast => forecast.get('id') === optional_forecast_id);
+                    }
+                    if(data && data.length > 0){
                         // for now, select first forecast
                         that.selectForecast(data[0]);
                     }

@@ -102,7 +102,7 @@ define([
              * Return promise of forecast array (in case more than one forecast for a given date).
              * @param acquisition_date
              * @param forecast_date
-             * @returns {Promise<any>}
+             * @returns {Promise<ForecastEvent>}
              */
             getAvailableForecast: function(acquisition_date, forecast_date){
                 return new Promise(function(resolve, reject){
