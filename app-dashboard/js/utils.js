@@ -28,4 +28,8 @@ define([
         moment.prototype.momentDateOnly = function () {
             return moment(this.formatDate());
         };
+
+        moment.prototype.toJavascriptDate = function () {
+            return new Date(...(this.toArray()));
+        }
     })

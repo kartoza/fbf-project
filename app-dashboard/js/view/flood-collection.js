@@ -122,7 +122,7 @@ define([
             this.$next_date_arrow.prop('disabled', !(next_forecasts.length > 0));
             // find oldest date
             if(next_forecasts.length > 0 ) {
-                let next_forecast = next_forecasts.reduce((accumulator, value) => value.forecast_date > accumulator.forecast_date ? value : accumulator, next_forecasts[0]);
+                let next_forecast = next_forecasts.reduce((accumulator, value) => value.forecast_date < accumulator.forecast_date ? value : accumulator, next_forecasts[0]);
                 this.$next_date_arrow.attr('data-forecast-date', next_forecast.forecast_date.local().formatDate());
             }
 
@@ -176,7 +176,8 @@ define([
         clickNavigateForecast: function (e) {
             let date_string = $(e.currentTarget).attr('data-forecast-date');
             let selected_date = moment(date_string);
-            this.fetchForecast(selected_date);
+            // selecting date in date picker will trigger flood selection again.
+            this.datepicker_browse.selectDate(selected_date.toJavascriptDate());
         },
         fetchBuildingType: function () {
             let that = this;
