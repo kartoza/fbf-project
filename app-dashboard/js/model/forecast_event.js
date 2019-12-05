@@ -96,7 +96,7 @@ define([
              */
             getCurrentForecastList: function (acquisition_date) {
                 return new Promise(function(resolve, reject){
-                    let acquisition_date_start = acquisition_date.clone().utc();
+                    let acquisition_date_start = acquisition_date.clone().local().momentDateOnly().utc();
                     let acquisition_date_end = acquisition_date_start.clone().add(1, 'days').utc();
                     AppRequest.post(
                         _flood_event_forecast_list_f_url,
@@ -110,7 +110,15 @@ define([
                         .done(function(data){
                             // we will get array of forecast event
                             let forecast_events = data.map(function(value){
-                                return new ForecastEvent(value);
+                                let forecast_date = acquisition_date_start.clone().add(value.lead_time, 'days').local();
+                                return {
+                                    lead_time: value.lead_time,
+                                    total_forecast: value.total_forecast,
+                                    forecast_date: forecast_date,
+                                    available_forecasts: function () {
+                                        return ForecastEvent.getAvailableForecast(acquisition_date_start, forecast_date);
+                                    }
+                                };
                             });
                             resolve(forecast_events);
                         })
