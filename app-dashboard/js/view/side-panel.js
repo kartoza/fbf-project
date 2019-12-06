@@ -25,13 +25,14 @@ define([
             });
 
             $('.browse-floods').click(function () {
+                dispatcher.trigger('intro:hide');
                 that.openBrowseFlood()
             });
 
             // Initialize view
             this.flood_upload_view = new FloodUploadView();
-            dispatcher.on('side-panel:open-dashboard', this.openDashboard, this)
-            dispatcher.on('side-panel:open-welcome', this.openWelcome, this)
+            dispatcher.on('side-panel:open-dashboard', this.openDashboard, this);
+            dispatcher.on('side-panel:open-welcome', this.openWelcome, this);
         },
         openPanelFloodScenario: function () {
             dispatcher.trigger('dashboard:hide');
@@ -51,6 +52,14 @@ define([
             let $wrapper = $('.panel-flood-form');
             $wrapper.show();
             $wrapper.find('.panel-upload-flood').show("slide", { direction: "right" }, 500);
+        },
+        removeIntroWindow: function (e) {
+            // Hide the intro window
+            const $introWindow = $('.intro');
+            $introWindow.hide("slide", { direction: "left" }, 200, function () {
+                $('#map').show();
+                dispatcher.trigger('map:refresh-map');
+            });
         },
         openBrowseFlood: function (e) {
             $('.browse-btn-icon').hide();
