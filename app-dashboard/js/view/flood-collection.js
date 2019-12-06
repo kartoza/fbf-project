@@ -9,8 +9,8 @@ define([
 ], function (Backbone, _, moment, L, Wellknown, utils, ForecastEvent) {
     return Backbone.View.extend({
         el: '.panel-browse-flood',
-        forecasts_list: null,
-        event_date_hash: null,
+        forecasts_list: [],
+        event_date_hash: {},
         selected_flood: null,
         building_type: {},
         flood_collection: null,
@@ -21,12 +21,14 @@ define([
         subDistrictStats: null,
         districtStats: null,
         areaLookup: null,
+        fetchedDate: {},
         events: {
             'click #prev-date': 'clickNavigateForecast',
             'click #next-date': 'clickNavigateForecast',
             'mouseleave': 'onFocusOut',
             'blur': 'onFocusOut'
         },
+        legend:[],
         initialize: function () {
             this.fetchForecastCollection();
             // jquery element
@@ -44,6 +46,19 @@ define([
             dispatcher.on('flood:update-forecast-collection', this.initializeDatePickerBrowse, this);
             dispatcher.on('flood:fetch-forecast', this.fetchForecast, this);
             dispatcher.on('flood:fetch-stats-data', this.fetchStatisticData, this)
+            dispatcher.on('flood:fetch-flood-vulnerability', this.fetchVulnerability, this);
+
+
+            // get trigger status legend
+            let that = this;
+            AppRequest.get(
+                postgresUrl + 'trigger_status',
+                {},
+                null)
+                .done(function (data) {
+                   that.legend = data;
+                   that.legend.push({'id':0, 'name': 'No activation'})
+                });
         },
         initializeDatePickerBrowse: function(){
             const that = this;
@@ -60,10 +75,21 @@ define([
                     let date_string = moment(date).formatDate();
                     let event = that.event_date_hash[date_string];
                     if (cellType === 'day' && event) {
+                        let classes =  'flood-date trigger-status-' + (event.trigger_status ? event.trigger_status : 0);
+                        if(event.is_historical){
+                            classes  += ' trigger-status-historical';
+                        }
                         return {
-                            classes: 'flood-date trigger-status-' + (event.trigger_status ? event.trigger_status : 0),
+                            classes: classes,
                         };
                     }
+                },
+                onChangeMonth:function (month, year){
+                    let today = new moment().utc()
+                    today.year(year);
+                    today.month(month);
+                    today.day(10);
+                    that.fetchForecastCollection(today.subtract(1, 'month').startOf('month').utc());
                 },
                 onSelect: function(fd, date) {
                     if (date) {
@@ -73,11 +99,25 @@ define([
                         that.deselectForecast();
                     }
                 },
-                onShow: function (inst) {
-                    that.is_browsing = true;
-                },
-                onHide: function(inst){
+                onHide: function(inst) {
                     that.is_browsing = false;
+                },
+                onShow:function (inst, animationCompleted){
+                    that.is_browsing = true;
+                    if(inst.$datepicker.find('.legend').length === 0) {
+                        let html = '<ul class="legend">';
+                        that.legend.forEach((value) => {
+                            if(value.id !== 3) {
+                                html += `<li><span class="colour trigger-status-${value.id}"></span><span>${value.name.capitalize()}</span></li>`;
+                            }
+                        })
+                        that.legend.forEach((value) => {
+                            if(value.id !== 3) {
+                                html += `<li><span class="colour trigger-status-historical trigger-status-${value.id}"></span><span>Historical ${value.name.capitalize()}</span></li>`;
+                            }
+                        })
+                        inst.$datepicker.append(html+'</div>')
+                    }
                 }
             });
 
@@ -85,15 +125,28 @@ define([
             this.$datepicker_browse.val('Select forecast date');
             this.datepicker_browse = this.$datepicker_browse.data('datepicker');
         },
-        fetchForecastCollection: function () {
-            const today = moment().utc();
+        fetchForecastCollection: function (startDate) {
+            let today = moment().utc();
+            if (startDate) {
+                today = startDate;
+            }
             const that = this;
 
+            let identifier = today.year() + '-' + today.month();
+            if(that.fetchedDate[identifier]){
+                return;
+            }
             // Get flood forecast collection
-            ForecastEvent.getCurrentForecastList(today)
-                .then(function(data){
+            // we need to call it per 2 month
+            let startOfMonth = today.clone().subtract(1, 'month').startOf('month').utc();
+            let endOfMonth = today.clone().add(1, 'month').startOf('month').subtract(1, 'day').utc();
 
-                    that.forecasts_list = data;
+            //check if it's already called
+            that.fetchedDate[startOfMonth.year() + '-' + startOfMonth.month()] = true;
+            that.fetchedDate[endOfMonth.year() + '-' + endOfMonth.month()] = true;
+            ForecastEvent.getCurrentForecastList(startOfMonth, endOfMonth)
+                .then(function(data){
+                    that.forecasts_list.concat(data);
 
                     // create date hash for easier indexing
                     let date_hash = data.map(function (value) {
@@ -106,10 +159,12 @@ define([
                         return accumulator;
                     }, {});
 
-                    that.event_date_hash = date_hash;
+                    that.event_date_hash = Object.assign({}, that.event_date_hash, date_hash);
 
                     // decorate the date picker here
-                    dispatcher.trigger('flood:update-forecast-collection', that);
+                    if(!startDate) {
+                        dispatcher.trigger('flood:update-forecast-collection', that);
+                    }
             })
         },
         updateForecastsList: function(forecasts){

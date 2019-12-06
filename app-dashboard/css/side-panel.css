@@ -148,9 +148,9 @@ form label {
     border-radius: 25px;
 }
 
-.trigger-status--1 {
+.trigger-status-historical {
     /* historical activation */
-    background-color: #CBFEFE;
+    border: 2px dotted rgba(0,0,0,0.4)!important;
 }
 
 /* trigger status colors */
@@ -316,4 +316,17 @@ form label {
     line-height: 35px;
     padding: 0 15px;
     color: #DC923A;
+}
+.datepicker .legend {
+    list-style-type: none;
+    padding-left: 13px;
+
+}
+.datepicker .legend .colour {
+    height: 12px;
+    display: inline-block;
+    width: 12px;
+    border-radius: 24px;
+    margin-right: 3px;
+    border: 1px solid rgba(0.0.0.0.5);
 }

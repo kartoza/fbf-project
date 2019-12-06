@@ -16,7 +16,7 @@ define([
      *
      */
     const _forecast_flood_url = postgresUrl + 'flood_event';
-    const _flood_event_forecast_list_f_url = postgresUrl + 'rpc/flood_event_forecast_range_list_f';
+    const _flood_event_forecast_list_f_url = postgresUrl + 'rpc/flood_event_newest_forecast_f';
     const ForecastEvent = Backbone.Model.extend({
             // attribute placeholder
             _url: {
@@ -126,8 +126,7 @@ define([
 
             /**
              * Given an acquisition date (when the forecast created),
-             * return a list of number of forecast available in the next days
-             * and also 1 month before
+             * return a list of number of forecast for range of dates
              *
              * Each list element is an object with keys:
              * {
@@ -137,19 +136,18 @@ define([
              *     - forecasts_list(): lazy function to evaluate forecasts lists in this date
              * }
              *
-             * @param acquisition_date
+             * @param startDate
+             * @param endDate
              * @returns {Promise<any>}
              */
-            getCurrentForecastList: function (acquisition_date) {
+            getCurrentForecastList: function (startDate, endDate) {
                 return new Promise(function(resolve, reject){
-                    let todayAquisitionStart = acquisition_date.clone().local().momentDateOnly().utc();
-                    let todayAquisitionEnd = todayAquisitionStart.clone().add(1, 'days').utc();
-                    let oneMonthBefore = todayAquisitionStart.clone().subtract(1, 'months').utc();
+                    let today = moment().utc().format().split('T')[0];
                     AppRequest.post(
                         _flood_event_forecast_list_f_url,
                         {
-                            acquisition_date_start: oneMonthBefore.format(),
-                            acquisition_date_end: todayAquisitionEnd.format()
+                            forecast_date_start: startDate.format(),
+                            forecast_date_end: endDate.format()
                         },
                         null,
                         null,
@@ -158,24 +156,21 @@ define([
                             // we will get array of forecast event
                             let forecast_events = data.filter(
                                 function (value) {
-                                    let isHistorical = todayAquisitionStart > moment.utc(value.acquisition_date_str);
-                                    if (isHistorical) {
-                                        if (value.trigger_status_id === 1 || value.trigger_status_id === 2) {
-                                            value.trigger_status_id = -1;
-                                        } else {
-                                            return false;
-                                        }
+                                    let isHistorical = today >value.acquisition_date_str;
+                                    let isForecastInFuture = today <= value.forecast_date_str;
+                                    if (isHistorical && isForecastInFuture) {
+                                        return false;
                                     }
+                                    value.is_historical = isHistorical;
                                     return true;
                                 }).map(
                                 function (value) {
                                     let forecastDate = moment.utc(value.forecast_date_str);
                                     let acquisitionDate = moment.utc(value.acquisition_date_str);
                                     return {
-                                        lead_time: value.lead_time,
-                                        total_forecast: value.total_forecast,
                                         trigger_status: value.trigger_status_id,
                                         forecast_date: forecastDate,
+                                        is_historical: value.is_historical,
                                         available_forecasts: function () {
                                             return ForecastEvent.getAvailableForecast(acquisitionDate, forecastDate);
                                         }
