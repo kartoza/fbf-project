@@ -49,9 +49,10 @@ define([
                 dateFormat: 'dd/mm/yyyy',
                 onRenderCell: function (date, cellType) {
                     let date_string = moment(date).formatDate();
-                    if (cellType === 'day' && date_string in that.event_date_hash) {
+                    let event = that.event_date_hash[date_string];
+                    if (cellType === 'day' && event) {
                         return {
-                            classes: 'flood-date'
+                            classes: 'flood-date trigger-status-' + (event.trigger_status ? event.trigger_status : 0),
                         };
                     }
                 },
@@ -134,7 +135,8 @@ define([
             // dispatch event to draw flood
             dispatcher.trigger('map:draw-forecast-layer', forecast);
             // change flood info
-            this.$flood_info.html(`<div>${forecast.get('notes')}</div>`);
+            let name = forecast.get('notes') ? forecast.get('notes') : '<i>no name</i>';
+            this.$flood_info.html(`<div>${name}</div>`);
         },
         deselectForecast: function(){
             // when no forecast, deselect

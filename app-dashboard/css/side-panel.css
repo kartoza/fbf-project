@@ -144,8 +144,33 @@ form label {
 }
 
 .flood-date {
-    background-color: #eea236;
     border-radius: 25px;
+}
+
+.trigger-status--1 {
+    /* historical activation */
+    background-color: #CBFEFE;
+}
+
+/* trigger status colors */
+.trigger-status-0 {
+    /* no activation */
+    background-color: #CBFBC5;
+}
+
+.trigger-status-1 {
+    /* pre-activation */
+    background-color: #FDFDC6;
+}
+
+.trigger-status-2 {
+    /* activation */
+    background-color: #F1B6B4;
+}
+
+.trigger-status-3 {
+    /* stop */
+    background-color: #FF0000;
 }
 
 .flood-info {
