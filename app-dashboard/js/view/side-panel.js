@@ -20,6 +20,7 @@ define([
         },
         initialize: function () {
             let that = this;
+            this.dashboard = new DashboardView();
             $('.add-flood-scenario').click(function () {
                 that.openPanelFloodScenario()
             });
@@ -87,7 +88,7 @@ define([
             $wrapper.parent().show("slide", { direction: "right" }, 400);
         },
         openDashboard: function () {
-            this.dashboard = new DashboardView();
+            this.dashboard.render();
             $('.panel-body-wrapper').not('.floating-panel').hide();
             $('#panel-dashboard').show("slide", { direction: "right" }, 400);
         },

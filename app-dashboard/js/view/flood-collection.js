@@ -203,13 +203,14 @@ define([
         selectForecast: function(forecast){
             let that = this;
             this.selected_forecast = forecast;
-            console.log(this.selected_forecast);
-            this.fetchAreaLookUp(that.selected_forecast.id);
-            that.fetchVillageData(that.selected_forecast.id);
-            that.fetchSubDistrictData(that.selected_forecast.id);
-            that.fetchDistrictData(that.selected_forecast.id);
+            dispatcher.trigger('map:draw-forecast-layer', forecast, function () {
+                that.fetchAreaLookUp(that.selected_forecast.id);
+                that.fetchVillageData(that.selected_forecast.id);
+                that.fetchSubDistrictData(that.selected_forecast.id);
+                that.fetchDistrictData(that.selected_forecast.id);
+            });
+
             // dispatch event to draw flood
-            dispatcher.trigger('map:draw-forecast-layer', forecast);
             // change flood info
             let name = forecast.get('notes') ? forecast.get('notes') : '<i>no name</i>';
             this.$flood_info.html(`<div>${name}</div>`);
@@ -256,9 +257,9 @@ define([
                 });
         },
         onFocusOut: function(e){
-            if(!this.is_browsing) {
-                this.$hide_browse_flood.click();
-            }
+            // if(!this.is_browsing) {
+            //     this.$hide_browse_flood.click();
+            // }
         },
         clickNavigateForecast: function (e) {
             let date_string = $(e.currentTarget).attr('data-forecast-date');

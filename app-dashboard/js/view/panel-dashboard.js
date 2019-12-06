@@ -32,7 +32,6 @@ define([
             dispatcher.on('dashboard:render-region-summary', this.renderRegionSummary, this);
 
             this.$el = $(this.el);
-            this.render();
         },
         render: function () {
             this.referer_region = [];

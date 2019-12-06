@@ -40,7 +40,7 @@ define([
             this.map._onResize();
             this.map.setZoom(5);
         },
-        drawForecastLayer: function(forecast){
+        drawForecastLayer: function(forecast, callback){
             const that = this;
             // get zoom bbox
             forecast.fetchExtent()
@@ -58,6 +58,9 @@ define([
                     // register layer to view
                     that.forecast_layer = forecast_layer;
                     dispatcher.trigger('side-panel:open-dashboard');
+                    if(callback) {
+                        callback();
+                    }
                 })
 
         },
