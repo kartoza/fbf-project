@@ -250,7 +250,8 @@ form label {
 
 #building-count, #vulnerability-score {
     height: 42px;
-    width: 130px;
+    text-align: center;
+    width: 100%;
 }
 
 .box-building {
