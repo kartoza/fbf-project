@@ -56,8 +56,20 @@ define([
                 {},
                 null)
                 .done(function (data) {
-                   that.legend = data;
-                   that.legend.push({'id':0, 'name': 'No activation'})
+                   data.push({'id':0, 'name': 'No activation'});
+
+                    // render legend
+                    let html = '<table class="legend">';
+                    data.forEach((value) => {
+                        html += '<tr>';
+                        if (value.id !== 3) {
+                            html += `<td><span class="colour trigger-status-${value.id}"></span><span>${value.name.capitalize()}</span></td>`;
+                            html += `<td><span class="colour trigger-status-historical trigger-status-${value.id}"></span><span>Historical ${value.name.capitalize()}</span></td>`;
+                        }
+                        html += '</tr>';
+                    });
+                    html +='</table>'
+                    $('#date-legend').html(html + '</div>')
                 });
         },
         initializeDatePickerBrowse: function(){
@@ -71,6 +83,7 @@ define([
                 language: 'en',
                 autoClose: true,
                 dateFormat: 'dd/mm/yyyy',
+                inline: true,
                 onRenderCell: function (date, cellType) {
                     let date_string = moment(date).formatDate();
                     let event = that.event_date_hash[date_string];
@@ -104,20 +117,6 @@ define([
                 },
                 onShow:function (inst, animationCompleted){
                     that.is_browsing = true;
-                    if(inst.$datepicker.find('.legend').length === 0) {
-                        let html = '<ul class="legend">';
-                        that.legend.forEach((value) => {
-                            if(value.id !== 3) {
-                                html += `<li><span class="colour trigger-status-${value.id}"></span><span>${value.name.capitalize()}</span></li>`;
-                            }
-                        })
-                        that.legend.forEach((value) => {
-                            if(value.id !== 3) {
-                                html += `<li><span class="colour trigger-status-historical trigger-status-${value.id}"></span><span>Historical ${value.name.capitalize()}</span></li>`;
-                            }
-                        })
-                        inst.$datepicker.append(html+'</div>')
-                    }
                 }
             });
 
