@@ -24,7 +24,7 @@ define([
             // dispatcher registration
             dispatcher.on('map:draw-forecast-layer', this.drawForecastLayer, this);
             dispatcher.on('map:remove-forecast-layer', this.removeForecastLayer, this);
-            dispatcher.on('map:refresh-map', this.refreshMap, this);
+            dispatcher.on('map:show-map', this.showMap, this);
         },
         removeForecastLayer: function(){
             if(this.forecast_layer){
@@ -35,7 +35,8 @@ define([
             this.map.fitBounds(this.initBounds);
             dispatcher.trigger('dashboard:reset')
         },
-        refreshMap: function() {
+        showMap: function() {
+            $(this.map._container).show();
             this.map._onResize();
             this.map.setZoom(5);
         },

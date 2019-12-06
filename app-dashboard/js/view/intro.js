@@ -69,8 +69,7 @@ define([
             // Hide the intro window
             const $introWindow = $('.intro');
             $introWindow.hide("slide", {direction: "left"}, 200, function () {
-                $('#map').show();
-                dispatcher.trigger('map:refresh-map');
+                dispatcher.trigger('map:show-map');
             });
         },
         isNextExist: function (callback) {
