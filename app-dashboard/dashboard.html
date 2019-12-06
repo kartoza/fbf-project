@@ -16,8 +16,17 @@
 </head>
 
 <body>
-<div id="map" class="flex-item"></div>
-<div class="flex-item" style="position: relative; overflow: hidden">
+<div class="flex-item">
+    <div class="intro" id="intro">
+        <div class="intro-content"></div>
+        <div class="intro-action">
+            <button class="btn btn-warning prev-intro" type="button">Back</button>
+            <button class="btn btn-warning next-intro" type="button">Next</button>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+<div class="flex-item" style="position: relative; overflow: hidden; z-index: 10000">
     <div id="side-panel">
         <div class="panel-group" id="accordion">
             <div class="panel-body-wrapper panel-body panel-welcome">
