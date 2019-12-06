@@ -26,7 +26,6 @@ define([
         },
         initialize: function () {
             this.referer_region = [];
-            dispatcher.on('dashboard:render-chart', this.renderChart, this);
             dispatcher.on('dashboard:render-chart-2', this.renderChart2, this);
             dispatcher.on('dashboard:reset', this.resetDashboard, this);
             dispatcher.on('dashboard:hide', this.hideDashboard, this);
@@ -57,72 +56,6 @@ define([
             }));
             $('#vulnerability-score').html(that.loading_template);
             $('#building-count').html(that.loading_template);
-        },
-        renderChart: function (data, labels) {
-            let graph_data = [];
-            let backgroundColours = [];
-            let vulnerability_score_total = 0;
-            let building_count_total = 0;
-
-            $.each(data, function (key, value) {
-                graph_data.push({
-                    y: key,
-                    x: value['count']
-                });
-                backgroundColours.push('#82B7CA');
-                vulnerability_score_total += value['vulnerability'];
-                building_count_total += value['count']
-            });
-
-            graph_data.sort(function(a, b){return b.x - a.x});
-            var label = [];
-            for(var o in graph_data) {
-                label.push(graph_data[o].y);
-            }
-
-            $('#vulnerability-score').html(vulnerability_score_total.toFixed(2));
-            $('#building-count').html(building_count_total);
-
-            let status = 'stop';
-            if(vulnerability_score_total > 200){
-                status = 'go'
-            }else if(vulnerability_score_total >100){
-                status = 'stand by'
-            }
-            this.changeStatus(status);
-
-            var ctx = document.getElementById('summary-chart').getContext('2d');
-            var datasets = {
-                labels: label,
-                datasets: [
-                    {
-                        label: "Flooded",
-                        data: graph_data,
-                        backgroundColor: backgroundColours,
-                    }]
-            };
-
-            new Chart(ctx, {
-                type: 'horizontalBar',
-                data: datasets,
-                options: {
-                    scales: {
-                        xAxes: [{
-                            gridLines: {
-                                display:false
-                            },
-                            ticks: {
-                                min: 0
-                            }
-                        }],
-                        yAxes: [{
-                            gridLines: {
-                                display:false
-                            }
-                        }]
-                    }
-                }
-            });
         },
         renderChart2: function (data, main_panel) {
             let that = this;
@@ -204,9 +137,14 @@ define([
               return label.indexOf(a.y) - label.indexOf(b.y);
             });
 
+            let humanLabel = [];
+            for(let i=0; i<label.length; i++) {
+                humanLabel.push(toTitleCase(label[i].replace('_', ' ')))
+            }
+
             var ctx = document.getElementById('summary-chart').getContext('2d');
             var datasets = {
-                labels: label,
+                labels: humanLabel,
                 datasets: [
                     {
                         label: "Not Flooded",
