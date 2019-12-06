@@ -146,8 +146,7 @@ define([
             that.fetchedDate[endOfMonth.year() + '-' + endOfMonth.month()] = true;
             ForecastEvent.getCurrentForecastList(startOfMonth, endOfMonth)
                 .then(function(data){
-                    that.forecasts_list.concat(data);
-
+                    that.forecasts_list = that.forecasts_list.concat(data);
                     // create date hash for easier indexing
                     let date_hash = data.map(function (value) {
                         let date_string = value.forecast_date.local().formatDate();
