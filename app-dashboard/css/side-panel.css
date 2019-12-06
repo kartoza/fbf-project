@@ -136,7 +136,6 @@ form label {
     bottom: 47px;
     background-color: white;
     border: 1px solid #ddd;
-    height: 125px;
     z-index: 10000;
 }
 
@@ -198,13 +197,14 @@ form label {
 }
 
 #status {
-    height: 50px;
+    height: 65px;
     vertical-align: middle;
     line-height: 50px;
     text-align: center;
     background-color: #D1D3D4;
     font-weight: bold;
     color: white;
+    padding-top: 6px;
 }
 
 .panel-title {
@@ -250,7 +250,8 @@ form label {
 
 #building-count, #vulnerability-score {
     height: 42px;
-    width: 130px;
+    text-align: center;
+    width: 100%;
 }
 
 .box-building {
@@ -317,16 +318,33 @@ form label {
     padding: 0 15px;
     color: #DC923A;
 }
-.datepicker .legend {
-    list-style-type: none;
-    padding-left: 13px;
 
+#date-legend {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
-.datepicker .legend .colour {
+
+#date-legend .legend {
+    display: inline-block;
+}
+
+#date-legend .legend .colour {
     height: 12px;
     display: inline-block;
     width: 12px;
     border-radius: 24px;
     margin-right: 3px;
     border: 1px solid rgba(0.0.0.0.5);
+}
+
+#date-legend .legend td {
+    text-align: left;
+    padding-right: 10px;
+    font-size: 12px;
+}
+
+#calendar-flood-browser{
+    width: 252px;
+    display: inline-block;
+    height: 238px;
 }

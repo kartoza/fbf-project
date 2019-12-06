@@ -16,9 +16,9 @@ define([
         sub_region_title_template: _.template($('#region-title-panel-template').html()),
         sub_region_item_template: _.template($('#region-summary-panel-template').html()),
         colour_code: {
-            'stop': '#CA6060',
-            'stand by': '#D39858',
-            'go': '#72CA7A'
+            'Stop': '#CA6060',
+            'Stand by': '#D39858',
+            'REACHED - Activate your EAP': '#72CA7A'
         },
         events: {
             'click .drilldown': 'drilldown',
@@ -183,12 +183,11 @@ define([
                     maintainAspectRatio: false
                 }
             });
-
-            let status = 'stop';
+            let status = 'Stop';
             if(data['vulnerability_total_score'] > 200){
-                status = 'go'
+                status = 'REACHED - Activate your EAP'
             }else if(data['vulnerability_total_score'] >100){
-                status = 'stand by'
+                status = 'Stand by'
             }
             this.changeStatus(status);
         },

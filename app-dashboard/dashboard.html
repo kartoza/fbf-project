@@ -209,33 +209,35 @@
                         </div>
                         <div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <button class="btn btn-arrow btn-primary-1 pull-right btn-change-date" id="prev-date" disabled><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                        <div class="row" style="text-align: center">
+                            <!--<div class="col-lg-3">-->
+                                <!--<button class="btn btn-arrow btn-primary-1 pull-right btn-change-date" id="prev-date" disabled><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
+                            <div id="calendar-flood-browser">
+                                <input class="form-control datepicker-browse" value="Fetching list.." data-position="left bottom" type="text" id="date-browse-flood" readonly style="display: none">
                             </div>
-                            <div class="col-lg-6">
-                                <input class="form-control datepicker-browse" value="Fetching list.." data-position="left bottom" type="text" id="date-browse-flood" readonly>
+                            <div id="date-legend">
                             </div>
-                            <div class="col-lg-3">
-                                <button class="btn btn-arrow btn-primary-1 pull-left btn-change-date" id="next-date" disabled><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
-                            </div>
+                            <!--<div class="col-lg-3">-->
+                                <!--<button class="btn btn-arrow btn-primary-1 pull-left btn-change-date" id="next-date" disabled><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
                         </div>
-                        <div class="row">
-                            <div class="col-lg-3">
-                            </div>
-                            <div class="col-lg-6 flood-info">
-                            </div>
-                            <div class="col-lg-3 browse-control-arrow-group">
-                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-up" data-flood-id="" disabled><i class="fa fa-chevron-up" aria-hidden="true"></i></button><br/>
-                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-down" data-flood-id="" disabled><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                            </div>
-                        </div>
+                        <!--<div class="row">-->
+                            <!--<div class="col-lg-3">-->
+                            <!--</div>-->
+                            <!--<div class="col-lg-6 flood-info">-->
+                            <!--</div>-->
+                            <!--<div class="col-lg-3 browse-control-arrow-group">-->
+                                <!--<button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-up" data-flood-id="" disabled><i class="fa fa-chevron-up" aria-hidden="true"></i></button><br/>-->
+                                <!--<button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-down" data-flood-id="" disabled><i class="fa fa-chevron-down" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
+                        <!--</div>-->
                     </div>
                 </div>
             </div>
             <div id="panel-dashboard" style="display: none">
                 <div id="status">
-                    <span>Action Status: </span><span id="action-status">-</span>
+                    <span>Trigger Status: </span><span id="action-status">-</span>
                     <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                 </div>
                 <div id="flood-general-summary"></div>
@@ -407,7 +409,7 @@
             </div>
             <div class="col-lg-5 box-building">
                 <div id="building-count">-</div>
-                <div class="subtext">Flooded Building Count</div>
+                <div class="subtext">Buildings that could be affected</div>
             </div>
         </div>
         <div class="panel-chart" style="min-height: 250px">
@@ -441,7 +443,7 @@
         <td class="box-count-right">
             <div class="box-count">
                 <div class="score"><%= flooded_building_count %></div>
-                <div class="subtext">Flooded Building Count</div>
+                <div class="subtext">Buildings that could be affected</div>
             </div>
         </td>
     </tr>
