@@ -136,7 +136,8 @@ form label {
     bottom: 47px;
     background-color: white;
     border: 1px solid #ddd;
-    height: 180px;
+    height: 125px;
+    z-index: 10000;
 }
 
 .panel-browse-flood .panel-body {
@@ -225,8 +226,31 @@ form label {
     padding: 0;
 }
 
-#building-count, #vulnerability-score {
+.box-count {
+    height: 60px;
+    border: 2px solid #CA6060;
+    text-align: center;
+    padding: 0;
+    width: 100%;
+}
+
+.box-count-left {
+    padding: 0 5px 5px 15px;
+    width: 180px;
+}
+
+.box-count-right {
+    padding: 0 15px 5px 5px;
+    width: 170px;
+}
+
+#building-count, #vulnerability-score, .score {
     font-size: 30px;
+}
+
+#building-count, #vulnerability-score {
+    height: 42px;
+    width: 130px;
 }
 
 .box-building {
@@ -272,4 +296,24 @@ form label {
     -ms-transform: rotate(-90deg);
     transform: rotate(-90deg);
     height: 60px;
+}
+
+.flood-summary-info table, #region-summary-panel table {
+    width: 100%;
+}
+
+.flood-summary-info tr, .flood-summary-info td {
+    padding: 3px 10px;
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+}
+
+.flood-summary-info tr:nth-child(odd), #region-summary-panel tr:nth-child(4n+1), #region-summary-panel tr:nth-child(4n+2) {
+    background: #F0F0F0;
+}
+
+.item-header {
+    line-height: 35px;
+    padding: 0 15px;
+    color: #DC923A;
 }

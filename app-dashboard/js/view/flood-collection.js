@@ -13,13 +13,19 @@ define([
         event_date_hash: null,
         selected_flood: null,
         building_type: {},
-
+        flood_collection: null,
+        flood_on_date: null,
+        displayed_flood: null,
+        flood_dates: [],
+        villageStats: null,
+        subDistrictStats: null,
+        districtStats: null,
+        areaLookup: null,
         events: {
             'click #prev-date': 'clickNavigateForecast',
             'click #next-date': 'clickNavigateForecast'
         },
         initialize: function () {
-            this.fetchBuildingType();
             this.fetchForecastCollection();
             // jquery element
             this.$flood_info = this.$el.find('.flood-info');
@@ -34,7 +40,7 @@ define([
             dispatcher.on('flood:fetch-forecast-collection', this.fetchForecastCollection, this);
             dispatcher.on('flood:update-forecast-collection', this.initializeDatePickerBrowse, this);
             dispatcher.on('flood:fetch-forecast', this.fetchForecast, this);
-            dispatcher.on('flood:fetch-flood-vulnerability', this.fetchVulnerability, this);
+            dispatcher.on('flood:fetch-stats-data', this.fetchStatisticData, this)
         },
         initializeDatePickerBrowse: function(){
             const that = this;
@@ -131,7 +137,13 @@ define([
             this.$datepicker_browse.val(current_date.local().format('DD/MM/YYYY'));
         },
         selectForecast: function(forecast){
+            let that = this;
             this.selected_forecast = forecast;
+            console.log(this.selected_forecast);
+            this.fetchAreaLookUp(that.selected_forecast.id);
+            that.fetchVillageData(that.selected_forecast.id);
+            that.fetchSubDistrictData(that.selected_forecast.id);
+            that.fetchDistrictData(that.selected_forecast.id);
             // dispatch event to draw flood
             dispatcher.trigger('map:draw-forecast-layer', forecast);
             // change flood info
@@ -181,10 +193,98 @@ define([
             // selecting date in date picker will trigger flood selection again.
             this.datepicker_browse.selectDate(selected_date.toJavascriptDate());
         },
-        fetchBuildingType: function () {
+        fetchStatisticData: function (region, region_id, renderRegionDetail) {
+            if(!region) {
+                return []
+            }
+
             let that = this;
-            this.xhrBuildingType = AppRequest.get(
-                postgresUrl + 'building_type_class',
+            let data = {
+                'village': that.villageStats,
+                'district': that.districtStats,
+                'sub_district': that.subDistrictStats
+            };
+
+            let buildings = [];
+            let overall = [];
+            let region_render;
+            let main_panel = true;
+            if(renderRegionDetail) {
+                region_render = region;
+                $.each(data[region], function (idx, value) {
+                    buildings[idx] = [];
+                    $.each(value, function (key, value) {
+                        buildings[idx][key] = value;
+                        if (!overall[key]) {
+                            overall[key] = value
+                        } else {
+                            overall[key] += value
+                        }
+                    })
+                });
+                if(overall.hasOwnProperty('police_flooded_building_count')) {
+                    overall['police_station_flooded_building_count'] = overall['police_flooded_building_count'];
+                    delete overall['police_flooded_building_count'];
+                }
+                delete overall[region + '_id'];
+                delete overall['name'];
+                delete overall['village_code'];
+                delete overall['sub_dc_code'];
+            }else {
+                main_panel = false;
+                let sub_region = 'sub_district';
+                if(region === 'sub_district'){
+                    sub_region = 'village'
+                }
+                region_render = sub_region;
+
+                let statData = [];
+                let key = {
+                    'sub_district': 'sub_district_id',
+                    'village': 'village_id'
+                };
+                let subRegionList = that.getListSubRegion(sub_region, region_id);
+                $.each(data[sub_region], function (index, value) {
+                    if(subRegionList.indexOf(value[key[sub_region]])){
+                        statData.push(value)
+                    }
+                });
+
+                if(region !== 'village') {
+                    $.each(statData, function (idx, value) {
+                        buildings[idx] = [];
+                        $.each(value, function (key, value) {
+                            if(key === 'police_flooded_building_count'){
+                                key = 'police_station_flooded_building_count'
+                            }
+                            buildings[idx][key] = value;
+                        })
+                    });
+                }
+
+                for(let index=0; index<data[region].length; index++){
+                    if(data[region][index]['id'] === parseInt(region_id)){
+                        overall = data[region][index];
+                        if(overall.hasOwnProperty('police_flooded_building_count')) {
+                            overall['police_station_flooded_building_count'] = overall['police_flooded_building_count'];
+                            delete overall['police_flooded_building_count'];
+                        }
+                        break
+                    }
+                }
+                overall['region'] = region;
+            }
+            dispatcher.trigger('dashboard:render-chart-2', overall, main_panel);
+
+            if(region !== 'village') {
+                dispatcher.trigger('dashboard:render-region-summary', buildings, region_render)
+            }
+        },
+        fetchVillageData: function (flood_event_id) {
+            flood_event_id = 15;
+            let that = this;
+            this.xhrVillageStats = AppRequest.get(
+                postgresUrl + 'flood_event_village_summary_mv?flood_event_id=eq.' + flood_event_id,
                 {
                     order: 'id.asc'
                 },
@@ -194,20 +294,22 @@ define([
                     'Prefer': ''
                 },
                 function (data, textStatus, request) {
-                    $.each(data, function (id, value) {
-                        that.building_type[value['id']] = value['building_class']
-                    });
+                    that.villageStats = data;
+                    if(that.villageStats !== null && that.districtStats !== null && that.subDistrictStats !== null) {
+                        that.fetchStatisticData('district', that.selected_forecast.id, true);
+                    }
                 },function (data, textStatus, request) {
-                    console.log('Building type request failed');
+                    console.log('Village stats request failed');
                     console.log(data)
                 })
         },
-        fetchVulnerability: function (flood_id) {
+        fetchDistrictData: function (flood_event_id) {
+            flood_event_id = 15;
             let that = this;
-            this.xhrBuildingType = AppRequest.get(
-                postgresUrl + 'osm_buildings_intersect_v?flood_id=eq.' + flood_id,
+            this.xhrDistrictStats = AppRequest.get(
+                postgresUrl + 'flood_event_district_summary_mv?flood_event_id=eq.' + flood_event_id,
                 {
-                    order: 'building_id.asc'
+                    order: 'id.asc'
                 },
                 {
                     'Range-Unit': 'items',
@@ -215,28 +317,74 @@ define([
                     'Prefer': ''
                 },
                 function (data, textStatus, request) {
-                    let affected_buildings = {};
-                    let labels = [];
-                    $.each(data, function (idx, value) {
-                        let building_type = that.building_type[value['building_id']];
-                        if(affected_buildings[building_type]){
-                            affected_buildings[building_type]['vulnerability'] += value['total_vulnerability'];
-                            affected_buildings[building_type]['count'] += 1;
-                        }else {
-                            affected_buildings[building_type] = {
-                                vulnerability: value['total_vulnerability'],
-                                count: 1
-                            };
-                            labels.push(building_type)
-                        }
-
-                    });
-                    dispatcher.trigger('dashboard:render-chart', affected_buildings, labels)
+                    that.districtStats = data;
+                    if(that.villageStats !== null && that.districtStats !== null && that.subDistrictStats !== null) {
+                        that.fetchStatisticData('district', that.selected_forecast.id, true);
+                    }
                 },function (data, textStatus, request) {
-                    console.log('Vulnerability request failed');
-                    console.log(data);
-                    return null
+                    console.log('District stats request failed');
+                    console.log(data)
                 })
+        },
+        fetchSubDistrictData: function (flood_event_id) {
+            flood_event_id = 15;
+            let that = this;
+            this.xhrSubDistrictStats = AppRequest.get(
+                postgresUrl + 'flood_event_sub_district_summary_mv?flood_event_id=eq.' + flood_event_id,
+                {
+                    order: 'id.asc'
+                },
+                {
+                    'Range-Unit': 'items',
+                    'Range': '',
+                    'Prefer': ''
+                },
+                function (data, textStatus, request) {
+                    that.subDistrictStats = data;
+                    if(that.villageStats !== null && that.districtStats !== null && that.subDistrictStats !== null) {
+                        that.fetchStatisticData('district', that.selected_forecast.id, true);
+                    }
+                },function (data, textStatus, request) {
+                    console.log('Sub district stats request failed');
+                    console.log(data)
+                })
+        },
+        fetchAreaLookUp: function (flood_event_id) {
+            let that = this;
+            this.xhrSubDistrictStats = AppRequest.get(
+                postgresUrl + 'flood_event_sub_district_summary_mv?flood_event_id=eq.' + flood_event_id,
+                {
+                    order: 'id.asc'
+                },
+                {
+                    'Range-Unit': 'items',
+                    'Range': '',
+                    'Prefer': ''
+                },
+                function (data, textStatus, request) {
+                    that.areaLookup = data;
+                },function (data, textStatus, request) {
+                    console.log('Area lookup request failed');
+                    console.log(data)
+                })
+        },
+        getListSubRegion: function (region, district_id) {
+            let key = {
+                'sub_district': 'sub_dc_code',
+                'village': 'village_code'
+            };
+            let keyParent = {
+                'sub_district': 'dc_code',
+                'village': 'sub_dc_code'
+            };
+            let that = this;
+            let listSubRegion = [];
+            $.each(that.areaLookup, function (index, value) {
+                if(parseInt(value[keyParent[region]]) === parseInt(district_id)){
+                    listSubRegion.push(value[key[region]])
+                }
+            });
+            return listSubRegion
         }
     })
 });

@@ -227,6 +227,7 @@
             <div id="panel-dashboard" style="display: none">
                 <div id="status">
                     <span>Action Status: </span><span id="action-status">-</span>
+                    <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                 </div>
                 <div id="flood-general-summary"></div>
                 <div id="flood-sub-summary"></div>
@@ -342,22 +343,99 @@
 </script>
 
 <script type="text/template" id="dashboard-template">
-    <div class="panel-title">
+    <div class="panel-title" id="main-panel-header">
         Summary for Flood <%= flood_name %>
     </div>
-    <div class="col-lg-12">
-        <div class="col-lg-5 box-vulnerability">
-            <div id="vulnerability-score">-</div>
-            <div class="subtext">Vulnerability Score Total</div>
+    <div class="flood-summary-info">
+        <table>
+            <tr>
+                <td>
+                    Acquisition Date
+                </td>
+                <td>
+                    <%= acquisition_date %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Forecast Date
+                </td>
+                <td>
+                    <%= forecast_date %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Source
+                </td>
+                <td>
+                    <%= source %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Notes
+                </td>
+                <td>
+                    <%= notes %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Link
+                </td>
+                <td>
+                    <%= link %>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="chart-score-panel">
+        <div class="col-lg-12">
+            <div class="col-lg-5 box-vulnerability">
+                <div id="vulnerability-score">-</div>
+                <div class="subtext">Vulnerability Score Total</div>
+            </div>
+            <div class="col-lg-5 box-building">
+                <div id="building-count">-</div>
+                <div class="subtext">Flooded Building Count</div>
+            </div>
         </div>
-        <div class="col-lg-5 box-building">
-            <div id="building-count">-</div>
-            <div class="subtext">Flooded Building Count</div>
+        <div class="panel-chart" style="min-height: 250px">
+            <canvas id="summary-chart"></canvas>
         </div>
     </div>
-    <div class="panel-chart">
-        <canvas id="summary-chart"></canvas>
+    <div id="region-summary-panel" style="border-top: 1px solid #ddd; padding-bottom: 35px">
+        </div>
+</script>
+
+<script type="text/template" id="region-title-panel-template">
+    <div class="panel-title">
+        Flood <%= region %> Summary
     </div>
+</script>
+
+<script type="text/template" id="region-summary-panel-template">
+    <tr>
+        <td class="text-center item-header" colspan="2">
+            <button class="btn btn-arrow pull-right drilldown" data-region="<%= region %>" data-region-id="<%= id %>"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+            <%= name %>
+        </td>
+    </tr>
+    <tr>
+        <td class="box-count-left">
+            <div class="box-count">
+                <div class="score"><%= flooded_vulnerability_total %></div>
+                <div class="subtext">Vulnerability Score Total</div>
+            </div>
+        </td>
+        <td class="box-count-right">
+            <div class="box-count">
+                <div class="score"><%= flooded_building_count %></div>
+                <div class="subtext">Flooded Building Count</div>
+            </div>
+        </td>
+    </tr>
 </script>
 
 <!--TODO: We need to fix this by just get the geojson -->
