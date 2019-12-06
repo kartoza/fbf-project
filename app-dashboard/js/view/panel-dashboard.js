@@ -52,8 +52,8 @@ define([
                 acquisition_date: flood_acquisition_date.getDate() + ' ' + monthNames[flood_acquisition_date.getMonth()] + ' ' + flood_acquisition_date.getFullYear(),
                 forecast_date: flood_forecast_date.getDate() + ' ' + monthNames[flood_forecast_date.getMonth()] + ' ' + flood_forecast_date.getFullYear(),
                 source: floodCollectionView.selected_forecast.attributes.source,
-                notes: '',
-                link: ''
+                notes: floodCollectionView.selected_forecast.attributes.notes,
+                link: floodCollectionView.selected_forecast.attributes.link
             }));
             $('#vulnerability-score').html(that.loading_template);
             $('#building-count').html(that.loading_template);
