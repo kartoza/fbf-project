@@ -23,7 +23,9 @@ define([
         areaLookup: null,
         events: {
             'click #prev-date': 'clickNavigateForecast',
-            'click #next-date': 'clickNavigateForecast'
+            'click #next-date': 'clickNavigateForecast',
+            'mouseleave': 'onFocusOut',
+            'blur': 'onFocusOut'
         },
         initialize: function () {
             this.fetchForecastCollection();
@@ -34,6 +36,7 @@ define([
             this.$datepicker_browse = this.$el.find('#date-browse-flood');
             this.$forecast_arrow_up = this.$el.find('.browse-arrow.arrow-up');
             this.$forecast_arrow_down = this.$el.find('.browse-arrow.arrow-down');
+            this.$hide_browse_flood = this.$el.find('.hide-browse-flood');
             this.datepicker_browse = null;
 
             // dispatcher registration
@@ -62,13 +65,19 @@ define([
                         };
                     }
                 },
-                onSelect: function onSelect(fd, date) {
+                onSelect: function(fd, date) {
                     if (date) {
                         that.fetchForecast(date);
                     } else {
                         // empty date or deselected;
                         that.deselectForecast();
                     }
+                },
+                onShow: function (inst) {
+                    that.is_browsing = true;
+                },
+                onHide: function(inst){
+                    that.is_browsing = false;
                 }
             });
 
@@ -149,6 +158,8 @@ define([
             // change flood info
             let name = forecast.get('notes') ? forecast.get('notes') : '<i>no name</i>';
             this.$flood_info.html(`<div>${name}</div>`);
+            // close browser
+            this.$hide_browse_flood.click();
         },
         deselectForecast: function(){
             // when no forecast, deselect
@@ -156,6 +167,8 @@ define([
             this.$flood_info.empty();
             this.$datepicker_browse.val('Select forecast date');
             dispatcher.trigger('map:remove-forecast-layer');
+            // close browser
+            this.$hide_browse_flood.click();
         },
         fetchForecast: function (date, optional_forecast_id) {
             const that = this;
@@ -186,6 +199,11 @@ define([
                     that.updateForecastsList(data);
                     that.updateForecastsPager(moment(date));
                 });
+        },
+        onFocusOut: function(e){
+            if(!this.is_browsing) {
+                this.$hide_browse_flood.click();
+            }
         },
         clickNavigateForecast: function (e) {
             let date_string = $(e.currentTarget).attr('data-forecast-date');
