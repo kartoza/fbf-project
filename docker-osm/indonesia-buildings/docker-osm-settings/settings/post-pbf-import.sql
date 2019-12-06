@@ -228,54 +228,69 @@ select
 FROM
     ( select a.flood_event_id from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 group by a.flood_event_id) b,
     ( with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
-        select sum(b.total_vulnerability) from osm_buildings as b join agg
+        select sum(b.total_vulnerability) as total_vulnerability  from osm_buildings as b join agg
  as c on st_intersects(b.geometry,c.geom) group by c.geom) c,
     ( with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
-        select count(a.osm_id) as building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) group by c.geom;) d,
+        select count(a.osm_id) as building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) group by c.geom) d,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) group by d.geom) e,
-    (select count(*) as residential_building_count from osm_buildings where building_type = 'Residential') f,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as residential_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Residential' group by c.geom
+) f,
     (select count(*) as residential_flooded_building_count from osm_buildings as a join flood_event_areas_v b on st_intersects(a.geometry,b.geometry)
         where b.flood_event_id = 15 and a.building_type = 'Residential') g,
-    (select count(*) as clinic_dr_building_count from osm_buildings where building_type = 'Clinic/Doctor') h,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as clinic_dr_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Clinic/Doctor' group by c.geom
+) h,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as clinic_dr_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Clinic/Doctor' group by d.geom) i,
-    (select count(*) as fire_station_building_count from osm_buildings where building_type = 'Fire Station') j,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as fire_station_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Fire Station' group by c.geom
+) j,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as fire_station_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Fire Station' group by d.geom) k,
-    (select count(*) as school_building_count from osm_buildings where building_type = 'School') l,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as school_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'School' group by c.geom) l,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as school_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'School' group by d.geom) m,
-    (select count(*) as university_building_count from osm_buildings where building_type = 'University/College') n,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as university_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'University/College' group by c.geom) n,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as university_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'University/College' group by d.geom) o,
-    (select count(*) as government_building_count from osm_buildings where building_type = 'Government') p,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as government_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Government' group by c.geom) p,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as government_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Government' group by d.geom) q,
-    (select count(*) as hospital_building_count from osm_buildings where building_type = 'Hospital') r,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as hospital_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Hospital' group by c.geom) r,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as hospital_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Hospital' group by d.geom) s,
-    (select count(*) as buddist_building_count from osm_buildings where building_type = 'Place of Worship - Buddhist') t,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as buddist_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Place of Worship - Buddhist' group by c.geom) t,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as buddist_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Buddhist' group by d.geom) u,
-    (select count(*) as islam_building_count from osm_buildings where building_type = 'Place of Worship - Islam') v,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as islam_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Place of Worship - Islam' group by c.geom) v,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as islam_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Islam' group by d.geom) w,
-    (select count(*) as police_station_building_count from osm_buildings where building_type = 'Police Station') x,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as police_station_building_count from osm_buildings a join agg c
+        on st_intersects ( c.geom,a.geometry) where a.building_type = 'Police Station' group by c.geom) x,
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as police_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Police Station' group by d.geom) y;
-
-
 
 -- Add a trigger function to notify QGIS of DB changes
 CREATE FUNCTION public.notify_qgis() RETURNS trigger
