@@ -10,6 +10,9 @@ ALTER TABLE osm_buildings add column building_road_density_score double precisio
 ALTER table osm_buildings add column total_vulnerability double precision;
 ALTER TABLE osm_roads add column road_type character varying (50);
 ALTER table osm_waterways add column waterway_id integer;
+ALTER table osm_buildings add column village_id double precision references village (village_code);
+ALTER table osm_buildings add column sub_district_id numeric references  sub_district(sub_dc_code);
+ALTER table osm_buildings add column district_id double precision references public.district (dc_code);
 
 -- These ones are secondary can be run at some point in time
 ALTER table osm_buildings add column building_river_distance  double precision;
@@ -20,25 +23,6 @@ ALTER TABLE osm_buildings add column building_river_distance_score double precis
 ALTER table osm_roads add column roads_id integer;
 
 -- new schema tables
-CREATE table flood_map (
-    id serial primary key ,
-    place_name character varying (255),
-    notes character varying (255),
-    return_period timestamp,
-    measuring_station_id integer
-);
-
-
-
-create table forecast_flood_event (
-  id serial primary key ,
-  flood_map_id integer references flood_map(id),
-  acquisition_date timestamp not null default now(),
-  forecast_date timestamp ,
-  source character varying (255),
-  notes character varying (255),
-  link text
-);
 
 create table depth_class (
     id serial primary key ,
@@ -60,37 +44,237 @@ create table flooded_areas (
 );
 
 
-
-
-create table forecast_flood_event_buildings (
+CREATE table flood_map (
     id serial primary key ,
-    fd_osm_id bigint not null ,
-    building_id int not null ,
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    foreign key (building_id, fd_osm_id)references osm_buildings(id, osm_id),
+    place_name character varying (255),
+    notes character varying (255),
+    return_period timestamp,
+    measuring_station_id integer
+);
+
+create table trigger_status (
+    id serial primary key ,
+    name character varying  (255) not null unique
+);
+
+create table progress_status (
+    id serial primary key ,
+    status character varying (50) unique not null 
+);
+
+create table flood_event (
+  id serial primary key ,
+  flood_map_id integer references flood_map(id),
+  acquisition_date timestamp not null default now(),
+  forecast_date timestamp ,
+  source character varying (255),
+  notes character varying (255),
+  link text,
+  trigger_status character varying  (255) references trigger_status(name),
+  spreadsheet BYTEA,
+  progress character varying (50) references progress_status(status)
+);
+
+
+create table flood_event_buildings (
+    id serial primary key ,
+    flood_event_id integer  references flood_event(id),
+    building_id integer references  osm_buildings(osm_id),
     depth_class_id integer references  depth_class(id)
 );
 
 
-create table flood_event_villages (
+create table flood_event_village_summary (
     id serial primary key ,
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id double precision references village(village_code),
-    depth_class_id integer references depth_class(id),
-    building_count integer
+    village_id double precision references village (village_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer
 );
 
-create table flood_event_sub_districts (
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id integer references sub_district(sub_dc_code),
-    depth_class_id integer references depth_class(id)
+
+create table flood_event_sub_district_summary (
+    id serial primary key ,
+    sub_district_id numeric references sub_district (sub_dc_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer
 );
 
-create table flood_event_districts (
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id integer references district(dc_code),
-    depth_class_id integer references depth_class(id)
+
+
+create table flood_event_district_summary (
+    id serial primary key ,
+    district_id double precision references district(dc_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer
 );
+
+INSERT INTO public.flood_event_village_summary(
+    flood_event_id,
+    vulnerability_total_score,
+    building_count,
+    flooded_building_count,
+    residential_building_count,
+    residential_flooded_building_count,
+    clinic_dr_building_count,
+    clinic_dr_flooded_building_count,
+    fire_station_building_count,
+    fire_station_flooded_building_count,
+    school_building_count,
+    school_flooded_building_count,
+    university_building_count,
+    university_flooded_building_count,
+    government_building_count,
+    government_flooded_building_count,
+    hospital_building_count,
+    hospital_flooded_building_count,
+    buddist_building_count,
+    buddist_flooded_building_count,
+    islam_building_count,
+    islam_flooded_building_count,
+    police_station_building_count,
+    police_flooded_building_count)
+
+select
+    b.flood_event_id,
+    c.total_vulnerability,
+    d.building_count,
+    e.flooded_building_count,
+    f.residential_building_count,
+    g.residential_flooded_building_count,
+    h.clinic_dr_building_count,
+    i.clinic_dr_flooded_building_count,
+    j.fire_station_building_count,
+    k.fire_station_flooded_building_count,
+    l.school_building_count,
+    m.school_flooded_building_count,
+    n.university_building_count,
+    o.university_flooded_building_count,
+    p.government_building_count,
+    q.government_flooded_building_count,
+    r.hospital_building_count,
+    s.hospital_flooded_building_count,
+    t.buddist_building_count,
+    u.buddist_flooded_building_count,
+    v.islam_building_count,
+    w.islam_flooded_building_count,
+    x.police_station_building_count,
+    y.police_flooded_building_count
+FROM
+    ( select a.flood_event_id from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 group by a.flood_event_id) b,
+    ( with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select sum(b.total_vulnerability) from osm_buildings as b join agg
+ as c on st_intersects(b.geometry,c.geom) group by c.geom) c,
+    ( with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) group by c.geom;) d,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) group by d.geom) e,
+    (select count(*) as residential_building_count from osm_buildings where building_type = 'Residential') f,
+    (select count(*) as residential_flooded_building_count from osm_buildings as a join flood_event_areas_v b on st_intersects(a.geometry,b.geometry)
+        where b.flood_event_id = 15 and a.building_type = 'Residential') g,
+    (select count(*) as clinic_dr_building_count from osm_buildings where building_type = 'Clinic/Doctor') h,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as clinic_dr_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Clinic/Doctor' group by d.geom) i,
+    (select count(*) as fire_station_building_count from osm_buildings where building_type = 'Fire Station') j,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as fire_station_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Fire Station' group by d.geom) k,
+    (select count(*) as school_building_count from osm_buildings where building_type = 'School') l,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as school_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'School' group by d.geom) m,
+    (select count(*) as university_building_count from osm_buildings where building_type = 'University/College') n,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as university_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'University/College' group by d.geom) o,
+    (select count(*) as government_building_count from osm_buildings where building_type = 'Government') p,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as government_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Government' group by d.geom) q,
+    (select count(*) as hospital_building_count from osm_buildings where building_type = 'Hospital') r,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as hospital_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Hospital' group by d.geom) s,
+    (select count(*) as buddist_building_count from osm_buildings where building_type = 'Place of Worship - Buddhist') t,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as buddist_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Buddhist' group by d.geom) u,
+    (select count(*) as islam_building_count from osm_buildings where building_type = 'Place of Worship - Islam') v,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as islam_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Islam' group by d.geom) w,
+    (select count(*) as police_station_building_count from osm_buildings where building_type = 'Police Station') x,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as police_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Police Station' group by d.geom) y;
+
 
 
 -- Add a trigger function to notify QGIS of DB changes
@@ -284,6 +468,22 @@ BEGIN
   RETURN NEW;
   END
   $$;
+
+CREATE FUNCTION validate_area() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    NEW.geometry:=ST_MakeValid(geometry::GEOGRAPHY) ;
+  RETURN NEW;
+  END
+  $$;
+CREATE TRIGGER validate_geom_flooded_area BEFORE INSERT OR UPDATE ON flooded_area FOR EACH ROW EXECUTE PROCEDURE validate_area();
+CREATE TRIGGER validate_geom_buildings BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE validate_area();
+CREATE TRIGGER validate_geom_roads BEFORE INSERT OR UPDATE ON osm_roads FOR EACH ROW EXECUTE PROCEDURE validate_area();
+CREATE TRIGGER validate_geom_waterway BEFORE INSERT OR UPDATE ON osm_waterways FOR EACH ROW EXECUTE PROCEDURE validate_area();
+
+
+
 
  -- WATERWAY COUNT For Features within a flood polygon---
 CREATE OR REPLACE VIEW osm_waterways_flood_count_v as
