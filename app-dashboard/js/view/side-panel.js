@@ -56,11 +56,7 @@ define([
         },
         removeIntroWindow: function (e) {
             // Hide the intro window
-            const $introWindow = $('.intro');
-            $introWindow.hide("slide", { direction: "left" }, 200, function () {
-                $('#map').show();
-                dispatcher.trigger('map:refresh-map');
-            });
+            dispatcher.trigger('intro:hide');
         },
         openBrowseFlood: function (e) {
             $('.browse-btn-icon').hide();

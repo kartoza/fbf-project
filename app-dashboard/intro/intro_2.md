@@ -1,1 +1,1 @@
-<img src="https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" width="100%">
+<center><img src="/images/story_board/2_prepare_wait_respond.png" style="max-height: 100%"></center>

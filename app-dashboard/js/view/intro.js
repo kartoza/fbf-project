@@ -17,6 +17,7 @@ define([
             this.introContent = this.$el.find('.intro-content');
             this.nextButton = this.$el.find('.next-intro');
             this.prevButton = this.$el.find('.prev-intro');
+            this.introOpen = true;
             this.markdown = new Markdown({
                 html: true,
                 linkify: true,
@@ -65,12 +66,15 @@ define([
             this.currentIntroIndex -= 1;
             this.loadIntro();
         },
-        hide: function (e) {
-            // Hide the intro window
-            const $introWindow = $('.intro');
-            $introWindow.hide("slide", {direction: "left"}, 200, function () {
-                dispatcher.trigger('map:show-map');
-            });
+        hide: function () {
+            if (this.introOpen) {
+                this.introOpen = false;
+                // Hide the intro window
+                const $introWindow = $('.intro');
+                $introWindow.hide("slide", {direction: "left"}, 200, function () {
+                    dispatcher.trigger('map:show-map');
+                });
+            }
         },
         isNextExist: function (callback) {
             const self = this;
