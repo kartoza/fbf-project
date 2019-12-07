@@ -253,6 +253,7 @@ define([
             this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, false);
             this.fetchExtent(region_id, region);
+            dispatcher.trigger('map:show-region-boundary', region, region_id);
         },
         backPanelDrilldown: function (e) {
             let that = this;
@@ -286,6 +287,7 @@ define([
             this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, main);
             this.fetchExtent(region_id, region);
+            dispatcher.trigger('map:show-region-boundary', region, region_id);
         },
         containsReferer: function (obj, list) {
             var i;
