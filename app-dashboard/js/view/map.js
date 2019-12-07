@@ -25,6 +25,7 @@ define([
             dispatcher.on('map:draw-forecast-layer', this.drawForecastLayer, this);
             dispatcher.on('map:remove-forecast-layer', this.removeForecastLayer, this);
             dispatcher.on('map:show-map', this.showMap, this);
+            dispatcher.on('map:fit-bounds', this.fitBounds, this);
         },
         removeForecastLayer: function(){
             if(this.forecast_layer){
@@ -194,6 +195,9 @@ define([
             this.redraw();
             that.map.fitBounds(this.initBounds);
             dispatcher.trigger('dashboard:reset')
+        },
+        fitBounds: function (bounds) {
+            this.map.fitBounds(bounds)
         }
     });
 });

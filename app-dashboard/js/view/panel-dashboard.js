@@ -240,6 +240,7 @@ define([
             let region_id = parseInt($button.attr('data-region-id'));
             $('.btn-back-summary-panel').attr('data-region', that.referer_region[that.referer_region.length - 1].region).attr('data-region-id', that.referer_region[that.referer_region.length -1].id);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, false);
+            this.fetchExtent(region_id, region);
         },
         backPanelDrilldown: function (e) {
             let that = this;
@@ -321,6 +322,24 @@ define([
                         modal.modal(
                             'toggle'
                         );
+                    }
+                }
+            })
+        },
+        fetchExtent: function (region_id, region) {
+            if(!region_id || !region){
+                return []
+            }
+
+            $.get({
+                url: postgresUrl + region + '_extent_v?id=eq.' + region_id,
+                success: function (data) {
+                    if(data.length > 0) {
+                        let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];
+                        console.log(coordinates)
+                        dispatcher.trigger('map:fit-bounds', coordinates)
+                    }else {
+
                     }
                 }
             })
