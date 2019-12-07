@@ -322,6 +322,12 @@ define([
                 'sub_district': that.subDistrictStats
             };
 
+            let key = {
+                'district': 'dc_code',
+                'sub_district': 'sub_district_id',
+                'village': 'village_id'
+            };
+
             let buildings = [];
             let overall = [];
             let region_render;
@@ -343,10 +349,13 @@ define([
                     overall['police_station_flooded_building_count'] = overall['police_flooded_building_count'];
                     delete overall['police_flooded_building_count'];
                 }
+                delete overall['region_id'];
                 delete overall[region + '_id'];
                 delete overall['name'];
                 delete overall['village_code'];
                 delete overall['sub_dc_code'];
+                delete overall['dc_code'];
+                delete overall['trigger_status'];
             } else {
                 main_panel = false;
                 let sub_region = 'sub_district';
@@ -356,13 +365,9 @@ define([
                 region_render = sub_region;
 
                 let statData = [];
-                let key = {
-                    'sub_district': 'sub_district_id',
-                    'village': 'village_id'
-                };
                 let subRegionList = that.getListSubRegion(sub_region, region_id);
                 $.each(data[sub_region], function (index, value) {
-                    if (subRegionList.indexOf(value[key[sub_region]])) {
+                    if (subRegionList.indexOf(value[key[sub_region]]) >= 0) {
                         statData.push(value)
                     }
                 });
@@ -380,7 +385,7 @@ define([
                 }
 
                 for (let index = 0; index < data[region].length; index++) {
-                    if (data[region][index]['id'] === parseInt(region_id)) {
+                    if (data[region][index][key[region]] === parseInt(region_id)) {
                         overall = data[region][index];
                         if (overall.hasOwnProperty('police_flooded_building_count')) {
                             overall['police_station_flooded_building_count'] = overall['police_flooded_building_count'];
@@ -394,7 +399,7 @@ define([
             dispatcher.trigger('dashboard:render-chart-2', overall, main_panel);
 
             if (region !== 'village') {
-                dispatcher.trigger('dashboard:render-region-summary', buildings, region_render)
+                dispatcher.trigger('dashboard:render-region-summary', buildings, region_render, key[region_render]);
             }
         },
         fetchVillageData: function (flood_event_id) {
@@ -437,7 +442,6 @@ define([
                 }
             }).then(function (data) {
                 that.subDistrictStats = data;
-                that.areaLookup = data;
                 if (that.villageStats !== null && that.districtStats !== null && that.subDistrictStats !== null) {
                     that.fetchStatisticData('district', that.selected_forecast.id, true);
                 }
@@ -446,19 +450,24 @@ define([
                 console.log(data);
             })
         },
-        getListSubRegion: function (region, district_id) {
+        getListSubRegion: function (region, parent_region_id) {
             let key = {
-                'sub_district': 'sub_dc_code',
-                'village': 'village_code'
+                'sub_district': 'sub_district_id',
+                'village': 'village_id'
             };
             let keyParent = {
                 'sub_district': 'dc_code',
                 'village': 'sub_dc_code'
             };
             let that = this;
+            let stats = {
+                'village': that.villageStats,
+                'sub_district': that.subDistrictStats
+            };
+            let areaLookup = stats[region]
             let listSubRegion = [];
-            $.each(that.areaLookup, function (index, value) {
-                if (parseInt(value[keyParent[region]]) === parseInt(district_id)) {
+            $.each(areaLookup, function (index, value) {
+                if (parseInt(value[keyParent[region]]) === parseInt(parent_region_id)) {
                     listSubRegion.push(value[key[region]])
                 }
             });

@@ -26,6 +26,7 @@ define([
             dispatcher.on('map:remove-forecast-layer', this.removeForecastLayer, this);
             dispatcher.on('map:show-map', this.showMap, this);
             dispatcher.on('map:fit-bounds', this.fitBounds, this);
+            dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
         },
         removeForecastLayer: function(){
             if(this.forecast_layer){
@@ -198,6 +199,23 @@ define([
         },
         fitBounds: function (bounds) {
             this.map.fitBounds(bounds)
+        },
+        showRegionBoundary: function (region, region_id) {
+            if(this.region_layer){
+                this.map.removeLayer(this.region_layer);
+                this.region_layer = null;
+            }
+            dispatcher.trigger('map:redraw');
+            this.region_layer = L.tileLayer.wms(
+                geoserverUrl,
+                {
+                    layers: `kartoza:${region}_boundary`,
+                    format: 'image/png',
+                    transparent: true,
+                    srs: 'EPSG:4326',
+                    cql_filter: `id_code=${region_id}`
+                });
+            this.region_layer.addTo(this.map);
         }
     });
 });

@@ -4,8 +4,9 @@ define([
     'jquery',
     'jqueryUi',
     'chartjs',
-    'filesaver'
-], function (Backbone, _, $, JqueryUi, Chart, fileSaver) {
+    'filesaver',
+    'js/model/trigger_status.js'
+], function (Backbone, _, $, JqueryUi, Chart, fileSaver, TriggerStatusCollection) {
     return Backbone.View.extend({
         template: _.template($('#dashboard-template').html()),
         loading_template: '<i class="fa fa-spinner fa-spin fa-fw"></i>',
@@ -16,10 +17,10 @@ define([
         referer_region: [],
         sub_region_title_template: _.template($('#region-title-panel-template').html()),
         sub_region_item_template: _.template($('#region-summary-panel-template').html()),
-        colour_code: {
-            'Stop': '#CA6060',
-            'Stand by': '#D39858',
-            'REACHED - Activate your EAP': '#72CA7A'
+        status_text: {
+            [TriggerStatusCollection.constants.ACTIVATION]: 'REACHED - Activate your EAP',
+            [TriggerStatusCollection.constants.PRE_ACTIVATION]: 'Stand by',
+            [TriggerStatusCollection.constants.NOT_ACTIVATED]: 'No Activation'
         },
         events: {
             'click .drilldown': 'drilldown',
@@ -32,6 +33,7 @@ define([
             dispatcher.on('dashboard:reset', this.resetDashboard, this);
             dispatcher.on('dashboard:hide', this.hideDashboard, this);
             dispatcher.on('dashboard:render-region-summary', this.renderRegionSummary, this);
+            dispatcher.on('dashboard:change-trigger-status', this.changeStatus, this);
 
             this.$el = $(this.el);
         },
@@ -40,7 +42,6 @@ define([
             let that = this;
             let $action = $(that.status_wrapper);
             $action.html(that.loading_template);
-            $('#status').css('background-color', '#D1D3D4');
 
             let general_template = that.template;
 
@@ -57,14 +58,22 @@ define([
             }));
             $('#vulnerability-score').html(that.loading_template);
             $('#building-count').html(that.loading_template);
+            this.changeStatus(floodCollectionView.selected_forecast.attributes.trigger_status);
         },
         renderChart2: function (data, main_panel) {
             let that = this;
+            let id_key = {
+                'district': 'dc_code',
+                'sub_district': 'sub_district_id',
+                'village': 'village_id'
+            };
+            let trigger_status = $("#status").attr('data-region-trigger-status');
             if(main_panel){
                 $('.btn-back-summary-panel').hide();
                 let referer = {
                     region: 'district',
-                    id: 'main'
+                    id: 'main',
+                    trigger_status: trigger_status
                 };
                 if(!that.containsReferer(referer, that.referer_region)) {
                     that.referer_region.push(referer);
@@ -75,7 +84,8 @@ define([
                 let region = data['region'];
                 let referer = {
                     region: region,
-                    id: data['id']
+                    id: data[id_key[region]],
+                    trigger_status: trigger_status
                 };
                 if(!that.containsReferer(referer, that.referer_region)) {
                     that.referer_region.push(referer);
@@ -157,7 +167,8 @@ define([
                     }]
             };
 
-            $('#vulnerability-score').html(data['vulnerability_total_score'].toFixed(2));
+            let vulnerability_total_score = data['vulnerability_total_score'] ? data['vulnerability_total_score'].toFixed(2): 0;
+            $('#vulnerability-score').html(vulnerability_total_score);
             $('#building-count').html(data['flooded_building_count']);
 
             new Chart(ctx, {
@@ -185,15 +196,8 @@ define([
                     maintainAspectRatio: false
                 }
             });
-            let status = 'Stop';
-            if(data['vulnerability_total_score'] > 200){
-                status = 'REACHED - Activate your EAP'
-            }else if(data['vulnerability_total_score'] >100){
-                status = 'Stand by'
-            }
-            this.changeStatus(status);
         },
-        renderRegionSummary: function (data, region) {
+        renderRegionSummary: function (data, region, id_field) {
             let $wrapper = $('#region-summary-panel');
             let title = this.sub_region_title_template;
             $wrapper.html(title({
@@ -203,23 +207,26 @@ define([
             let $table = $('<table></table>');
             for(let u=0; u<data.length; u++){
                 let item = data[u];
+                let trigger_status = data[u].trigger_status || 0;
+                let vulnerability_total_score = item['vulnerability_total_score'] ? item['vulnerability_total_score'].toFixed(2) : 0;
                 $table.append(item_template({
                     region: region,
-                    id: item['id'],
+                    id: item[id_field],
                     name: item['name'],
-                    flooded_vulnerability_total: item['vulnerability_total_score'].toFixed(2),
-                    flooded_building_count: item['flooded_building_count']
+                    flooded_vulnerability_total: vulnerability_total_score,
+                    flooded_building_count: item['flooded_building_count'],
+                    trigger_status: trigger_status
                 }));
             }
             $wrapper.append($table);
         },
         changeStatus: function (status) {
-            $(this.status_wrapper).html(status.toUpperCase() + '!');
-            $('#status').css('background-color', this.colour_code[status])
+            status = status || 0;
+            $(this.status_wrapper).html(this.status_text[status].toUpperCase() + '!');
+            $('#status').removeClass().addClass(`trigger-status-${status}`).attr('data-region-trigger-status', status);
         },
         resetDashboard: function () {
             this.referer_region = [];
-            $('#status').css('background-color', '#D1D3D4');
             $(this.status_wrapper).html('-');
             $(this.general_summary).empty().html('' +
                 '<div class="panel-title">' +
@@ -238,9 +245,15 @@ define([
             let $button = $(e.target).closest('.drilldown');
             let region = $button.attr('data-region');
             let region_id = parseInt($button.attr('data-region-id'));
-            $('.btn-back-summary-panel').attr('data-region', that.referer_region[that.referer_region.length - 1].region).attr('data-region-id', that.referer_region[that.referer_region.length -1].id);
+            let trigger_status = $button.attr('data-region-trigger-status');
+            $('.btn-back-summary-panel')
+                .attr('data-region', that.referer_region[that.referer_region.length - 1].region)
+                .attr('data-region-id', that.referer_region[that.referer_region.length -1].id)
+                .attr('data-region-trigger-status', that.referer_region[that.referer_region.length -1].trigger_status);
+            this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, false);
             this.fetchExtent(region_id, region);
+            dispatcher.trigger('map:show-region-boundary', region, region_id);
         },
         backPanelDrilldown: function (e) {
             let that = this;
@@ -249,6 +262,7 @@ define([
             let $button = $(e.target).closest('.btn-back-summary-panel');
             let region = $button.attr('data-region');
             let region_id = $button.attr('data-region-id');
+            let trigger_status = $button.attr('data-region-trigger-status');
             let main = false;
             if(region_id === 'main'){
                 main = true
@@ -256,15 +270,24 @@ define([
 
             let referer_region = '';
             let referer_region_id = '';
+            let referer_trigger_status = 0;
             try {
+                this.referer_region.pop();
                 referer_region = that.referer_region[that.referer_region.length - 1].region;
                 referer_region_id = that.referer_region[that.referer_region.length - 1].id;
+                referer_trigger_status = that.referer_region[that.referer_region.length - 1].trigger_status;
             }catch (err){
 
             }
 
-            $('.btn-back-summary-panel').attr('data-region', referer_region).attr('data-region-id', referer_region_id);
+            $('.btn-back-summary-panel')
+                .attr('data-region', referer_region)
+                .attr('data-region-id', referer_region_id)
+                .attr('data-region-trigger-status', referer_trigger_status);
+            this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, main);
+            this.fetchExtent(region_id, region);
+            dispatcher.trigger('map:show-region-boundary', region, region_id);
         },
         containsReferer: function (obj, list) {
             var i;
@@ -332,17 +355,16 @@ define([
             }
 
             $.get({
-                url: postgresUrl + region + '_extent_v?id=eq.' + region_id,
+                url: postgresUrl + region + '_extent_v?id_code=eq.' + region_id,
                 success: function (data) {
                     if(data.length > 0) {
                         let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];
-                        console.log(coordinates)
                         dispatcher.trigger('map:fit-bounds', coordinates)
                     }else {
 
-                    }
+
                 }
-            })
+            }});
         }
     })
 });
