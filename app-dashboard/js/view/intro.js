@@ -80,7 +80,7 @@ define([
             const self = this;
             let _introIndex = self.currentIntroIndex + 1;
             $.ajax({
-                url: `/intro/intro_${_introIndex}.md`,
+                url: `/Fbf/intro/intro_${_introIndex}.md`,
                 type: 'GET',
                 dataType: 'text',
                 success: function (data) {
