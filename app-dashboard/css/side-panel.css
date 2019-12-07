@@ -178,13 +178,13 @@ form label {
 #status.trigger-status-0 {
     /* no activation */
     background-color: #0efb16;
-    color: white;
+    color: black;
 }
 
 #status.trigger-status-1 {
     /* pre-activation */
     background-color: #f6fd00;
-    color: white;
+    color: black;
 }
 
 #status.trigger-status-2 {

@@ -33,6 +33,7 @@ define([
             dispatcher.on('dashboard:reset', this.resetDashboard, this);
             dispatcher.on('dashboard:hide', this.hideDashboard, this);
             dispatcher.on('dashboard:render-region-summary', this.renderRegionSummary, this);
+            dispatcher.on('dashboard:change-trigger-status', this.changeStatus, this);
 
             this.$el = $(this.el);
         },
@@ -66,11 +67,13 @@ define([
                 'sub_district': 'sub_district_id',
                 'village': 'village_id'
             };
+            let trigger_status = $("#status").attr('data-region-trigger-status');
             if(main_panel){
                 $('.btn-back-summary-panel').hide();
                 let referer = {
                     region: 'district',
-                    id: 'main'
+                    id: 'main',
+                    trigger_status: trigger_status
                 };
                 if(!that.containsReferer(referer, that.referer_region)) {
                     that.referer_region.push(referer);
@@ -81,7 +84,8 @@ define([
                 let region = data['region'];
                 let referer = {
                     region: region,
-                    id: data[id_key[region]]
+                    id: data[id_key[region]],
+                    trigger_status: trigger_status
                 };
                 if(!that.containsReferer(referer, that.referer_region)) {
                     that.referer_region.push(referer);
@@ -194,7 +198,6 @@ define([
             });
         },
         renderRegionSummary: function (data, region, id_field) {
-            console.log(data);
             let $wrapper = $('#region-summary-panel');
             let title = this.sub_region_title_template;
             $wrapper.html(title({
@@ -220,7 +223,7 @@ define([
         changeStatus: function (status) {
             status = status || 0;
             $(this.status_wrapper).html(this.status_text[status].toUpperCase() + '!');
-            $('#status').removeClass().addClass(`trigger-status-${status}`);
+            $('#status').removeClass().addClass(`trigger-status-${status}`).attr('data-region-trigger-status', status);
         },
         resetDashboard: function () {
             this.referer_region = [];
@@ -242,7 +245,12 @@ define([
             let $button = $(e.target).closest('.drilldown');
             let region = $button.attr('data-region');
             let region_id = parseInt($button.attr('data-region-id'));
-            $('.btn-back-summary-panel').attr('data-region', that.referer_region[that.referer_region.length - 1].region).attr('data-region-id', that.referer_region[that.referer_region.length -1].id);
+            let trigger_status = $button.attr('data-region-trigger-status');
+            $('.btn-back-summary-panel')
+                .attr('data-region', that.referer_region[that.referer_region.length - 1].region)
+                .attr('data-region-id', that.referer_region[that.referer_region.length -1].id)
+                .attr('data-region-trigger-status', that.referer_region[that.referer_region.length -1].trigger_status);
+            this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, false);
             this.fetchExtent(region_id, region);
         },
@@ -253,6 +261,7 @@ define([
             let $button = $(e.target).closest('.btn-back-summary-panel');
             let region = $button.attr('data-region');
             let region_id = $button.attr('data-region-id');
+            let trigger_status = $button.attr('data-region-trigger-status');
             let main = false;
             if(region_id === 'main'){
                 main = true
@@ -260,15 +269,21 @@ define([
 
             let referer_region = '';
             let referer_region_id = '';
+            let referer_trigger_status = 0;
             try {
                 this.referer_region.pop();
                 referer_region = that.referer_region[that.referer_region.length - 1].region;
                 referer_region_id = that.referer_region[that.referer_region.length - 1].id;
+                referer_trigger_status = that.referer_region[that.referer_region.length - 1].trigger_status;
             }catch (err){
 
             }
 
-            $('.btn-back-summary-panel').attr('data-region', referer_region).attr('data-region-id', referer_region_id);
+            $('.btn-back-summary-panel')
+                .attr('data-region', referer_region)
+                .attr('data-region-id', referer_region_id)
+                .attr('data-region-trigger-status', referer_trigger_status);
+            this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, main);
         },
         containsReferer: function (obj, list) {
@@ -341,7 +356,6 @@ define([
                 success: function (data) {
                     if(data.length > 0) {
                         let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];
-                        console.log(coordinates)
                         dispatcher.trigger('map:fit-bounds', coordinates)
                     }else {
 
