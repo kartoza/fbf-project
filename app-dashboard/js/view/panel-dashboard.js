@@ -285,6 +285,7 @@ define([
                 .attr('data-region-trigger-status', referer_trigger_status);
             this.changeStatus(trigger_status);
             dispatcher.trigger('flood:fetch-stats-data', region, region_id, main);
+            this.fetchExtent(region_id, region);
         },
         containsReferer: function (obj, list) {
             var i;
@@ -359,9 +360,9 @@ define([
                         dispatcher.trigger('map:fit-bounds', coordinates)
                     }else {
 
-                    }
+
                 }
-            })
+            }});
         }
     })
 });
