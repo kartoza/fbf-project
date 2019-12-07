@@ -191,7 +191,6 @@ define([
                         dispatcher.trigger('flood:update-forecast-collection', that);
                         $.each(floodSummary, (key, value) => {
                             let $element = $('#flood-summary-trigger-status-' + key);
-                            console.log($element)
                             if ($element.length !== 0) {
                                 $element.closest('.flood-count').show();
                                 $element.html(value);
