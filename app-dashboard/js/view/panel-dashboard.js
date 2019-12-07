@@ -61,6 +61,11 @@ define([
         },
         renderChart2: function (data, main_panel) {
             let that = this;
+            let id_key = {
+                'district': 'dc_code',
+                'sub_district': 'sub_district_id',
+                'village': 'village_id'
+            };
             if(main_panel){
                 $('.btn-back-summary-panel').hide();
                 let referer = {
@@ -76,7 +81,7 @@ define([
                 let region = data['region'];
                 let referer = {
                     region: region,
-                    id: data['id']
+                    id: data[id_key[region]]
                 };
                 if(!that.containsReferer(referer, that.referer_region)) {
                     that.referer_region.push(referer);
@@ -158,7 +163,8 @@ define([
                     }]
             };
 
-            $('#vulnerability-score').html(data['vulnerability_total_score'].toFixed(2));
+            let vulnerability_total_score = data['vulnerability_total_score'] ? data['vulnerability_total_score'].toFixed(2): 0;
+            $('#vulnerability-score').html(vulnerability_total_score);
             $('#building-count').html(data['flooded_building_count']);
 
             new Chart(ctx, {
@@ -187,7 +193,8 @@ define([
                 }
             });
         },
-        renderRegionSummary: function (data, region) {
+        renderRegionSummary: function (data, region, id_field) {
+            console.log(data);
             let $wrapper = $('#region-summary-panel');
             let title = this.sub_region_title_template;
             $wrapper.html(title({
@@ -198,11 +205,12 @@ define([
             for(let u=0; u<data.length; u++){
                 let item = data[u];
                 let trigger_status = data[u].trigger_status || 0;
+                let vulnerability_total_score = item['vulnerability_total_score'] ? item['vulnerability_total_score'].toFixed(2) : 0;
                 $table.append(item_template({
                     region: region,
-                    id: item['id'],
+                    id: item[id_field],
                     name: item['name'],
-                    flooded_vulnerability_total: item['vulnerability_total_score'].toFixed(2),
+                    flooded_vulnerability_total: vulnerability_total_score,
                     flooded_building_count: item['flooded_building_count'],
                     trigger_status: trigger_status
                 }));
@@ -252,6 +260,7 @@ define([
             let referer_region = '';
             let referer_region_id = '';
             try {
+                this.referer_region.pop();
                 referer_region = that.referer_region[that.referer_region.length - 1].region;
                 referer_region_id = that.referer_region[that.referer_region.length - 1].id;
             }catch (err){
