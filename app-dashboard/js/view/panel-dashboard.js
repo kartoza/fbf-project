@@ -337,7 +337,7 @@ define([
             }
 
             $.get({
-                url: postgresUrl + region + '_extent_v?id=eq.' + region_id,
+                url: postgresUrl + region + '_extent_v?id_code=eq.' + region_id,
                 success: function (data) {
                     if(data.length > 0) {
                         let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];
