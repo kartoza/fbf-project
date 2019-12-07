@@ -173,6 +173,27 @@ form label {
     background-color: #FF0000;
 }
 
+/* trigger status colors for button */
+.btn-arrow.drilldown.trigger-status-0 {
+    /* no activation */
+    color: #CBFBC5;
+}
+
+.btn-arrow.drilldown.trigger-status-1 {
+    /* pre-activation */
+    color: #FDFDC6;
+}
+
+.btn-arrow.drilldown.trigger-status-2 {
+    /* activation */
+    color: #F1B6B4;
+}
+
+.btn-arrow.drilldown.trigger-status-3 {
+    /* stop */
+    color: #FF0000;
+}
+
 .flood-info {
     word-break: break-all;
     font-size: 9pt;
@@ -204,7 +225,6 @@ form label {
     height: 65px;
     vertical-align: middle;
     text-align: center;
-    background-color: #D1D3D4;
     font-weight: bold;
     color: white;
     padding-top: 6px;

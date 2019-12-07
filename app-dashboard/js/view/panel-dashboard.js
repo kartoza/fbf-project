@@ -4,8 +4,9 @@ define([
     'jquery',
     'jqueryUi',
     'chartjs',
-    'filesaver'
-], function (Backbone, _, $, JqueryUi, Chart, fileSaver) {
+    'filesaver',
+    'js/model/trigger_status.js'
+], function (Backbone, _, $, JqueryUi, Chart, fileSaver, TriggerStatusCollection) {
     return Backbone.View.extend({
         template: _.template($('#dashboard-template').html()),
         loading_template: '<i class="fa fa-spinner fa-spin fa-fw"></i>',
@@ -16,10 +17,10 @@ define([
         referer_region: [],
         sub_region_title_template: _.template($('#region-title-panel-template').html()),
         sub_region_item_template: _.template($('#region-summary-panel-template').html()),
-        colour_code: {
-            'Stop': '#CA6060',
-            'Stand by': '#D39858',
-            'REACHED - Activate your EAP': '#72CA7A'
+        status_text: {
+            [TriggerStatusCollection.constants.ACTIVATION]: 'REACHED - Activate your EAP',
+            [TriggerStatusCollection.constants.PRE_ACTIVATION]: 'Stand by',
+            [TriggerStatusCollection.constants.NOT_ACTIVATED]: 'No Activation'
         },
         events: {
             'click .drilldown': 'drilldown',
@@ -40,7 +41,6 @@ define([
             let that = this;
             let $action = $(that.status_wrapper);
             $action.html(that.loading_template);
-            $('#status').css('background-color', '#D1D3D4');
 
             let general_template = that.template;
 
@@ -57,8 +57,10 @@ define([
             }));
             $('#vulnerability-score').html(that.loading_template);
             $('#building-count').html(that.loading_template);
+            this.changeStatus(floodCollectionView.selected_forecast.attributes.trigger_status);
         },
         renderChart2: function (data, main_panel) {
+            console.log(data);
             let that = this;
             if(main_panel){
                 $('.btn-back-summary-panel').hide();
@@ -185,13 +187,6 @@ define([
                     maintainAspectRatio: false
                 }
             });
-            let status = 'Stop';
-            if(data['vulnerability_total_score'] > 200){
-                status = 'REACHED - Activate your EAP'
-            }else if(data['vulnerability_total_score'] >100){
-                status = 'Stand by'
-            }
-            this.changeStatus(status);
         },
         renderRegionSummary: function (data, region) {
             let $wrapper = $('#region-summary-panel');
@@ -201,6 +196,7 @@ define([
             }));
             let item_template = this.sub_region_item_template;
             let $table = $('<table></table>');
+            let trigger_status = data.status || 0;
             for(let u=0; u<data.length; u++){
                 let item = data[u];
                 $table.append(item_template({
@@ -208,18 +204,19 @@ define([
                     id: item['id'],
                     name: item['name'],
                     flooded_vulnerability_total: item['vulnerability_total_score'].toFixed(2),
-                    flooded_building_count: item['flooded_building_count']
+                    flooded_building_count: item['flooded_building_count'],
+                    trigger_status: trigger_status
                 }));
             }
             $wrapper.append($table);
         },
         changeStatus: function (status) {
-            $(this.status_wrapper).html(status.toUpperCase() + '!');
-            $('#status').css('background-color', this.colour_code[status])
+            status = status || 0;
+            $(this.status_wrapper).html(this.status_text[status].toUpperCase() + '!');
+            $('#status').removeClass().addClass(`trigger-status-${status}`);
         },
         resetDashboard: function () {
             this.referer_region = [];
-            $('#status').css('background-color', '#D1D3D4');
             $(this.status_wrapper).html('-');
             $(this.general_summary).empty().html('' +
                 '<div class="panel-title">' +
