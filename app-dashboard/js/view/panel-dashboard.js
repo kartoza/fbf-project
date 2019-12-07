@@ -298,22 +298,30 @@ define([
 
                 const blob = new Blob(byteArrays, {type: contentType});
                 return blob;
-            }
+            };
 
             let type = 'application/vnd.ms-excel';
             const blob = b64toBlob(data, type);
-            saveAs(blob, floodCollectionView.selected_forecast.attributes.notes + ".xls");
+            saveAs(blob, floodCollectionView.selected_forecast.attributes.notes + ".xlsx");
 
         },
         fetchExcel: function (){
             let that = this;
+            const modal = $('#fbf-modal');
             $.post({
                 url: 'http://159.69.44.205:3000/rpc/flood_event_spreadsheet',
                 data: {
                     "flood_event_id":floodCollectionView.selected_forecast.attributes.id
                 },
                 success: function (data) {
-                    that.downloadSpreadsheet(data[0]['spreadsheet_content'])
+                    if (data.length > 0 && data[0].hasOwnProperty('spreadsheet_content') && data[0]['spreadsheet_content']) {
+                        that.downloadSpreadsheet(data[0]['spreadsheet_content']);
+                    } else {
+                        modal.find('.modal-body-content').html('Summary data could not be found.');
+                        modal.modal(
+                            'toggle'
+                        );
+                    }
                 }
             })
         }

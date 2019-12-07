@@ -291,3 +291,12 @@ body {
     width: 100%;
     overflow-y: auto;
 }
+
+#fbf-modal {
+    z-index: 99999;
+}
+
+#fbf-modal p {
+    font-size: 16px;
+    padding-top: 10px;
+}
