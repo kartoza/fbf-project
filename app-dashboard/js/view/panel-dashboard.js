@@ -309,7 +309,7 @@ define([
             let that = this;
             const modal = $('#fbf-modal');
             $.post({
-                url: 'http://159.69.44.205:3000/rpc/flood_event_spreadsheet',
+                url: `${postgresUrl}rpc/flood_event_spreadsheet`,
                 data: {
                     "flood_event_id":floodCollectionView.selected_forecast.attributes.id
                 },
