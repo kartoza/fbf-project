@@ -340,6 +340,22 @@ begin return query
     end;
 $$;
 
+-- function for creating a spreadsheet using plython3u
+create OR REPLACE function flood_event_spreadsheet(flood_event_id integer) returns TABLE(spreadsheet_content text)
+  language plpgsql
+as
+$$
+begin return query
+        select encode(spreadsheet, 'base64') as spreadsheet_content from flood_event where id=flood_event_id;
+    end;
+$$;
+
+-- Flooded event buildings map view. Added by Tim to show when we select a flood.
+create or replace view vw_flood_event_buildings_map as
+select b.geometry, b.building_type, b.district_id, b.sub_district_id, b.village_id, feb.depth_class_id, feb.flood_event_id
+	from osm_buildings as b, flood_event_buildings as feb;
+comment on view vw_flood_event_buildings_map is 'Flooded event buildings map view. Added by Tim to show when we select a flood.';
+
 -- Add a trigger function to notify QGIS of DB changes
 CREATE FUNCTION public.notify_qgis() RETURNS trigger
     LANGUAGE plpgsql
@@ -613,6 +629,43 @@ CREATE FUNCTION refresh_filtered_buildings() RETURNS trigger
     RETURN NULL;
   END
   $$;
+
+CREATE FUNCTION refresh_village_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_village_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE FUNCTION refresh_sub_district_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_sub_district_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+
+CREATE FUNCTION refresh_district_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_district_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER event_village_summary_tg AFTER INSERT OR UPDATE ON flood_event_village_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_village_summary();
+
+CREATE TRIGGER event_sub_district_summary_tg AFTER INSERT OR UPDATE ON flood_event_sub_district_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_sub_district_summary();
+
+CREATE TRIGGER event_district_summary_tg AFTER INSERT OR UPDATE ON flood_event_district_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_district_summary();
 
 -- Vulnerability reporting and mapping for Buildings
 
