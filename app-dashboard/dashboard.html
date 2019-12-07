@@ -237,8 +237,15 @@
             </div>
             <div id="panel-dashboard" style="display: none">
                 <div id="status">
-                    <span>Trigger Status: </span><span id="action-status">-</span>
-                    <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                    <div class="col-lg-2">
+                        <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button></div>
+                    <div class="col-lg-8">
+                        <div class="status-wrapper">
+                            <div>Trigger Status:</div>
+                            <div id="action-status">-</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2"><button class="btn btn-arrow-white pull-right download-spreadsheet" style="margin: 7px 0 !important;" disabled><img src="images/download-icon-white.svg" style="height: 23px"></button></div>
                 </div>
                 <div id="flood-general-summary"></div>
                 <div id="flood-sub-summary"></div>

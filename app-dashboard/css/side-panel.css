@@ -199,12 +199,21 @@ form label {
 #status {
     height: 65px;
     vertical-align: middle;
-    line-height: 50px;
     text-align: center;
     background-color: #D1D3D4;
     font-weight: bold;
     color: white;
     padding-top: 6px;
+}
+
+.status-wrapper {
+    display: table;
+    width: 100%;
+}
+
+.status-wrapper span {
+    display: table-cell;
+    vertical-align: middle;
 }
 
 .panel-title {
@@ -218,7 +227,7 @@ form label {
 }
 
 .box-vulnerability, .box-building {
-    height: 60px;
+    height: 70px;
     border: 2px solid #CA6060;
     margin-top: 10px;
     text-align: center;
@@ -227,7 +236,7 @@ form label {
 }
 
 .box-count {
-    height: 60px;
+    height: 70px;
     border: 2px solid #CA6060;
     text-align: center;
     padding: 0;

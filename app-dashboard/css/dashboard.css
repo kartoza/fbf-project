@@ -205,9 +205,7 @@ body {
 }
 
 .btn-back-summary-panel {
-    position: absolute;
-    left: 15px;
-    top: 73px;
+    margin: 8px 0 !important;
     outline: none !important;
 }
 
