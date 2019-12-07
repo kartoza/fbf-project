@@ -455,6 +455,7 @@ define([
                 })
         },
         fetchAreaLookUp: function (flood_event_id) {
+            flood_event_id = 15;
             let that = this;
             this.xhrSubDistrictStats = AppRequest.get(
                 postgresUrl + 'flood_event_sub_district_summary_mv?flood_event_id=eq.' + flood_event_id,

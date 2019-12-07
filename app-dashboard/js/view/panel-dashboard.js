@@ -3,8 +3,9 @@ define([
     'underscore',
     'jquery',
     'jqueryUi',
-    'chartjs'
-], function (Backbone, _, $, JqueryUi, Chart) {
+    'chartjs',
+    'filesaver'
+], function (Backbone, _, $, JqueryUi, Chart, fileSaver) {
     return Backbone.View.extend({
         template: _.template($('#dashboard-template').html()),
         loading_template: '<i class="fa fa-spinner fa-spin fa-fw"></i>',
@@ -22,7 +23,8 @@ define([
         },
         events: {
             'click .drilldown': 'drilldown',
-            'click .btn-back-summary-panel': 'backPanelDrilldown'
+            'click .btn-back-summary-panel': 'backPanelDrilldown',
+            'click .download-spreadsheet': 'fetchExcel'
         },
         initialize: function () {
             this.referer_region = [];
@@ -276,6 +278,44 @@ define([
             }
 
             return false;
+        },
+        downloadSpreadsheet: function (data) {
+            const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+                const byteCharacters = atob(b64Data);
+                const byteArrays = [];
+
+                for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                  byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+                }
+
+                const blob = new Blob(byteArrays, {type: contentType});
+                return blob;
+            }
+
+            let type = 'application/vnd.ms-excel';
+            const blob = b64toBlob(data, type);
+            saveAs(blob, floodCollectionView.selected_forecast.attributes.notes + ".xls");
+
+        },
+        fetchExcel: function (){
+            let that = this;
+            $.post({
+                url: 'http://159.69.44.205:3000/rpc/flood_event_spreadsheet',
+                data: {
+                    "flood_event_id":floodCollectionView.selected_forecast.attributes.id
+                },
+                success: function (data) {
+                    that.downloadSpreadsheet(data[0]['spreadsheet_content'])
+                }
+            })
         }
     })
 });
