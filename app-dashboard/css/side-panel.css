@@ -153,6 +153,7 @@ form label {
 }
 
 /* trigger status colors */
+/* in calendar */
 .trigger-status-0 {
     /* no activation */
     background-color: #CBFBC5;
@@ -173,20 +174,45 @@ form label {
     background-color: #FF0000;
 }
 
+/* in side panel title */
+#status.trigger-status-0 {
+    /* no activation */
+    background-color: #0efb16;
+    color: white;
+}
+
+#status.trigger-status-1 {
+    /* pre-activation */
+    background-color: #f6fd00;
+    color: white;
+}
+
+#status.trigger-status-2 {
+    /* activation */
+    background-color: #f10b00;
+    color: white;
+}
+
+#status.trigger-status-3 {
+    /* stop */
+    background-color: #FF0000;
+    color: black;
+}
+
 /* trigger status colors for button */
 .btn-arrow.drilldown.trigger-status-0 {
     /* no activation */
-    color: #CBFBC5;
+    color: #0efb16;
 }
 
 .btn-arrow.drilldown.trigger-status-1 {
     /* pre-activation */
-    color: #FDFDC6;
+    color: #f6fd00;
 }
 
 .btn-arrow.drilldown.trigger-status-2 {
     /* activation */
-    color: #F1B6B4;
+    color: #f10b00;
 }
 
 .btn-arrow.drilldown.trigger-status-3 {

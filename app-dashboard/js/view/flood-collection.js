@@ -347,6 +347,7 @@ define([
                 delete overall['name'];
                 delete overall['village_code'];
                 delete overall['sub_dc_code'];
+                delete overall['trigger_status'];
             } else {
                 main_panel = false;
                 let sub_region = 'sub_district';

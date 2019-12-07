@@ -60,7 +60,6 @@ define([
             this.changeStatus(floodCollectionView.selected_forecast.attributes.trigger_status);
         },
         renderChart2: function (data, main_panel) {
-            console.log(data);
             let that = this;
             if(main_panel){
                 $('.btn-back-summary-panel').hide();
@@ -196,9 +195,9 @@ define([
             }));
             let item_template = this.sub_region_item_template;
             let $table = $('<table></table>');
-            let trigger_status = data.status || 0;
             for(let u=0; u<data.length; u++){
                 let item = data[u];
+                let trigger_status = data[u].trigger_status || 0;
                 $table.append(item_template({
                     region: region,
                     id: item['id'],
