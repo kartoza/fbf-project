@@ -54,12 +54,12 @@ CREATE table flood_map (
 
 create table trigger_status (
     id serial primary key ,
-    name character varying  (255) not null unique
+    name character varying  (255) unique
 );
 
 create table progress_status (
     id serial primary key ,
-    status character varying (50) unique not null 
+    status character varying (50) unique
 );
 
 create table flood_event (
@@ -110,7 +110,8 @@ create table flood_event_village_summary (
     islam_building_count integer,
     islam_flooded_building_count integer,
     police_station_building_count integer,
-    police_flooded_building_count integer
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
 );
 
 
@@ -140,7 +141,8 @@ create table flood_event_sub_district_summary (
     islam_building_count integer,
     islam_flooded_building_count integer,
     police_station_building_count integer,
-    police_flooded_building_count integer
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
 );
 
 
@@ -171,10 +173,12 @@ create table flood_event_district_summary (
     islam_building_count integer,
     islam_flooded_building_count integer,
     police_station_building_count integer,
-    police_flooded_building_count integer
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
 );
 
 INSERT INTO public.flood_event_village_summary(
+    village_id,
     flood_event_id,
     vulnerability_total_score,
     building_count,
@@ -201,6 +205,7 @@ INSERT INTO public.flood_event_village_summary(
     police_flooded_building_count)
 
 select
+    a.village_code,
     b.flood_event_id,
     c.total_vulnerability,
     d.building_count,
@@ -226,7 +231,8 @@ select
     x.police_station_building_count,
     y.police_flooded_building_count
 FROM
-    ( select a.flood_event_id from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 group by a.flood_event_id) b,
+     ( select b.village_code from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 ) a,
+    ( select a.flood_event_id from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 ) b,
     ( with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
         select sum(b.total_vulnerability) as total_vulnerability  from osm_buildings as b join agg
  as c on st_intersects(b.geometry,c.geom) group by c.geom) c,
@@ -291,6 +297,48 @@ FROM
     (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
         select count(a.osm_id) as police_flooded_building_count
         from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Police Station' group by d.geom) y;
+
+-- Activate the v
+CREATE FUNCTION activation_status () RETURNS trigger
+   LANGUAGE plpgsql AS $$
+    BEGIN
+        update flood_event_village_summary set
+        trigger_status = 'pre-activation'
+            where  ((flooded_building_count::decimal/ building_count::decimal) * 100) >= 20;
+     RETURN NEW;
+    end;
+    $$;
+
+CREATE TRIGGER flood_event_village_summary_tg AFTER INSERT OR UPDATE ON flood_event_village_summary FOR EACH ROW EXECUTE PROCEDURE activation_status();
+
+
+-- SQL to use to update lead times
+CREATE FUNCTION activation_status_lead_times () RETURNS trigger
+   LANGUAGE plpgsql AS $$
+    BEGIN
+    with flood as (
+        select b.acquisition_date,a.flood_event_id from flood_event_village_summary as a  join  flood_event b
+        on b.id=a.flood_event_id
+    ),
+    times as (select flood_event_id, (CURRENT_DATE - acquisition_date::DATE) as num_days from flood)
+    update flood_event_village_summary a set trigger_status = 2 from times b
+    where b.num_days = 10 and  b.flood_event_id = a.flood_event_id;
+    RETURN new;
+    end ;
+    $$;
+
+create OR REPLACE function flood_event_newest_forecast_f(forecast_date_start timestamp without time zone, forecast_date_end timestamp without time zone) returns TABLE(forecast_date_str text, acquisition_date_str text, trigger_status_id int)
+  language plpgsql
+as
+$$
+begin return query
+        select distinct on (forecast_date_str) a.forecast_date_str, a.acquisition_date_str, a.trigger_status
+        from (
+            select id, to_char(forecast_date, 'YYYY-MM-DD') as forecast_date_str, to_char(acquisition_date, 'YYYY-MM-DD') as acquisition_date_str, trigger_status from flood_event
+            where forecast_date >= forecast_date_start and forecast_date < forecast_date_end AND forecast_date IS NOT NULL
+	) as a ORDER BY a.forecast_date_str DESC, a.acquisition_date_str DESC;
+    end;
+$$;
 
 -- Add a trigger function to notify QGIS of DB changes
 CREATE FUNCTION public.notify_qgis() RETURNS trigger
