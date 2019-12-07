@@ -29,7 +29,7 @@ define([
         loadIntro: function () {
             const self = this;
             $.ajax({
-                url: `/intro/intro_${self.currentIntroIndex}.md`,
+                url: `/Fbf/intro/intro_${self.currentIntroIndex}.md`,
                 dataType: 'text',
                 success: function (data) {
                     self.isNextExist(function (exist) {
