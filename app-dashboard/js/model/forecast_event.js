@@ -156,7 +156,7 @@ define([
                             // we will get array of forecast event
                             let forecast_events = data.filter(
                                 function (value) {
-                                    let isHistorical = today >value.acquisition_date_str;
+                                    let isHistorical = today > value.acquisition_date_str;
                                     let isForecastInFuture = today <= value.forecast_date_str;
                                     if (isHistorical && isForecastInFuture) {
                                         return false;

@@ -1,6 +1,6 @@
 #side-panel {
     height: 100%;
-    padding-bottom: 48px;
+    padding-bottom: 54px;
 }
 
 #side-panel #accordion {
@@ -186,6 +186,10 @@ form label {
     margin-top: 15px;
 }
 
+.hide-browse-flood:hover {
+    opacity: 0.7;
+}
+
 .browse-control-arrow-group {
     float: none;
     display: table-cell;
@@ -352,8 +356,15 @@ form label {
     font-size: 12px;
 }
 
-#calendar-flood-browser{
+#calendar-flood-browser {
     width: 252px;
     display: inline-block;
     height: 238px;
+}
+
+.flood-count {
+    border: 1px solid black;
+    padding: 10px;
+    margin-bottom: 3px;
+    border-radius: 6px;
 }
