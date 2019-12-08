@@ -8,11 +8,19 @@ define([
      * - min_m
      */
     function (Backbone) {
-    return Backbone.Model.extend({
+    const DepthClass = Backbone.Model.extend({
         urlRoot: postgresUrl + 'depth_class',
 
         url: function(){
-            return `${this.urlRoot}?id=eq.${this.get('id')}`;
+            return `${this.urlRoot}?id=eq.${this.id}`;
         }
-    })
+    });
+
+    return Backbone.Collection.extend({
+        model: DepthClass,
+        urlRoot: postgresUrl + 'depth_class',
+        url: function () {
+            return this.urlRoot
+        }
+    });
 })
