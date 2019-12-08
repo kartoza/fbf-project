@@ -406,7 +406,8 @@ define([
             let that = this;
             this.village_summaries.fetch({
                 data: {
-                    flood_event_id: `eq.${flood_event_id}`
+                    flood_event_id: `eq.${flood_event_id}`,
+                    order: 'trigger_status.desc,vulnerability_total_score.desc'
                 }
             }).then(function (data) {
                 that.villageStats = data;
@@ -422,7 +423,8 @@ define([
             let that = this;
             this.district_summaries.fetch({
                 data: {
-                    flood_event_id: `eq.${flood_event_id}`
+                    flood_event_id: `eq.${flood_event_id}`,
+                    order: 'trigger_status.desc,vulnerability_total_score.desc'
                 }
             }).then(function (data) {
                 that.districtStats = data;
@@ -438,7 +440,8 @@ define([
             let that = this;
             this.subdistrict_summaries.fetch({
                 data: {
-                    flood_event_id: `eq.${flood_event_id}`
+                    flood_event_id: `eq.${flood_event_id}`,
+                    order: 'trigger_status.desc,vulnerability_total_score.desc'
                 }
             }).then(function (data) {
                 that.subDistrictStats = data;
