@@ -225,7 +225,7 @@ define([
                     srs: 'EPSG:4326',
                     cql_filter: `id_code=${region_id}`
                 });
-            this.region_layer.addTo(this.map);
+            this.region_layer.addTo(this.map).bringToFront();
         }
     });
 });
