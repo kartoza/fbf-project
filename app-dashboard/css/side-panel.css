@@ -161,7 +161,7 @@ form label {
 
 .trigger-status-1 {
     /* pre-activation */
-    background-color: #FDFDC6;
+    background-color: #FDC066;
 }
 
 .trigger-status-2 {
@@ -188,7 +188,7 @@ form label {
 
 #status.trigger-status-1 {
     /* pre-activation */
-    background-color: #f6fd00;
+    background-color: #FDC066;
     color: black;
 }
 
@@ -212,7 +212,7 @@ form label {
 
 .btn-arrow.drilldown.trigger-status-1 {
     /* pre-activation */
-    color: #f6fd00;
+    color: #FDC066;
 }
 
 .btn-arrow.drilldown.trigger-status-2 {
