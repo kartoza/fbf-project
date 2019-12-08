@@ -97,6 +97,7 @@ define([
         },
         showIntro: function () {
             this.introOpen = true;
+            this.currentIntroIndex = 1;
             const $introWindow = $('.intro');
             $introWindow.show("slide", {direction: "left"}, 200);
             this.loadIntro();
