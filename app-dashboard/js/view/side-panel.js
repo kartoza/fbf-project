@@ -62,6 +62,7 @@ define([
             $('.browse-btn-icon').hide();
             $('.panel-browse-flood').show("slide", { direction: "down" }, 400);
             $('.arrow-start').hide();
+            $('.browse-floods').removeClass('bounce-7');
         },
         hideBrowseFlood: function () {
             $('.browse-btn-icon').show();
