@@ -36,6 +36,7 @@ define([
             }
             dispatcher.trigger('map:redraw');
             this.map.fitBounds(this.initBounds);
+            this.map.setZoom(5);
             dispatcher.trigger('dashboard:reset')
         },
         showMap: function() {
@@ -203,6 +204,7 @@ define([
             }
             this.redraw();
             that.map.fitBounds(this.initBounds);
+            this.map.setZoom(5);
             dispatcher.trigger('dashboard:reset')
         },
         fitBounds: function (bounds) {
