@@ -98,9 +98,9 @@ define([
         showIntro: function () {
             this.introOpen = true;
             this.currentIntroIndex = 1;
+            this.loadIntro();
             const $introWindow = $('.intro');
             $introWindow.show("slide", {direction: "left"}, 200);
-            this.loadIntro();
             dispatcher.trigger('side-panel:open-welcome');
         }
     })
