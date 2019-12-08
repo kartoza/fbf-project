@@ -78,7 +78,7 @@ define([
                             html += `<td><span class="colour trigger-status-${value.id}"></span><span>${value.name.capitalize()}</span></td>`;
                             html += `<td><span class="colour trigger-status-historical trigger-status-${value.id}"></span><span>Historical ${value.name.capitalize()}</span></td>`;
                             if (value.id !== 0) {
-                                that.$flood_summary.append(
+                                that.$flood_summary.prepend(
                                     `<div class="flood-count trigger-status-${value.id}" style="display: none"><span id="flood-summary-trigger-status-${value.id}"><i class="fa fa-spinner fa-spin fa-fw"></i></span> ${value.name.capitalize()} event</div>`);
                             }
                         }

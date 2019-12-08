@@ -152,21 +152,26 @@ form label {
     border: 2px dotted rgba(0,0,0,0.4)!important;
 }
 
+
+
 /* trigger status colors */
 /* in calendar */
 .trigger-status-0 {
     /* no activation */
-    background-color: #CBFBC5;
+    color: black;
+    background-color: #00FF00 !important;
 }
 
 .trigger-status-1 {
     /* pre-activation */
-    background-color: #FDC066;
+    color: white;
+    background-color: #F48104 !important;
 }
 
 .trigger-status-2 {
     /* activation */
-    background-color: #F1B6B4;
+    color: white;
+    background-color: #f10b00 !important;
 }
 
 .trigger-status-3 {
@@ -179,29 +184,8 @@ form label {
     background-color: #dddddd;
 }
 
-/* in side panel title */
-#status.trigger-status-0 {
-    /* no activation */
-    background-color: #0efb16;
-    color: black;
-}
-
-#status.trigger-status-1 {
-    /* pre-activation */
-    background-color: #FDC066;
-    color: black;
-}
-
-#status.trigger-status-2 {
-    /* activation */
-    background-color: #f10b00;
-    color: white;
-}
-
-#status.trigger-status-3 {
-    /* stop */
-    background-color: #FF0000;
-    color: black;
+.btn-arrow.drilldown {
+    background-color: transparent !important;
 }
 
 /* trigger status colors for button */
@@ -212,7 +196,7 @@ form label {
 
 .btn-arrow.drilldown.trigger-status-1 {
     /* pre-activation */
-    color: #FDC066;
+    color: #F48104;
 }
 
 .btn-arrow.drilldown.trigger-status-2 {
@@ -264,6 +248,7 @@ form label {
 .status-wrapper {
     display: table;
     width: 100%;
+    padding-top: 5px;
 }
 
 .status-wrapper span {
@@ -415,7 +400,9 @@ form label {
 
 .flood-count {
     border: 1px solid black;
-    padding: 10px;
+    padding: 13px;
     margin-bottom: 3px;
     border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
 }
