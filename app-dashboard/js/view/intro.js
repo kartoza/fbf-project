@@ -13,6 +13,7 @@ define([
             'click .close-intro': 'hide',
         },
         initialize: function () {
+            let self = this;
             this.currentIntroIndex = 1;
             this.introContent = this.$el.find('.intro-content');
             this.nextButton = this.$el.find('.next-intro');
@@ -24,6 +25,9 @@ define([
                 typographer: true
             });
             dispatcher.on('intro:hide', this.hide, this);
+            $('.home-fbf').click(function () {
+                self.showIntro()
+            });
             this.loadIntro();
         },
         loadIntro: function () {
@@ -90,6 +94,13 @@ define([
                     callback(false);
                 }
             });
+        },
+        showIntro: function () {
+            this.introOpen = true;
+            const $introWindow = $('.intro');
+            $introWindow.show("slide", {direction: "left"}, 200);
+            this.loadIntro();
+            dispatcher.trigger('side-panel:open-welcome');
         }
     })
 });

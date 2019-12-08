@@ -233,7 +233,6 @@ define([
                 '        No data available.' +
                 '    </div>');
             $('#status').removeClass().addClass('trigger-status-none');
-            $('.browse-floods').addClass('bounce-7');
         },
         hideDashboard: function () {
             this.referer_region = [];

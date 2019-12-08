@@ -93,6 +93,7 @@ define([
             $('#panel-dashboard').hide();
             $('.panel-body-wrapper').not('.panel-welcome').not('.floating-panel').hide();
             $('.panel-welcome').show("slide", { direction: "right" }, 400);
+            $('.browse-floods').addClass('bounce-7');
         }
     })
 });
