@@ -354,16 +354,17 @@ define([
                 return []
             }
 
+            if(region_id === 'main'){
+                dispatcher.trigger('map:fit-forecast-layer-bounds', floodCollectionView.selected_forecast)
+            }
+
             $.get({
                 url: postgresUrl + region + '_extent_v?id_code=eq.' + region_id,
                 success: function (data) {
                     if(data.length > 0) {
                         let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];
                         dispatcher.trigger('map:fit-bounds', coordinates)
-                    }else {
-
-
-                }
+                    }
             }});
         }
     })

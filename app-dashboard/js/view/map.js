@@ -27,6 +27,7 @@ define([
             dispatcher.on('map:show-map', this.showMap, this);
             dispatcher.on('map:fit-bounds', this.fitBounds, this);
             dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
+            dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
         },
         removeForecastLayer: function(){
             if(this.forecast_layer){
@@ -65,6 +66,13 @@ define([
                     }
                 })
 
+        },
+        fitForecastLayerBounds: function (forecast, callback) {
+            let that = this;
+            forecast.fetchExtent()
+                .then(function (extent) {
+                    that.map.fitBounds(extent.leaflet_bounds);
+                })
         },
         redraw: function () {
             $.each(this.layers.layers, function (index, layer) {
