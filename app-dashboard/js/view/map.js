@@ -5,7 +5,8 @@ define([
     'js/view/layers.js',
     'js/view/side-panel.js',
     'js/view/intro.js',
-], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView) {
+    'js/model/depth_class.js'
+], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
         initialize: function () {
@@ -13,9 +14,12 @@ define([
             this.map = L.map('map').setView([51.505, -0.09], 13).fitBounds(this.initBounds);
             this.basemap = new Basemap(this);
             this.layers = new Layers(this);
-            L.control.layers(
+            this.layer_control = L.control.layers(
                 this.basemap.basemaps,
-                this.layers.groups, {position: 'topleft'}).addTo(this.map);
+                this.layers.groups, {position: 'topleft'});
+            this.layer_control.addTo(this.map);
+            this.depth_class_collection = new DepthClassCollection();
+            this.depth_class_collection.fetch();
             this.initDraw();
             this.listenTo(dispatcher, 'map:redraw', this.redraw);
             this.listenTo(dispatcher, 'map:draw-geojson', this.drawGeojsonLayer);
@@ -29,9 +33,17 @@ define([
             dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
             dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
         },
+        addOverlayLayer: function(layer, name){
+            this.layer_control.addOverlay(layer, name);
+            layer.addTo(this.map);
+        },
+        removeOverlayLayer: function(layer){
+            this.layer_control.removeLayer(layer);
+            this.map.removeLayer(layer);
+        },
         removeForecastLayer: function(){
             if(this.forecast_layer){
-                this.map.removeLayer(this.forecast_layer)
+                this.removeOverlayLayer(this.forecast_layer)
                 this.forecast_layer = null;
             }
             dispatcher.trigger('map:redraw');
@@ -56,7 +68,7 @@ define([
                         that.map.removeLayer(that.forecast_layer);
                     }
                     dispatcher.trigger('map:redraw');
-                    forecast_layer.addTo(that.map);
+                    that.addOverlayLayer(forecast_layer, 'Flood Forecast');
                     // zoom to bbox
                     that.map.fitBounds(extent.leaflet_bounds);
                     // register layer to view
@@ -212,7 +224,7 @@ define([
         },
         showRegionBoundary: function (region, region_id) {
             if(this.region_layer){
-                this.map.removeLayer(this.region_layer);
+                this.removeOverlayLayer(this.region_layer);
                 this.region_layer = null;
             }
             dispatcher.trigger('map:redraw');
@@ -223,9 +235,47 @@ define([
                     format: 'image/png',
                     transparent: true,
                     srs: 'EPSG:4326',
-                    cql_filter: `id_code=${region_id}`
+                    cql_filter: `id_code=${region_id}`,
                 });
-            this.region_layer.addTo(this.map).bringToFront();
+            this.region_layer.setZIndex(20);
+            this.addOverlayLayer(this.region_layer, 'Administrative Boundary');
+            // TODO: Enable this line to show exposed buildings when the layer is available
+            // TODO: issue: https://github.com/kartoza/fbf-project/issues/123
+            // this.showExposedBuildings(region, region_id);
+        },
+        showExposedBuildings: function (region, region_id) {
+            const that = this;
+            if(this.exposed_layers){
+                this.exposed_layers.forEach(l => that.removeOverlayLayer(l.layer));
+                this.exposed_layers = null;
+            }
+            dispatcher.trigger('map:redraw');
+
+            let id_key = {
+                'district': 'dc_code',
+                'sub_district': 'sub_district_id',
+                'village': 'village_id',
+            }
+
+            this.exposed_layers = this.depth_class_collection.map(function (depth_class) {
+                let label = `Exposed Buildings in Depth Class: ${depth_class.get('label')}`
+                let exposed_layer = L.tileLayer.wms(
+                    geoserverUrl,
+                    {
+                        layers: `kartoza:exposed_buildings`,
+                        format: 'image/png',
+                        transparent: true,
+                        srs: 'EPSG:4326',
+                        cql_filter: `${id_key[region]}=${region_id} AND depth_class=${depth_class.id}`,
+                    }
+                );
+                exposed_layer.setZIndex(10 + depth_class.id);
+                return {
+                    layer: exposed_layer,
+                    name: label
+                }
+            });
+            this.exposed_layers.forEach(l => that.addOverlayLayer(l.layer, l.name));
         }
     });
 });
