@@ -232,6 +232,7 @@ define([
                 '<div class="panel-title">' +
                 '        No data available.' +
                 '    </div>');
+            $('#status').removeClass().addClass('trigger-status-none');
         },
         hideDashboard: function () {
             this.referer_region = [];
