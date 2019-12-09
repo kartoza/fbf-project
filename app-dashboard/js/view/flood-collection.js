@@ -68,8 +68,6 @@ define([
             const that = this;
             this.trigger_statuses.fetch()
                 .then(function (data) {
-                    data.push({'id': 0, 'name': 'No activation'});
-
                     // render legend
                     let html = '<table class="legend">';
                     data.forEach((value) => {
