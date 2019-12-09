@@ -29,6 +29,7 @@ define([
             dispatcher.on('map:draw-forecast-layer', this.drawForecastLayer, this);
             dispatcher.on('map:remove-forecast-layer', this.removeForecastLayer, this);
             dispatcher.on('map:show-map', this.showMap, this);
+            dispatcher.on('map:hide-map', this.hideMap, this);
             dispatcher.on('map:fit-bounds', this.fitBounds, this);
             dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
             dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
@@ -55,6 +56,9 @@ define([
             $(this.map._container).show();
             this.map._onResize();
             this.map.setZoom(5);
+        },
+        hideMap: function () {
+            $(this.map._container).hide();
         },
         drawForecastLayer: function(forecast, callback){
             const that = this;

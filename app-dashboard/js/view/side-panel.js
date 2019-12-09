@@ -91,6 +91,7 @@ define([
         },
         openWelcome: function () {
             $('#panel-dashboard').hide();
+            this.hideBrowseFlood();
             $('.panel-body-wrapper').not('.panel-welcome').not('.floating-panel').hide();
             $('.panel-welcome').show("slide", { direction: "right" }, 400);
             $('.browse-floods').addClass('bounce-7');

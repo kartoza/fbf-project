@@ -26,7 +26,7 @@ define([
             });
             dispatcher.on('intro:hide', this.hide, this);
             $('.home-fbf').click(function () {
-                self.showIntro()
+                self.resetIntro()
             });
             this.loadIntro();
         },
@@ -74,8 +74,7 @@ define([
             if (this.introOpen) {
                 this.introOpen = false;
                 // Hide the intro window
-                const $introWindow = $('.intro');
-                $introWindow.hide("slide", {direction: "left"}, 200, function () {
+                this.$el.hide("slide", {direction: "left"}, 200, function () {
                     dispatcher.trigger('map:show-map');
                 });
             }
@@ -95,13 +94,14 @@ define([
                 }
             });
         },
-        showIntro: function () {
+        resetIntro: function () {
             this.introOpen = true;
             this.currentIntroIndex = 1;
             this.loadIntro();
-            const $introWindow = $('.intro');
-            $introWindow.show("slide", {direction: "left"}, 200);
-            dispatcher.trigger('side-panel:open-welcome');
+            this.$el.show("slide", {direction: "left"}, 200, function () {
+                dispatcher.trigger('side-panel:open-welcome');
+                dispatcher.trigger('map:hide-map');
+            });
         }
     })
 });
