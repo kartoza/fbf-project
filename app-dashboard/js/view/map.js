@@ -32,6 +32,7 @@ define([
             dispatcher.on('map:hide-map', this.hideMap, this);
             dispatcher.on('map:fit-bounds', this.fitBounds, this);
             dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
+            dispatcher.on('map:show-exposed-buildings', this.showExposedBuildings, this);
             dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
         },
         addOverlayLayer: function(layer, name){
@@ -243,11 +244,8 @@ define([
                 });
             this.region_layer.setZIndex(20);
             this.addOverlayLayer(this.region_layer, 'Administrative Boundary');
-            // TODO: Enable this line to show exposed buildings when the layer is available
-            // TODO: issue: https://github.com/kartoza/fbf-project/issues/123
-            // this.showExposedBuildings(region, region_id);
         },
-        showExposedBuildings: function (region, region_id) {
+        showExposedBuildings: function (forecast_id, region, region_id) {
             const that = this;
             if(this.exposed_layers){
                 this.exposed_layers.forEach(l => that.removeOverlayLayer(l.layer));
@@ -256,7 +254,7 @@ define([
             dispatcher.trigger('map:redraw');
 
             let id_key = {
-                'district': 'dc_code',
+                'district': 'district_id',
                 'sub_district': 'sub_district_id',
                 'village': 'village_id',
             }
@@ -270,7 +268,7 @@ define([
                         format: 'image/png',
                         transparent: true,
                         srs: 'EPSG:4326',
-                        cql_filter: `${id_key[region]}=${region_id} AND depth_class=${depth_class.id}`,
+                        cql_filter: `flood_event_id=${forecast_id} AND ${id_key[region]}=${region_id} AND depth_class=${depth_class.id}`,
                     }
                 );
                 exposed_layer.setZIndex(10 + depth_class.id);
