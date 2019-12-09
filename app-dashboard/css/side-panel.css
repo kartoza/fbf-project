@@ -1,6 +1,6 @@
 #side-panel {
     height: 100%;
-    padding-bottom: 48px;
+    padding-bottom: 54px;
 }
 
 #side-panel #accordion {
@@ -136,7 +136,6 @@ form label {
     bottom: 47px;
     background-color: white;
     border: 1px solid #ddd;
-    height: 125px;
     z-index: 10000;
 }
 
@@ -148,30 +147,64 @@ form label {
     border-radius: 25px;
 }
 
-.trigger-status--1 {
+.trigger-status-historical {
     /* historical activation */
-    background-color: #CBFEFE;
+    border: 2px dotted rgba(0,0,0,0.4)!important;
 }
 
 /* trigger status colors */
+/* in calendar */
 .trigger-status-0 {
     /* no activation */
-    background-color: #CBFBC5;
+    color: black;
+    background-color: #72CA7A !important;
 }
 
 .trigger-status-1 {
     /* pre-activation */
-    background-color: #FDFDC6;
+    color: white;
+    background-color: #D39858 !important;
 }
 
 .trigger-status-2 {
     /* activation */
-    background-color: #F1B6B4;
+    color: white;
+    background-color: #CA6060 !important;
 }
 
 .trigger-status-3 {
     /* stop */
     background-color: #FF0000;
+}
+
+.trigger-status-none {
+    /* no status */
+    background-color: #dddddd;
+}
+
+.btn-arrow.drilldown {
+    background-color: transparent !important;
+}
+
+/* trigger status colors for button */
+.btn-arrow.drilldown.trigger-status-0 {
+    /* no activation */
+    color: #72CA7A;
+}
+
+.btn-arrow.drilldown.trigger-status-1 {
+    /* pre-activation */
+    color: #D39858;
+}
+
+.btn-arrow.drilldown.trigger-status-2 {
+    /* activation */
+    color: #CA6060;
+}
+
+.btn-arrow.drilldown.trigger-status-3 {
+    /* stop */
+    color: #FF0000;
 }
 
 .flood-info {
@@ -187,6 +220,10 @@ form label {
     margin-top: 15px;
 }
 
+.hide-browse-flood:hover {
+    opacity: 0.7;
+}
+
 .browse-control-arrow-group {
     float: none;
     display: table-cell;
@@ -198,13 +235,23 @@ form label {
 }
 
 #status {
-    height: 50px;
+    height: 73px;
     vertical-align: middle;
-    line-height: 50px;
     text-align: center;
-    background-color: #D1D3D4;
     font-weight: bold;
     color: white;
+    padding-top: 6px;
+}
+
+.status-wrapper {
+    display: table;
+    width: 100%;
+    padding-top: 5px;
+}
+
+.status-wrapper span {
+    display: table-cell;
+    vertical-align: middle;
 }
 
 .panel-title {
@@ -218,7 +265,7 @@ form label {
 }
 
 .box-vulnerability, .box-building {
-    height: 60px;
+    height: 70px;
     border: 2px solid #CA6060;
     margin-top: 10px;
     text-align: center;
@@ -227,7 +274,7 @@ form label {
 }
 
 .box-count {
-    height: 60px;
+    height: 70px;
     border: 2px solid #CA6060;
     text-align: center;
     padding: 0;
@@ -246,11 +293,13 @@ form label {
 
 #building-count, #vulnerability-score, .score {
     font-size: 30px;
+    height: 42px;
 }
 
 #building-count, #vulnerability-score {
     height: 42px;
-    width: 130px;
+    text-align: center;
+    width: 100%;
 }
 
 .box-building {
@@ -316,4 +365,43 @@ form label {
     line-height: 35px;
     padding: 0 15px;
     color: #DC923A;
+}
+
+#date-legend {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#date-legend .legend {
+    display: inline-block;
+}
+
+#date-legend .legend .colour {
+    height: 12px;
+    display: inline-block;
+    width: 12px;
+    border-radius: 24px;
+    margin-right: 3px;
+    border: 1px solid rgba(0.0.0.0.5);
+}
+
+#date-legend .legend td {
+    text-align: left;
+    padding-right: 10px;
+    font-size: 12px;
+}
+
+#calendar-flood-browser {
+    width: 252px;
+    display: inline-block;
+    height: 238px;
+}
+
+.flood-count {
+    border: 1px solid black;
+    padding: 13px;
+    margin-bottom: 3px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
 }

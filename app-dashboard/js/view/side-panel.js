@@ -20,18 +20,20 @@ define([
         },
         initialize: function () {
             let that = this;
+            this.dashboard = new DashboardView();
             $('.add-flood-scenario').click(function () {
                 that.openPanelFloodScenario()
             });
 
             $('.browse-floods').click(function () {
+                dispatcher.trigger('intro:hide');
                 that.openBrowseFlood()
             });
 
             // Initialize view
             this.flood_upload_view = new FloodUploadView();
-            dispatcher.on('side-panel:open-dashboard', this.openDashboard, this)
-            dispatcher.on('side-panel:open-welcome', this.openWelcome, this)
+            dispatcher.on('side-panel:open-dashboard', this.openDashboard, this);
+            dispatcher.on('side-panel:open-welcome', this.openWelcome, this);
         },
         openPanelFloodScenario: function () {
             dispatcher.trigger('dashboard:hide');
@@ -52,10 +54,15 @@ define([
             $wrapper.show();
             $wrapper.find('.panel-upload-flood').show("slide", { direction: "right" }, 500);
         },
+        removeIntroWindow: function (e) {
+            // Hide the intro window
+            dispatcher.trigger('intro:hide');
+        },
         openBrowseFlood: function (e) {
             $('.browse-btn-icon').hide();
             $('.panel-browse-flood').show("slide", { direction: "down" }, 400);
             $('.arrow-start').hide();
+            $('.browse-floods').removeClass('bounce-7');
         },
         hideBrowseFlood: function () {
             $('.browse-btn-icon').show();
@@ -78,14 +85,16 @@ define([
             $wrapper.parent().show("slide", { direction: "right" }, 400);
         },
         openDashboard: function () {
-            this.dashboard = new DashboardView();
+            this.dashboard.render();
             $('.panel-body-wrapper').not('.floating-panel').hide();
             $('#panel-dashboard').show("slide", { direction: "right" }, 400);
         },
         openWelcome: function () {
             $('#panel-dashboard').hide();
+            this.hideBrowseFlood();
             $('.panel-body-wrapper').not('.panel-welcome').not('.floating-panel').hide();
             $('.panel-welcome').show("slide", { direction: "right" }, 400);
+            $('.browse-floods').addClass('bounce-7');
         }
     })
 });

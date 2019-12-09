@@ -16,27 +16,42 @@
 </head>
 
 <body>
-<div id="map" class="flex-item"></div>
-<div class="flex-item" style="position: relative; overflow: hidden">
+<div class="flex-item">
+    <div class="intro" id="intro">
+        <div class="intro-content"></div>
+        <div class="intro-action">
+            <button class="btn btn-warning prev-intro" type="button">Back</button>
+            <button class="btn btn-warning next-intro" type="button">Next</button>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+<div class="flex-item" style="position: relative; overflow: hidden; z-index: 10000">
     <div id="side-panel">
         <div class="panel-group" id="accordion">
             <div class="panel-body-wrapper panel-body panel-welcome">
                 <div class="panel-title">
                     Welcome to FBF
                 </div>
-                <div class="panel-body" style="text-align: justify; max-height: 15em; overflow-y: auto;">
-				   
-					<p>Welcome to the InaSAFE Forcast Based Financing dashboard.
-					This site is our first prototype implementation for a 
-					forecasted flood impact dashboard.</p>
+                <div class="panel-body" style="text-align: justify; overflow-y: auto;">
+                    <div id="flood-summary">
+                        <div id="flood-count" class="flood-count" style="background-color: #2F87A6; color: white">
+                            <span id="flood-summary-trigger-status-all"><i class="fa fa-spinner fa-spin fa-fw"></i></span> Floods expected in the next 10 days</div>
+                    </div>
+                    <br>
+					<p>Welcome to the InaSAFE Forecast Based Action dashboard.
+					This site is our first prototype of a flood impact based
+					forecast dashboard to trigger Early Action.</p>
 
 					<p>To get started, use the green flood selector icon below to
-					select a date (valid dates have circles around them) for
-					a historical or forecast flood event.</p>
+					select a historical or forecast flood event (valid 
+					dates have circles around them).</p>
 				    
-					<p>This site is developed in collaboration with the <a href="https://www.climatecentre.org">
-					Red Cross Red Crescent Climate Center</a> with funding from 
-					the World Bank GFDRR Challenge Fund.</p>
+					<p>This site is developed in collaboration with the 
+					<a href="https://www.climatecentre.org">Red
+					Cross Red Crescent Climate Centre</a> with funding from the
+					World Bank GFDRR Challenge Fund and contributing to the
+					Indonesia Red Cross Early Action protocol for floods.
                 </div>
                 <div class="panel-body">
                     <div class="row Infographics">
@@ -45,7 +60,9 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the download button on the top right of the flood summary to download the flood data.
+								Click the download button on the top right of
+								the flood forecast summary to download the flood
+								impact forecast report.
                             </span>
                         </div>
                     </div>
@@ -55,7 +72,8 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the Add flood button on the right side of the Nav bar to Add your flood layer.
+								Click the Add Flood button on the right side of
+								the navigation bar to add your flood forecast layer.
                             </span>
                         </div>
                     </div>
@@ -65,7 +83,8 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the Browse Flood button on the bottom right of InaSAFE FBF to Browse Floods.
+								Click the Browse Flood button on the bottom
+								right of InaSAFE FBF to browse flood forecasts.
                             </span>
                         </div>
                     </div>
@@ -74,12 +93,12 @@
             <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
                 <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                 <div class="panel-title">
-                    Add Flood Scenario
+                    Add Flood Forecast 
                 </div>
                 <div class="panel-body">
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="draw-flood">Draw Flood</button>
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="upload-flood">Upload Flood</button>
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="glofas" disabled>Latest GloFAS</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="draw-flood" style="display: none;">Draw Flood Forecast</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="upload-flood">Upload Flood Forecast</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="glofas" disabled>Latest GloFAS Forecast</button>
                     <button class="btn btn-warning btn-primary-1 btn-full-width" id="signature-flood" disabled>Latest Signature Flood Event</button>
                     <button class="btn btn-warning btn-primary-1 btn-full-width" id="existing-scenario-flood" disabled>Use Existing Scenario</button>
                 </div>
@@ -87,8 +106,8 @@
             <div class="panel-body-wrapper panel-body panel-flood-form" style="display: none">
                 <div class="form-wrapper panel-draw-flood flood-form panel-body-subwrapper" style="display: none">
                     <button class="btn btn-back pull-left" id="cancel-draw"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
-                    <div class="panel-title">
-                        Draw Flood
+                    <div class="panel-title" style="display: none !important;">
+                        Draw Flood Forecast
                     </div>
                     <div id="draw-flood-form">
                         <form role="form" id="draw-form" enctype="multipart/form-data" class="form-horizontal">
@@ -131,7 +150,7 @@
                 <div class="form-wrapper panel-upload-flood flood-form panel-body-subwrapper" style="display: none">
                     <button type="reset" class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                     <div class="panel-title">
-                        Upload Flood
+                        Upload Flood Forecast
                     </div>
                     <div id="upload-flood-form-wrapper">
                         <form role="form" method="post" id="upload-flood-form" enctype="multipart/form-data" class="form-horizontal" action="javascript:void(0)">
@@ -169,7 +188,7 @@
                                 </div>
                                 <br/>
                                 <div  id="upload-progress-bar"  class="progress-status row">
-                                    <div class="alert-info" style="text-align: center;">Uploading Flood Map</div>
+                                    <div class="alert-info" style="text-align: center;">Uploading Flood Forecast Map</div>
                                     <div class="progress">
                                         <div class="progress-bar progress-bar-striped bg-info"></div>
                                     </div>
@@ -188,9 +207,9 @@
                                 <div class="col-lg-3">
                                     <img src="images/browse-icon-transparent.svg">
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-6" style="padding: 0 !important;">
                                     <div style="text-align: center; line-height: 26px; color: white">
-                                        Browse Floods
+                                        Browse Flood Forecasts
                                     </div>
                                 </div>
                                 <div class="col-lg-3 text-right">
@@ -200,34 +219,43 @@
                         </div>
                         <div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <button class="btn btn-arrow btn-primary-1 pull-right btn-change-date" id="prev-date" disabled><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                        <div class="row" style="text-align: center">
+                            <!--<div class="col-lg-3">-->
+                                <!--<button class="btn btn-arrow btn-primary-1 pull-right btn-change-date" id="prev-date" disabled><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
+                            <div id="calendar-flood-browser">
+                                <input class="form-control datepicker-browse" value="Fetching list.." data-position="left bottom" type="text" id="date-browse-flood" readonly style="display: none">
                             </div>
-                            <div class="col-lg-6">
-                                <input class="form-control datepicker-browse" value="Fetching list.." data-position="left bottom" type="text" id="date-browse-flood">
+                            <div id="date-legend">
                             </div>
-                            <div class="col-lg-3">
-                                <button class="btn btn-arrow btn-primary-1 pull-left btn-change-date" id="next-date" disabled><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
-                            </div>
+                            <!--<div class="col-lg-3">-->
+                                <!--<button class="btn btn-arrow btn-primary-1 pull-left btn-change-date" id="next-date" disabled><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
                         </div>
-                        <div class="row">
-                            <div class="col-lg-3">
-                            </div>
-                            <div class="col-lg-6 flood-info">
-                            </div>
-                            <div class="col-lg-3 browse-control-arrow-group">
-                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-up" data-flood-id="" disabled><i class="fa fa-chevron-up" aria-hidden="true"></i></button><br/>
-                                <button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-down" data-flood-id="" disabled><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                            </div>
-                        </div>
+                        <!--<div class="row">-->
+                            <!--<div class="col-lg-3">-->
+                            <!--</div>-->
+                            <!--<div class="col-lg-6 flood-info">-->
+                            <!--</div>-->
+                            <!--<div class="col-lg-3 browse-control-arrow-group">-->
+                                <!--<button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-up" data-flood-id="" disabled><i class="fa fa-chevron-up" aria-hidden="true"></i></button><br/>-->
+                                <!--<button class="btn btn-arrow-small btn-primary-1 browse-arrow arrow-down" data-flood-id="" disabled><i class="fa fa-chevron-down" aria-hidden="true"></i></button>-->
+                            <!--</div>-->
+                        <!--</div>-->
                     </div>
                 </div>
             </div>
             <div id="panel-dashboard" style="display: none">
                 <div id="status">
-                    <span>Action Status: </span><span id="action-status">-</span>
-                    <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
+                    <div class="col-lg-2">
+                        <button class="btn btn-arrow-white btn-back-summary-panel" data-region="" data-region-id="" style="display: none"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button></div>
+                    <div class="col-lg-8">
+                        <div class="status-wrapper">
+                            <div>Trigger Status:</div>
+                            <div id="action-status">-</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2"><button class="btn btn-arrow-white pull-right download-spreadsheet" style="margin: 7px 0 !important;"><img src="images/download-icon-white.svg" style="height: 23px"></button></div>
                 </div>
                 <div id="flood-general-summary"></div>
                 <div id="flood-sub-summary"></div>
@@ -306,9 +334,9 @@
             </a>
         </div>
         <div>
-            <span>Available in </span>
+            <span>Available on </span>
             <a href="https://github.com/kartoza/fbf-project/" target="_blank" style="color: #cc9c43">
-                github</a>
+                GitHub</a>
         </div>
     </div>
 </div>
@@ -316,15 +344,29 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="row">
         <div class="col-lg-4 navbar-logo">
-            <a href="http://inasafe.org/" target="_blank" style="font-weight: 900; color: white !important;">
+            <div class="home-fbf" style="font-weight: 900; color: white !important;">
                 <img src="images/fbf-inasafe.svg" height="40">
-            </a>
+            </div>
         </div>
         <div class="col-lg-4 pull-right" style="text-align: right; padding-right: 35px; padding-top: 7px">
-            <button class="btn btn-warning btn-primary-1 add-flood-scenario"><img src="images/add-flood-icon.svg"><span>ADD FLOOD</span></button>
+            <button class="btn btn-warning btn-primary-1 add-flood-scenario"><img src="images/add-flood-icon.svg"><span>ADD FLOOD FORECAST</span></button>
         </div>
     </div>
 </nav>
+
+<!-- Modal content-->
+<div class="modal" id="fbf-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p class="modal-body-content"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 
@@ -344,7 +386,7 @@
 
 <script type="text/template" id="dashboard-template">
     <div class="panel-title" id="main-panel-header">
-        Summary for Flood <%= flood_name %>
+        Flood Forecast Summary: <%= flood_name %>
     </div>
     <div class="flood-summary-info">
         <table>
@@ -398,7 +440,7 @@
             </div>
             <div class="col-lg-5 box-building">
                 <div id="building-count">-</div>
-                <div class="subtext">Flooded Building Count</div>
+                <div class="subtext">Potentially affected buildings</div>
             </div>
         </div>
         <div class="panel-chart" style="min-height: 250px">
@@ -411,14 +453,14 @@
 
 <script type="text/template" id="region-title-panel-template">
     <div class="panel-title">
-        <%= region %> Summary
+        <%= region %> Forecast Summary
     </div>
 </script>
 
 <script type="text/template" id="region-summary-panel-template">
     <tr>
         <td class="text-center item-header" colspan="2">
-            <button class="btn btn-arrow pull-right drilldown" data-region="<%= region %>" data-region-id="<%= id %>"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
+            <button class="btn btn-arrow pull-right drilldown trigger-status-<%= trigger_status %>" data-region="<%= region %>" data-region-id="<%= id %>" data-region-trigger-status="<%= trigger_status %>"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></button>
             <%= name %>
         </td>
     </tr>
@@ -426,13 +468,13 @@
         <td class="box-count-left">
             <div class="box-count">
                 <div class="score"><%= flooded_vulnerability_total %></div>
-                <div class="subtext">Vulnerability Score Total</div>
+                <div class="subtext">Total Vulnerability Score</div>
             </div>
         </td>
         <td class="box-count-right">
             <div class="box-count">
                 <div class="score"><%= flooded_building_count %></div>
-                <div class="subtext">Flooded Building Count</div>
+                <div class="subtext">Potentially affected buildings</div>
             </div>
         </td>
     </tr>
