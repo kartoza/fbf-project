@@ -293,6 +293,7 @@ form label {
 
 #building-count, #vulnerability-score, .score {
     font-size: 30px;
+    height: 42px;
 }
 
 #building-count, #vulnerability-score {

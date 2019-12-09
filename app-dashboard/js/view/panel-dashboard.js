@@ -210,12 +210,13 @@ define([
                 let item = data[u];
                 let trigger_status = data[u].trigger_status || 0;
                 let vulnerability_total_score = item['vulnerability_total_score'] ? item['vulnerability_total_score'].toFixed(2) : 0;
+                let building_total_score = item['flooded_building_count'] ? item['flooded_building_count'] : '-';
                 $table.append(item_template({
                     region: region,
                     id: item[id_field],
                     name: item['name'],
                     flooded_vulnerability_total: vulnerability_total_score,
-                    flooded_building_count: item['flooded_building_count'],
+                    flooded_building_count: building_total_score,
                     trigger_status: trigger_status
                 }));
             }
