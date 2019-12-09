@@ -10,99 +10,165 @@ ALTER TABLE osm_buildings add column building_road_density_score double precisio
 ALTER table osm_buildings add column total_vulnerability double precision;
 ALTER TABLE osm_roads add column road_type character varying (50);
 ALTER table osm_waterways add column waterway_id integer;
+ALTER table osm_buildings add column village_id double precision references village (village_code);
+ALTER table osm_buildings add column sub_district_id numeric references  sub_district(sub_dc_code);
+ALTER table osm_buildings add column district_id double precision references public.district (dc_code);
 
--- These ones are secondary can be run at some point in time
-ALTER table osm_buildings add column building_river_distance  double precision;
-ALTER table osm_buildings add column building_distance_score double precision;
-ALTER table osm_buildings add column vertical_river_distance double precision;
-ALTER table osm_buildings add column building_elevation double precision;
-ALTER TABLE osm_buildings add column building_river_distance_score double precision;
-ALTER table osm_roads add column roads_id integer;
+-- OSM DB Reclassification based on some criteria
 
--- new schema tables
-CREATE table flood_map (
-    id serial primary key ,
-    place_name character varying (255),
-    notes character varying (255),
-    return_period timestamp,
-    measuring_station_id integer
-);
-
-
-
-create table forecast_flood_event (
-  id serial primary key ,
-  flood_map_id integer references flood_map(id),
-  acquisition_date timestamp not null default now(),
-  forecast_date timestamp ,
-  source character varying (255),
-  notes character varying (255),
-  link text
-);
-
-create table depth_class (
-    id serial primary key ,
-    min_m double precision,
-    max_m double precision,
-    label character varying (255)
-);
-
-create table flooded_area (
-    id serial primary key ,
-    depth_class integer references depth_class(id),
-    geometry geometry(MultiPolygon,4326)
-);
-
-create table flooded_areas (
-    id serial primary key ,
-    flood_map_id integer references flood_map(id),
-    flooded_area_id integer references flooded_area (id)
-);
+-- Recode building type to follow OSM Reporter classes
+update osm_buildings set building_type = 'School' WHERE amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' ;
+update osm_buildings set building_type = 'University/College'   WHERE amenity ILIKE '%university%' OR amenity ILIKE '%college%' ;
+update osm_buildings set building_type = 'Government'  WHERE amenity ILIKE '%government%' ;
+update osm_buildings set building_type = 'Clinic/Doctor'  WHERE amenity ILIKE '%clinic%' OR amenity ILIKE '%doctor%' ;
+update osm_buildings set building_type = 'Hospital' WHERE amenity ILIKE '%hospital%' ;
+update osm_buildings set building_type = 'Fire Station'  WHERE amenity ILIKE '%fire%' ;
+update osm_buildings set building_type = 'Police Station' WHERE amenity ILIKE '%police%' ;
+update osm_buildings set building_type = 'Public Building' WHERE amenity ILIKE '%public building%' ;
+update osm_buildings set building_type = 'Place of Worship -Islam' WHERE amenity ILIKE '%worship%'
+                                                        and (religion ILIKE '%islam' or religion ILIKE '%muslim%');
+update osm_buildings set building_type = 'Residential'  WHERE amenity = 'yes' ;
+update osm_buildings set building_type = 'Place of Worship -Buddhist' WHERE amenity ILIKE '%worship%' and religion ILIKE '%budd%';
+update osm_buildings set building_type = 'Place of Worship -Unitarian'  WHERE amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' ;
+update osm_buildings set building_type = 'Supermarket'  WHERE amenity ILIKE '%mall%' OR amenity ILIKE '%market%' ;
+update osm_buildings set building_type = 'Residential'  WHERE landuse ILIKE '%residential%' OR use = 'residential';
+update osm_buildings set building_type = 'Sports Facility' WHERE landuse ILIKE '%recreation_ground%'
+                                                              OR (leisure IS NOT NULL AND leisure != '') ;
+           -- run near the end
+update osm_buildings set building_type = 'Government'  WHERE use = 'government' AND "type" IS NULL ;
+update osm_buildings set building_type = 'Residential'  WHERE use = 'residential' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'School'  WHERE use = 'education' AND "type" IS NULL ;
+update osm_buildings set building_type = 'Clinic/Doctor' WHERE use = 'medical' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Place of Worship'  WHERE use = 'place_of_worship' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'School'   WHERE use = 'school' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Hospital'   WHERE use = 'hospital' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Commercial'   WHERE use = 'commercial' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Industrial'   WHERE use = 'industrial' AND "type" IS NULL ;
+ update osm_buildings set building_type = 'Utility'   WHERE use = 'utility' AND "type" IS NULL ;
+           -- Add default type
+ update osm_buildings set building_type = 'Residential'  WHERE "type" IS NULL ;
 
 
 
+-- reclassify road type for osm_roads to match OSM reporter
 
-create table forecast_flood_event_buildings (
-    id serial primary key ,
-    fd_osm_id bigint not null ,
-    building_id int not null ,
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    foreign key (building_id, fd_osm_id)references osm_buildings(id, osm_id),
-    depth_class_id integer references  depth_class(id)
-);
+update osm_roads set road_type = 'Motorway or highway' WHERE  type ILIKE 'motorway' OR
+                                                             type ILIKE 'highway' or type ILIKE 'trunk' ;
+update osm_roads set road_type = 'Motorway link' WHERE  type ILIKE 'motorway_link' ;
+update osm_roads set road_type = 'Primary road' WHERE  type ILIKE 'primary';
+update osm_roads set road_type = 'Primary link' WHERE  type ILIKE 'primary_link' ;
+update osm_roads set road_type = 'Tertiary' WHERE  type ILIKE 'tertiary';
+update osm_roads set road_type = 'Tertiary link' WHERE  type ILIKE 'tertiary_link';
+update osm_roads set road_type = 'Secondary' WHERE  type ILIKE 'secondary';
+update osm_roads set road_type = 'Secondary link' WHERE  type ILIKE 'secondary_link';
+update osm_roads set road_type = 'Road, residential, living street, etc.' WHERE  type ILIKE 'living_street' OR type
+ILIKE 'residential' OR type ILIKE 'yes' OR type ILIKE 'road' OR type ILIKE 'unclassified' OR type ILIKE 'service'
+           OR type ILIKE '' OR type IS NULL;
 
-
-create table flood_event_villages (
-    id serial primary key ,
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id double precision references village(village_code),
-    depth_class_id integer references depth_class(id),
-    building_count integer
-);
-
-create table flood_event_sub_districts (
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id integer references sub_district(sub_dc_code),
-    depth_class_id integer references depth_class(id)
-);
-
-create table flood_event_districts (
-    forecast_flood_event_id integer  references forecast_flood_event(id),
-    village_id integer references district(dc_code),
-    depth_class_id integer references depth_class(id)
-);
+update osm_roads set road_type = "type" = 'Track' WHERE  type ILIKE 'track';
+update osm_roads set road_type =  "type" = 'Cycleway, footpath, etc.' WHERE  type ILIKE 'cycleway' OR
+            type ILIKE 'footpath' OR type ILIKE 'pedestrian' OR type ILIKE 'footway' OR type ILIKE 'path';
 
 
--- Add a trigger function to notify QGIS of DB changes
-CREATE FUNCTION public.notify_qgis() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-        BEGIN NOTIFY qgis;
-        RETURN NULL;
-        END;
-    $$;
 
--- Create  functions here to update db records
+-- update  building_type to match Vulnerability indicators.
+
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Clinic/Doctor';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Commercial';
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'School';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Government';
+update osm_buildings set building_type_score = 0.5 WHERE building_type ILIKE 'Place of Worship%' ;
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'Residential';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Police Station' ;
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Fire Station';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Hospital';
+update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Supermarket';
+update osm_buildings set building_type_score = 0.3 WHERE building_type = 'Sports Facility';
+update osm_buildings set building_type_score = 1.0 WHERE building_type = 'University/College';
+update osm_buildings set building_type_score = 0.3 WHERE building_type_score is null;
+
+-- Calculate area of OSM buildings to use later when recoding
+
+update osm_buildings set building_area  = ST_Area(geometry::GEOGRAPHY) ;
+
+-- Recode buildings based on calculated area to match vulnerability indicators in FBF.
+
+update osm_buildings set building_area_score  = 1   WHERE building_area <= 10;
+update osm_buildings set building_area_score  = 0.7 WHERE building_area > 10 and building_area <= 30;
+update osm_buildings set building_area_score  = 0.5 WHERE building_area > 30 and building_area <= 100;
+update osm_buildings set building_area_score  = 0.3 WHERE building_area > 100;
+
+
+-- Reclassify building material to create building_material score to map vulnerability indicators
+
+update osm_buildings set building_material_score = 0.5 WHERE "building:material" ILIKE 'brick%';
+update osm_buildings set building_material_score = 0.1 WHERE "building:material" = 'concrete';
+update osm_buildings set building_material_score = 0.3 WHERE building_material_score is null;
+
+-- Update to calculate the road density
+
+WITH clipped AS (
+                 SELECT m.osm_id, area_sq_km, ST_Intersection(m.geom, v.geometry::geography) AS clipped_geom
+                 FROM building_buffer m
+                 JOIN osm_roads v ON ST_Intersects(m.geom, v.geometry::geography)
+
+             ),
+             agg AS  (
+                 SELECT osm_id, (sum(st_length(clipped_geom))/max(area_sq_km))::int AS density_m_per_sq_km
+                    FROM clipped
+
+                    GROUP BY osm_id
+             )
+        UPDATE osm_buildings a SET building_road_density = density_m_per_sq_km
+                 FROM agg
+                 WHERE a.osm_id = agg.osm_id;
+
+-- Recode building road density to create a score for FBF vulnerability
+
+update osm_buildings set building_road_density_score  = 1   WHERE building_road_density <= 5;
+update osm_buildings set building_road_density_score  = 0.8 WHERE building_road_density > 5 and building_road_density <= 15;
+update osm_buildings set building_road_density_score  = 0.5 WHERE building_road_density > 15 and building_road_density <= 50;
+update osm_buildings set building_road_density_score  = 0.3 WHERE building_road_density > 50 and building_road_density <= 200;
+update osm_buildings set building_road_density_score  = 0.1 WHERE building_road_density > 200;
+
+
+--- Create lookup tables for each distinct type we use for classification in front end
+CREATE TABLE building_type_class (id serial, building_class character varying (100));
+CREATE TABLE road_type_class (id serial, road_class character varying (100));
+CREATE TABLE waterway_type_class (id serial, waterway_class character varying (100));
+
+INSERT INTO building_type_class (building_class) select distinct(building_type) FROM osm_buildings;
+INSERT INTO road_type_class (road_class) select distinct(road_type) FROM osm_roads;
+INSERT INTO waterway_type_class (waterway_class) select distinct(waterway) FROM osm_waterways;
+
+-- Update roads, waterways to include id columns
+
+
+update osm_roads set roads_id = foo.roads_id from (
+     select b.id as roads_id, a.osm_id from osm_roads a, road_type_class b
+  WHERE a.road_type::text = b.road_class::text
+     ) foo where foo.osm_id = osm_roads.osm_id;
+
+
+ update osm_waterways set waterway_id = foo.id from (
+ 	SELECT a.osm_id, b.id
+   FROM osm_waterways a,
+    waterway_type_class b
+  WHERE a.waterway::text = b.waterway_class::text
+ 	) foo where foo.osm_id = osm_waterways.osm_id;
+
+
+ update osm_buildings set building_id = foo.id from (
+ 	SELECT a.osm_id, b.id
+   FROM osm_buildings a,
+    building_type_class b
+  WHERE a.building_type::text = b.building_class::text
+ 	) foo where foo.osm_id = osm_buildings.osm_id;
+
+
+-- Functions to use to update new records with the same mappings as above
+
+
 
 CREATE OR REPLACE FUNCTION building_types_mapper () RETURNS trigger LANGUAGE plpgsql
 AS $$
@@ -285,324 +351,578 @@ BEGIN
   END
   $$;
 
- -- WATERWAY COUNT For Features within a flood polygon---
-CREATE OR REPLACE VIEW osm_waterways_flood_count_v as
-SELECT count(*), foo.flood_id, foo.waterway_id FROM (
-WITH water_class as (
-     SELECT a.waterway, b.id as waterway_id, a.geometry FROM osm_waterways as a , waterway_type_class as b
-       WHERE b.waterway_class = a.waterway
-   )
-   SELECT waterway,waterway_id,b.id as flood_id FROM water_class as a inner join osm_flood as b
-       on ST_Within(a.geometry,b.geometry)
-) foo group by foo.flood_id,foo.waterway_id order by foo.flood_id;
 
--- ROADS COUNT For Features within a flood polygon---
-CREATE OR REPLACE VIEW osm_roads_flood_count_v as
-SELECT count(*), foo.flood_id, foo.road_id FROM (
-WITH road_class as (
-   SELECT b.road_class, b.id as road_id, a.geometry FROM osm_roads as a, road_type_class as b
-       WHERE b.road_class = a.road_type
-   )
-   SELECT road_class, road_id,b.id as flood_id FROM road_class as a inner join osm_flood as b
-       on ST_Within(a.geometry,b.geometry)
-) foo group by foo.flood_id, foo.road_id order by foo.flood_id;
+-- Create tables for FBF based on schema diagram in repo.
 
--- BUILDINGS COUNT For Features within a flood polygon--
-CREATE OR REPLACE VIEW osm_buildings_intersect_v as
-  SELECT b.id as flood_id, a.building_id, a.building_type_score, a.building_material_score, a.building_area_score,
-         a.building_road_density_score, a.total_vulnerability
-    FROM filtered_osm_buildings_mv as a inner join osm_flood as b on ST_Within(a.geometry,b.geometry) and ST_Within(a.geometry,b.geometry) ;
-
--- Functions to refresh materialized views
-CREATE FUNCTION refresh_osm_build_stats() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-  BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_buildings_mv ;
-    RETURN NULL;
-  END
-  $$;
-
-
-CREATE FUNCTION refresh_osm_roads_stats() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-  BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_roads_mv;
-    RETURN NULL;
-  END
-  $$;
-
-CREATE FUNCTION refresh_osm_waterways_stats() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-  BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY osm_waterways_mv ;
-    RETURN NULL;
-  END
-  $$;
-
-CREATE FUNCTION refresh_filtered_buildings() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-  BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY filtered_osm_buildings_mv ;
-    RETURN NULL;
-  END
-  $$;
-
--- Vulnerability reporting and mapping for Buildings
-
-
--- Initial Updates for all tables
-
-
--- Initial update for osm_building_type
-update osm_buildings set building_type = 'School' WHERE amenity ILIKE '%school%' OR amenity ILIKE '%kindergarten%' ;
-update osm_buildings set building_type = 'University/College'   WHERE amenity ILIKE '%university%' OR amenity ILIKE '%college%' ;
-update osm_buildings set building_type = 'Government'  WHERE amenity ILIKE '%government%' ;
-update osm_buildings set building_type = 'Clinic/Doctor'  WHERE amenity ILIKE '%clinic%' OR amenity ILIKE '%doctor%' ;
-update osm_buildings set building_type = 'Hospital' WHERE amenity ILIKE '%hospital%' ;
-update osm_buildings set building_type = 'Fire Station'  WHERE amenity ILIKE '%fire%' ;
-update osm_buildings set building_type = 'Police Station' WHERE amenity ILIKE '%police%' ;
-update osm_buildings set building_type = 'Public Building' WHERE amenity ILIKE '%public building%' ;
-update osm_buildings set building_type = 'Place of Worship -Islam' WHERE amenity ILIKE '%worship%' and (religion ILIKE '%islam' or religion ILIKE '%muslim%');
-update osm_buildings set building_type = 'Residential'  WHERE amenity = 'yes' ;
-update osm_buildings set building_type = 'Place of Worship -Buddhist' WHERE amenity ILIKE '%worship%' and religion ILIKE '%budd%';
-update osm_buildings set building_type = 'Place of Worship -Unitarian'  WHERE amenity ILIKE '%worship%' and religion ILIKE '%unitarian%' ;
-update osm_buildings set building_type = 'Supermarket'  WHERE amenity ILIKE '%mall%' OR amenity ILIKE '%market%' ;
-update osm_buildings set building_type = 'Residential'  WHERE landuse ILIKE '%residential%' OR use = 'residential';
-update osm_buildings set building_type = 'Sports Facility' WHERE landuse ILIKE '%recreation_ground%' OR (leisure IS NOT NULL AND leisure != '') ;
-           -- run near the end
-update osm_buildings set building_type = 'Government'  WHERE use = 'government' AND "type" IS NULL ;
-update osm_buildings set building_type = 'Residential'  WHERE use = 'residential' AND "type" IS NULL ;
- update osm_buildings set building_type = 'School'  WHERE use = 'education' AND "type" IS NULL ;
-update osm_buildings set building_type = 'Clinic/Doctor' WHERE use = 'medical' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Place of Worship'  WHERE use = 'place_of_worship' AND "type" IS NULL ;
- update osm_buildings set building_type = 'School'   WHERE use = 'school' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Hospital'   WHERE use = 'hospital' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Commercial'   WHERE use = 'commercial' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Industrial'   WHERE use = 'industrial' AND "type" IS NULL ;
- update osm_buildings set building_type = 'Utility'   WHERE use = 'utility' AND "type" IS NULL ;
-           -- Add default type
- update osm_buildings set building_type = 'Residential'  WHERE "type" IS NULL ;
-
-
-
--- reclassify road type for osm_roads
-
-update osm_roads set road_type = 'Motorway or highway' WHERE  type ILIKE 'motorway' OR type ILIKE 'highway' or type ILIKE 'trunk' ;
-update osm_roads set road_type = 'Motorway link' WHERE  type ILIKE 'motorway_link' ;
-update osm_roads set road_type = 'Primary road' WHERE  type ILIKE 'primary';
-update osm_roads set road_type = 'Primary link' WHERE  type ILIKE 'primary_link' ;
-update osm_roads set road_type = 'Tertiary' WHERE  type ILIKE 'tertiary';
-update osm_roads set road_type = 'Tertiary link' WHERE  type ILIKE 'tertiary_link';
-update osm_roads set road_type = 'Secondary' WHERE  type ILIKE 'secondary';
-update osm_roads set road_type = 'Secondary link' WHERE  type ILIKE 'secondary_link';
-update osm_roads set road_type = 'Road, residential, living street, etc.' WHERE  type ILIKE 'living_street' OR type ILIKE 'residential' OR type ILIKE 'yes' OR type ILIKE 'road' OR type ILIKE 'unclassified' OR type ILIKE 'service'
-           OR type ILIKE '' OR type IS NULL;
-
-update osm_roads set road_type = "type" = 'Track' WHERE  type ILIKE 'track';
-update osm_roads set road_type =  "type" = 'Cycleway, footpath, etc.' WHERE  type ILIKE 'cycleway' OR type ILIKE 'footpath' OR type ILIKE 'pedestrian' OR type ILIKE 'footway' OR type ILIKE 'path';
-
-
-
--- Initial update to recode the building_type calculated above for osm_building_type
-
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Clinic/Doctor';
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Commercial';
-update osm_buildings set building_type_score = 1.0 WHERE building_type = 'School';
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Government';
-update osm_buildings set building_type_score = 0.5 WHERE building_type ILIKE 'Place of Worship%' ;
-update osm_buildings set building_type_score = 1.0 WHERE building_type = 'Residential';
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Police Station' ;
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Fire Station';
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Hospital';
-update osm_buildings set building_type_score = 0.7 WHERE building_type = 'Supermarket';
-update osm_buildings set building_type_score = 0.3 WHERE building_type = 'Sports Facility';
-update osm_buildings set building_type_score = 1.0 WHERE building_type = 'University/College';
-update osm_buildings set building_type_score = 0.3 WHERE building_type_score is null;
-
--- Create a column to store the area for osm_buildings
-
-update osm_buildings set building_area  = ST_Area(geometry::GEOGRAPHY) ;
-
--- Initial updates to update the building_area
-
-update osm_buildings set building_area_score  = 1   WHERE building_area <= 10;
-update osm_buildings set building_area_score  = 0.7 WHERE building_area > 10 and building_area <= 30;
-update osm_buildings set building_area_score  = 0.5 WHERE building_area > 30 and building_area <= 100;
-update osm_buildings set building_area_score  = 0.3 WHERE building_area > 100;
-
-
--- reclassify building material to create building_material score
-
-update osm_buildings set building_material_score = 0.5 WHERE "building:material" ILIKE 'brick%';
-update osm_buildings set building_material_score = 0.1 WHERE "building:material" = 'concrete';
-update osm_buildings set building_material_score = 0.3 WHERE building_material_score is null;
-
-
-
-
-
-
--- Update to calculate the road density length (still to write the recoding function )
-
-WITH clipped AS (
-                 SELECT m.osm_id, area_sq_km, ST_Intersection(m.geom, v.geometry::geography) AS clipped_geom
-                 FROM building_buffer m
-                 JOIN osm_roads v ON ST_Intersects(m.geom, v.geometry::geography)
-
-             ),
-             agg AS  (
-                 SELECT osm_id, (sum(st_length(clipped_geom))/max(area_sq_km))::int AS density_m_per_sq_km
-                    FROM clipped
-
-                    GROUP BY osm_id
-             )
-        UPDATE osm_buildings a SET building_road_density = density_m_per_sq_km
-                 FROM agg
-                 WHERE a.osm_id = agg.osm_id;
-
--- Initial updates to update the building_road_density
-
-update osm_buildings set building_road_density_score  = 1   WHERE building_road_density <= 5;
-update osm_buildings set building_road_density_score  = 0.8 WHERE building_road_density > 5 and building_road_density <= 15;
-update osm_buildings set building_road_density_score  = 0.5 WHERE building_road_density > 15 and building_road_density <= 50;
-update osm_buildings set building_road_density_score  = 0.3 WHERE building_road_density > 50 and building_road_density <= 200;
-update osm_buildings set building_road_density_score  = 0.1 WHERE building_road_density > 200;
-
--- Create m views or views for FBIS dashboards
---- Create lookup tables for each distinct type we use for classification in front end
-CREATE TABLE building_type_class (id serial, building_class character varying (100));
-CREATE TABLE road_type_class (id serial, road_class character varying (100));
-CREATE TABLE waterway_type_class (id serial, waterway_class character varying (100));
-
-INSERT INTO building_type_class (building_class) select distinct(building_type) FROM osm_buildings;
-INSERT INTO road_type_class (road_class) select distinct(road_type) FROM osm_roads;
-INSERT INTO waterway_type_class (waterway_class) select distinct(waterway) FROM osm_waterways;
-
-update osm_roads set roads_id = foo.roads_id from (
-     select b.id as roads_id, a.osm_id from osm_roads a, road_type_class b
-  WHERE a.road_type::text = b.road_class::text
-     ) foo where foo.osm_id = osm_roads.osm_id;
-
-
- update osm_waterways set waterway_id = foo.id from (
- 	SELECT a.osm_id, b.id
-   FROM osm_waterways a,
-    waterway_type_class b
-  WHERE a.waterway::text = b.waterway_class::text
- 	) foo where foo.osm_id = osm_waterways.osm_id;
-
-
--- Default count for all buildings by building_type - This is the default count shown in the dashboard
-
-CREATE MATERIALIZED VIEW osm_buildings_mv as
-SELECT a.building_type , COUNT (building_type), b.id as building_id
-FROM osm_buildings as a, building_type_class as b
-WHERE a.building_type = b.building_class
-GROUP BY a.building_type,b.id;
-
-CREATE UNIQUE INDEX mv_idx_building_type ON osm_buildings_mv (building_type);
-CREATE  INDEX mv_idx_buildings_id ON osm_buildings_mv (building_id);
-
-
-
--- Default count for all roads by road_type - This is the default count shown in the dashboard
-CREATE MATERIALIZED VIEW osm_roads_mv as
-SELECT a.road_type , COUNT (road_type), b.id as road_id
-FROM osm_roads as a, road_type_class as b
-WHERE a.road_type = b.road_class
-GROUP BY a.road_type,b.id;
-
-
-CREATE UNIQUE INDEX mv_idx_road_type ON osm_roads_mv (road_type);
-CREATE  INDEX mv_idx_road_id ON osm_roads_mv (road_id);
-
-
--- Default count for all waterways by waterway - This is the default count shown in the dashboard
-
-CREATE MATERIALIZED VIEW osm_waterways_mv as
-SELECT a.waterway , COUNT (waterway), b.id as waterway_id
-FROM osm_waterways as a, waterway_type_class as b
-WHERE a.waterway = b.waterway_class
-GROUP BY a.waterway,b.id;
-
-CREATE UNIQUE INDEX mv_idx_waterway_type ON osm_waterways_mv (waterway);
-CREATE  INDEX mv_idx_waterway_id ON osm_waterways_mv (waterway_id);
-
--- Create OSM Flood layer for inserting FROM dashboard
-
-CREATE TABLE public.osm_flood (
-    id SERIAL,
-    geometry public.geometry(MultiPolygon,4326),
-    name character varying(80)
+create table depth_class (
+    id serial primary key ,
+    min_m double precision,
+    max_m double precision,
+    label character varying (255)
 );
 
-CREATE INDEX idx_osm_flood on osm_flood using gist (geometry);
-CREATE INDEX id_osm_flood_name on osm_flood (name);
-CREATE INDEX idx_osm_road on osm_roads (road_type);
-CREATE INDEX idx_osm_building on osm_buildings (building_type);
-CREATE INDEX idx_osm_waterway on osm_waterways (waterway);
-CREATE INDEX idx_osm_bd_score on osm_buildings (building_type_score);
+create table flooded_area (
+    id serial primary key ,
+    depth_class integer references depth_class(id),
+    geometry geometry(MultiPolygon,4326)
+);
 
--- This is the WMS buildings layer being served and filtered in the dashboard
-CREATE MATERIALIZED VIEW filtered_osm_buildings_mv as
-    select a.osm_id,a.building_type,a.building_type_score,a.building_material_score,a.building_area_score,
-           a.building_road_density_score,a.total_vulnerability, b.id as building_id,a.geometry FROM osm_buildings as a ,building_type_class as b WHERE
-a."amenity" not in ('grass','meadow', 'forest','farm','farm_auxiliary','farmland',
-'farmyard', 'woods','industrial')  and "building_area" < 7000 and building_type is not null and a.building_type=b.building_class;
-
-CREATE UNIQUE INDEX mv_idx_ft_buildings ON filtered_osm_buildings_mv (osm_id);
-CREATE  INDEX mv_idx_ft_buildings ON filtered_osm_buildings_mv (building_type_score);
-CREATE  INDEX mv_idy_ft_bd_mt_score ON filtered_osm_buildings_mv (building_material_score);
-CREATE  INDEX mv_idy_ft_bd_area_score ON filtered_osm_buildings_mv (building_area_score);
-CREATE  INDEX mv_idy_ft_bd_rd_score ON filtered_osm_buildings_mv (building_road_density_score);
-CREATE  INDEX mv_idy_ft_bd_vuln_score ON filtered_osm_buildings_mv (total_vulnerability);
-
--- This is the WMS waterways layer being served and filtered in the dashboard
-CREATE MATERIALIZED VIEW filtered_osm_waterways_mv as
-    select osm_id,waterway, b.id as waterway_id,a.geometry FROM osm_waterways as a ,waterway_type_class as b WHERE
- a.waterway=b.waterway_class;
-
-CREATE UNIQUE INDEX mv_idx_ft_osm_id ON filtered_osm_waterways_mv (osm_id);
-CREATE  INDEX mv_idn_ft_waterways_water ON filtered_osm_waterways_mv (waterway);
-CREATE  INDEX mv_idn_ft_waterways_id ON filtered_osm_waterways_mv (waterway_id);
-
--- This is the WMS roads layer being served and filtered in the dashboard
-CREATE MATERIALIZED VIEW filtered_osm_roads_mv as
-    select osm_id,road_type, b.id as roads_id,a.geometry FROM osm_roads as a ,road_type_class as b WHERE
- a.road_type=b.road_class;
-
-CREATE UNIQUE INDEX mv_idz_ft_osm_id ON filtered_osm_roads_mv (osm_id);
-CREATE  INDEX mv_idn_fz_roads_cond ON filtered_osm_roads_mv (road_type);
-CREATE  INDEX mv_idn_fz_roads_id ON filtered_osm_roads_mv (roads_id);
-
--- views to use when creating flood polygons
-
-  CREATE OR REPLACE VIEW osm_buildings_flood_v as
-
-    SELECT d.id as flood_id , c.osm_id, c.building_type_score,c.building_material_score,c.building_area_score,
-           c.building_road_density_score,c.total_vulnerability , c.geometry from filtered_osm_buildings_mv as c
-               inner join osm_flood as d on ST_Intersects(c.geometry,d.geometry);
-
-   CREATE OR REPLACE VIEW osm_waterways_flood_v as
-
-    SELECT d.id as flood_id , c.osm_id,c.waterway, c.geometry from filtered_osm_waterways_mv as c inner join
-        osm_flood as d on ST_Intersects(c.geometry,d.geometry);
+create table flooded_areas (
+    id serial primary key ,
+    flood_map_id integer references flood_map(id),
+    flooded_area_id integer references flooded_area (id)
+);
 
 
--- View for intersection between uploaded flood layer and osm_roads
-   CREATE OR REPLACE VIEW flood_roads_bbox_v as
+CREATE table flood_map (
+    id serial primary key ,
+    place_name character varying (255),
+    notes character varying (255),
+    return_period timestamp,
+    measuring_station_id integer
+);
 
-    SELECT d.id as flood_id , c.osm_id, c.geometry from osm_roads as c inner join flood as d
-        on ST_Intersects(c.geometry,d.geometry);
+create table trigger_status (
+    id serial primary key ,
+    name character varying  (255) unique
+);
 
--- All triggers will come in the last part
--- Based on the tables defined in the mapping.yml create triggers
+create table progress_status (
+    id serial primary key ,
+    status character varying (50) unique
+);
+
+create table flood_event (
+  id serial primary key ,
+  flood_map_id integer references flood_map(id),
+  acquisition_date timestamp not null default now(),
+  forecast_date timestamp ,
+  source character varying (255),
+  notes character varying (255),
+  link text,
+  trigger_status character varying  (255) references trigger_status(name),
+  spreadsheet BYTEA,
+  progress character varying (50) references progress_status(status)
+);
 
 
+create table flood_event_buildings (
+    id serial primary key ,
+    flood_event_id integer  references flood_event(id),
+    building_id integer references  osm_buildings(osm_id),
+    depth_class_id integer references  depth_class(id)
+);
+
+
+create table flood_event_village_summary (
+    id serial primary key ,
+    village_id double precision references village (village_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
+);
+
+
+create table flood_event_sub_district_summary (
+    id serial primary key ,
+    sub_district_id numeric references sub_district (sub_dc_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
+);
+
+
+
+create table flood_event_district_summary (
+    id serial primary key ,
+    district_id double precision references district(dc_code),
+    flood_event_id integer  references flood_event(id),
+    vulnerability_total_score double precision,
+    building_count integer,
+    flooded_building_count integer,
+    residential_building_count integer,
+    residential_flooded_building_count integer,
+    clinic_dr_building_count integer,
+    clinic_dr_flooded_building_count integer,
+    fire_station_building_count integer,
+    fire_station_flooded_building_count integer,
+    school_building_count integer,
+    school_flooded_building_count integer,
+    university_building_count integer,
+    university_flooded_building_count integer,
+    government_building_count integer,
+    government_flooded_building_count integer,
+    hospital_building_count integer,
+    hospital_flooded_building_count integer,
+    buddist_building_count integer,
+    buddist_flooded_building_count integer,
+    islam_building_count integer,
+    islam_flooded_building_count integer,
+    police_station_building_count integer,
+    police_flooded_building_count integer,
+    trigger_status character varying(255) references trigger_status(name)
+);
+
+INSERT INTO public.flood_event_village_summary(
+    village_id,
+    flood_event_id,
+    vulnerability_total_score,
+    building_count,
+    flooded_building_count,
+    residential_building_count,
+    residential_flooded_building_count,
+    clinic_dr_building_count,
+    clinic_dr_flooded_building_count,
+    fire_station_building_count,
+    fire_station_flooded_building_count,
+    school_building_count,
+    school_flooded_building_count,
+    university_building_count,
+    university_flooded_building_count,
+    government_building_count,
+    government_flooded_building_count,
+    hospital_building_count,
+    hospital_flooded_building_count,
+    buddist_building_count,
+    buddist_flooded_building_count,
+    islam_building_count,
+    islam_flooded_building_count,
+    police_station_building_count,
+    police_flooded_building_count)
+
+select
+    a.village_code,
+    b.flood_event_id,
+    c.total_vulnerability,
+    d.building_count,
+    e.flooded_building_count,
+    f.residential_building_count,
+    g.residential_flooded_building_count,
+    h.clinic_dr_building_count,
+    i.clinic_dr_flooded_building_count,
+    j.fire_station_building_count,
+    k.fire_station_flooded_building_count,
+    l.school_building_count,
+    m.school_flooded_building_count,
+    n.university_building_count,
+    o.university_flooded_building_count,
+    p.government_building_count,
+    q.government_flooded_building_count,
+    r.hospital_building_count,
+    s.hospital_flooded_building_count,
+    t.buddist_building_count,
+    u.buddist_flooded_building_count,
+    v.islam_building_count,
+    w.islam_flooded_building_count,
+    x.police_station_building_count,
+    y.police_flooded_building_count
+FROM
+     ( select b.village_code from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 ) a,
+    ( select a.flood_event_id from flood_event_areas_v a  join village b on st_intersects(a.geometry, b .geom) where a.flood_event_id = 15 ) b,
+    ( with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select sum(b.total_vulnerability) as total_vulnerability  from osm_buildings as b join agg
+ as c on st_intersects(b.geometry,c.geom) group by c.geom) c,
+    ( with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) group by c.geom) d,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) group by d.geom) e,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as residential_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Residential' group by c.geom
+) f,
+    (select count(*) as residential_flooded_building_count from osm_buildings as a join flood_event_areas_v b on st_intersects(a.geometry,b.geometry)
+        where b.flood_event_id = 15 and a.building_type = 'Residential') g,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as clinic_dr_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Clinic/Doctor' group by c.geom
+) h,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as clinic_dr_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Clinic/Doctor' group by d.geom) i,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as fire_station_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Fire Station' group by c.geom
+) j,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as fire_station_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Fire Station' group by d.geom) k,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as school_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'School' group by c.geom) l,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as school_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'School' group by d.geom) m,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as university_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'University/College' group by c.geom) n,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as university_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'University/College' group by d.geom) o,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as government_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry) where a.building_type = 'Government' group by c.geom) p,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as government_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Government' group by d.geom) q,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as hospital_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Hospital' group by c.geom) r,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as hospital_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Hospital' group by d.geom) s,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as buddist_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Place of Worship - Buddhist' group by c.geom) t,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as buddist_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Buddhist' group by d.geom) u,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as islam_building_count from osm_buildings a join agg c on st_intersects ( c.geom,a.geometry)
+        where a.building_type = 'Place of Worship - Islam' group by c.geom) v,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as islam_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Place of Worship - Islam' group by d.geom) w,
+    (with agg as ( select a.geom  from village  as a join flood_event_areas_v b on st_intersects(a.geom,b.geometry) where b.flood_event_id = 15)
+        select count(a.osm_id) as police_station_building_count from osm_buildings a join agg c
+        on st_intersects ( c.geom,a.geometry) where a.building_type = 'Police Station' group by c.geom) x,
+    (with agg as (select a.geom  from village  as a join flood_event_areas_v b on st_within(b.geometry,a.geom) where b.flood_event_id = 15)
+        select count(a.osm_id) as police_flooded_building_count
+        from osm_buildings as a join agg as d on st_intersects(a.geometry,d.geom) where a.building_type = 'Police Station' group by d.geom) y;
+
+-- Activation status function
+
+CREATE FUNCTION activation_status () RETURNS trigger
+   LANGUAGE plpgsql AS $$
+    BEGIN
+        update flood_event_village_summary set
+        trigger_status = 'pre-activation'
+            where  ((flooded_building_count::decimal/ building_count::decimal) * 100) >= 20;
+     RETURN NEW;
+    end;
+    $$;
+
+-- Trigger to activate the activation_status.
+CREATE TRIGGER fd_village_summary_act_status_tg AFTER INSERT OR UPDATE ON flood_event_village_summary FOR EACH ROW EXECUTE PROCEDURE activation_status();
+
+
+-- Function to calculate activation status based on lead times
+CREATE FUNCTION activation_status_lead_times () RETURNS trigger
+   LANGUAGE plpgsql AS $$
+    BEGIN
+    with flood as (
+        select b.acquisition_date,a.flood_event_id from flood_event_village_summary as a  join  flood_event b
+        on b.id=a.flood_event_id
+    ),
+    times as (select flood_event_id, (CURRENT_DATE - acquisition_date::DATE) as num_days from flood)
+    update flood_event_village_summary a set trigger_status = 'activation' from times b
+    where b.num_days <= 3 and  b.flood_event_id = a.flood_event_id;
+    RETURN new;
+    end ;
+    $$;
+
+CREATE TRIGGER fd_village_ld_act_status_tg AFTER INSERT OR UPDATE ON flood_event_village_summary FOR EACH ROW EXECUTE PROCEDURE activation_status_lead_times();
+
+-- Function to calculate the flood forecast date
+
+create OR REPLACE function flood_event_newest_forecast_f(forecast_date_start timestamp without time zone, forecast_date_end timestamp without time zone) returns TABLE(forecast_date_str text, acquisition_date_str text, trigger_status_id int)
+  language plpgsql
+as
+$$
+begin return query
+        select distinct on (forecast_date_str) a.forecast_date_str, a.acquisition_date_str, a.trigger_status
+        from (
+            select id, to_char(forecast_date, 'YYYY-MM-DD') as forecast_date_str, to_char(acquisition_date, 'YYYY-MM-DD') as acquisition_date_str, trigger_status from flood_event
+            where forecast_date >= forecast_date_start and forecast_date < forecast_date_end AND forecast_date IS NOT NULL
+	) as a ORDER BY a.forecast_date_str DESC, a.acquisition_date_str DESC;
+    end;
+$$;
+
+-- function for creating a spreadsheet using plython3u
+create OR REPLACE function flood_event_spreadsheet(flood_event_id integer) returns TABLE(spreadsheet_content text)
+  language plpgsql
+as
+$$
+begin return query
+        select encode(spreadsheet, 'base64') as spreadsheet_content from flood_event where id=flood_event_id;
+    end;
+$$;
+
+-- Flooded event buildings map view. Added by Tim to show when we select a flood.
+create or replace view vw_flood_event_buildings_map as
+select b.geometry, b.building_type, b.district_id, b.sub_district_id, b.village_id, feb.depth_class_id, feb.flood_event_id
+	from osm_buildings as b, flood_event_buildings as feb;
+comment on view vw_flood_event_buildings_map is 'Flooded event buildings map view. Added by Tim to show when we select a flood.';
+
+
+-- Reporting for vulnerability indicators
+
+CREATE MATERIALIZED VIEW public.flood_event_village_summary_mv
+TABLESPACE pg_default
+AS
+ SELECT a.id,
+    a.flood_event_id,
+    a.vulnerability_total_score,
+    a.building_count,
+    a.flooded_building_count,
+    a.residential_building_count,
+    a.residential_flooded_building_count,
+    a.clinic_dr_building_count,
+    a.clinic_dr_flooded_building_count,
+    a.fire_station_building_count,
+    a.fire_station_flooded_building_count,
+    a.school_building_count,
+    a.school_flooded_building_count,
+    a.university_building_count,
+    a.university_flooded_building_count,
+    a.government_building_count,
+    a.government_flooded_building_count,
+    a.hospital_building_count,
+    a.hospital_flooded_building_count,
+    a.buddist_building_count,
+    a.buddist_flooded_building_count,
+    a.islam_building_count,
+    a.islam_flooded_building_count,
+    a.police_station_building_count,
+    a.police_flooded_building_count,
+    a.village_id,
+    b.name,
+    b.dc_code,
+    b.sub_dc_code
+   FROM flood_event_village_summary a,
+    village b
+  WHERE b.village_code = a.village_id
+WITH DATA;
+
+CREATE MATERIALIZED VIEW public.flood_event_sub_district_summary_mv
+TABLESPACE pg_default
+AS
+ SELECT a.id,
+    a.flood_event_id,
+    a.vulnerability_total_score,
+    a.building_count,
+    a.flooded_building_count,
+    a.residential_building_count,
+    a.residential_flooded_building_count,
+    a.clinic_dr_building_count,
+    a.clinic_dr_flooded_building_count,
+    a.fire_station_building_count,
+    a.fire_station_flooded_building_count,
+    a.school_building_count,
+    a.school_flooded_building_count,
+    a.university_building_count,
+    a.university_flooded_building_count,
+    a.government_building_count,
+    a.government_flooded_building_count,
+    a.hospital_building_count,
+    a.hospital_flooded_building_count,
+    a.buddist_building_count,
+    a.buddist_flooded_building_count,
+    a.islam_building_count,
+    a.islam_flooded_building_count,
+    a.police_station_building_count,
+    a.police_flooded_building_count,
+    a.sub_district_id,
+    b.name,
+    b.dc_code
+   FROM flood_event_sub_district_summary a,
+    sub_district b
+  WHERE b.sub_dc_code = a.sub_district_id
+WITH DATA;
+
+CREATE MATERIALIZED VIEW public.flood_event_district_summary_mv
+TABLESPACE pg_default
+AS
+ SELECT a.id,
+    a.flood_event_id,
+    a.vulnerability_total_score,
+    a.building_count,
+    a.flooded_building_count,
+    a.residential_building_count,
+    a.residential_flooded_building_count,
+    a.clinic_dr_building_count,
+    a.clinic_dr_flooded_building_count,
+    a.fire_station_building_count,
+    a.fire_station_flooded_building_count,
+    a.school_building_count,
+    a.school_flooded_building_count,
+    a.university_building_count,
+    a.university_flooded_building_count,
+    a.government_building_count,
+    a.government_flooded_building_count,
+    a.hospital_building_count,
+    a.hospital_flooded_building_count,
+    a.buddist_building_count,
+    a.buddist_flooded_building_count,
+    a.islam_building_count,
+    a.islam_flooded_building_count,
+    a.police_station_building_count,
+    a.police_flooded_building_count,
+    b.name
+   FROM flood_event_district_summary a,
+    district b
+  WHERE a.district_id = b.dc_code
+WITH DATA;
+
+CREATE MATERIALIZED VIEW exposed_buildings_mv as
+    with flood_event as (
+SELECT
+    d.id AS flood_event_id,
+    a.depth_class,
+	a.geometry
+   FROM flooded_area a
+     JOIN flooded_areas b ON a.id = b.flooded_area_id
+     JOIN flood_map c ON c.id = b.flood_map_id
+     JOIN flood_event d ON d.flood_map_id = c.id)
+select row_number() OVER () AS id,b.flood_event_id, b.depth_class,c.total_vulnerability from flood_event b join
+osm_buildings  c on st_intersects(c.geometry,b.geometry) ;
+
+
+-- Populate the flood event buildings - need to convert it to function
+
+ create materialized view flood_event_buildings_mv as
+with intersections as (SELECT a.geometry,d.id AS flood_event_id, a.depth_class FROM flooded_area a
+     JOIN flooded_areas b ON a.id = b.flooded_area_id
+     JOIN flood_map c ON c.id = b.flood_map_id
+     JOIN flood_event d ON d.flood_map_id = c.id)
+select row_number() OVER () AS id,b.osm_id as building_id,a.flood_event_id,a.depth_class,b.district_id,
+       b.sub_district_id,b.village_id, b.building_type,b.total_vulnerability,b.geometry from intersections a
+join osm_buildings b on st_intersects(a.geometry,b.geometry);
+
+CREATE UNIQUE INDEX id_db_mv
+  ON flood_event_buildings_mv (id);
+create index building_id_mv   ON flood_event_buildings_mv (building_id);
+create index flood_event_id_mv   ON flood_event_buildings_mv (flood_event_id);
+create index district_id_mv   ON flood_event_buildings_mv (district_id);
+create index sub_district_id_mv   ON flood_event_buildings_mv (sub_district_id);
+create index village_id_mv   ON flood_event_buildings_mv (village_id);
+
+
+CREATE FUNCTION refresh_flood_event_buildings_mv() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY flood_event_buildings_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER flood_event_buildings_mv_tg AFTER INSERT  ON flood_event
+FOR EACH ROW EXECUTE PROCEDURE refresh_flood_event_buildings_mv();
+
+
+CREATE FUNCTION refresh_exposed_buildings() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW exposed_buildings_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER exposed_buildings_tg AFTER INSERT OR UPDATE ON flood_event
+FOR EACH ROW EXECUTE PROCEDURE refresh_exposed_buildings();
+
+CREATE FUNCTION refresh_village_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_village_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE FUNCTION refresh_sub_district_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_sub_district_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+
+CREATE FUNCTION refresh_district_summary() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW flood_event_district_summary_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER event_village_summary_tg AFTER INSERT OR UPDATE ON flood_event_village_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_village_summary();
+
+CREATE TRIGGER event_sub_district_summary_tg AFTER INSERT OR UPDATE ON flood_event_sub_district_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_sub_district_summary();
+
+CREATE TRIGGER event_district_summary_tg AFTER INSERT OR UPDATE ON flood_event_district_summary
+FOR EACH ROW EXECUTE PROCEDURE refresh_district_summary();
+
+CREATE TRIGGER building_type_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+    building_types_mapper ();
+
+CREATE TRIGGER st_building_recoder BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+    building_recode_mapper();
+
+CREATE TRIGGER area_recode_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+    building_area_mapper();
+
+CREATE TRIGGER building_material_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+    building_materials_mapper();
+
+CREATE TRIGGER road_density_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
+    building_road_density_mapper () ;
+
+
+-- Generic SQL
+-- Add a trigger function to notify QGIS of DB changes
+CREATE FUNCTION public.notify_qgis() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+        BEGIN NOTIFY qgis;
+        RETURN NULL;
+        END;
+    $$;
 
 CREATE TRIGGER notify_admin
   AFTER INSERT OR UPDATE OR DELETE  ON public.osm_admin
@@ -621,226 +941,5 @@ CREATE TRIGGER notify_admin
   AFTER INSERT OR UPDATE OR DELETE  ON public.osm_waterways
     FOR EACH STATEMENT EXECUTE PROCEDURE public.notify_qgis();
 
-CREATE TRIGGER building_type_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_types_mapper ();
 
-CREATE TRIGGER st_building_recoder BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_recode_mapper();
-
-CREATE TRIGGER area_recode_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_area_mapper();
-
-CREATE TRIGGER building_material_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_materials_mapper();
-
-
-CREATE TRIGGER buildings_stats_rf BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE refresh_osm_build_stats();
-
-CREATE TRIGGER roads_stats_rf BEFORE INSERT OR UPDATE ON osm_roads FOR EACH ROW EXECUTE PROCEDURE refresh_osm_roads_stats();
-
-CREATE TRIGGER waterways_stats_rf BEFORE INSERT OR UPDATE ON osm_waterways FOR EACH ROW EXECUTE PROCEDURE refresh_osm_waterways_stats();
-
-CREATE TRIGGER road_length_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_road_density_mapper () ;
-
-CREATE TRIGGER z_filtered_osm_build_tg BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-   refresh_filtered_buildings() ;
-
--- All the following logic is not being used in the Dashboard but should exists in the DB anyway
-
--- Function to update the distance FROM a river to the centroid of the building
-
-update osm_buildings set building_river_distance =foo.distance FROM (SELECT ST_Distance(ST_Centroid(st_transform(geometry,3857)), st_transform(rt.geometry,3857)) as distance
-
-         FROM   osm_waterways AS rt
-         ORDER BY
-               st_transform(geometry,3857) <-> st_transform(rt.geometry,3857)
-         LIMIT  1) foo;
-
-
-
---- Reclassify building_river_distance to create building_river_distance_score
-
-update osm_buildings set building_river_distance_score = 1.0 WHERE building_river_distance > 0 and building_river_distance <= 100;
-update osm_buildings set building_river_distance_score = 0.7 WHERE building_river_distance > 100 and building_river_distance <= 300;
-update osm_buildings set building_river_distance_score = 0.5 WHERE building_river_distance > 300 and building_river_distance <= 500;
-update osm_buildings set building_river_distance_score = 0.3 WHERE building_river_distance > 500;
-update osm_buildings set building_river_distance_score = 0.3 WHERE building_river_distance is null;
-
--- update to calculate the elevation of the nearest river in relation to  building centroid
-
-update osm_buildings set vertical_river_distance =ST_VALUE(foo.rast, foo.geom)
-    FROM (WITH location as (
-        SELECT ST_X(st_centroid(geometry)) as latitude,ST_Y(st_centroid(geometry)) as longitude,
-        ST_SetSRID(St_MakePoint(ST_X(st_centroid(geometry)),ST_Y(st_centroid(geometry))),4326) as geom
-         FROM osm_buildings )
-        SELECT ST_LineInterpolatePoint(b.geometry, 0.5) as geom, e.rast FROM location as a , osm_waterways as b, dem as e
-        WHERE ST_Intersects(e.rast, a.geom)
-        ORDER BY a.geom <-> b.geometry
-        LIMIT  1) foo;
-
-
-
--- update to calculate the elevation of a building's centroid FROM a raster cell
-
-update osm_buildings set building_elevation =foo.height
-
-    FROM (WITH centroid as (
- select ST_SetSRID(St_MakePoint(ST_X(st_centroid(geometry)),ST_Y(st_centroid(geometry))),4326) as geom FROM osm_buildings
- )
- SELECT ST_VALUE(e.rast, b.geom) as height
-  FROM dem e , centroid as b
-    WHERE ST_Intersects(e.rast, b.geom)) foo;
-
-
-
-
--- create a function that recodes the values of the building elevation against the river elevation (low_lying_area_score)
-
-UPDATE osm_buildings set low_lying_area_score = 1.0 WHERE (building_elevation - vertical_river_distance) <= 0;
-UPDATE osm_buildings set low_lying_area_score = 0.8 WHERE (building_elevation - vertical_river_distance) > 0 and (building_elevation - vertical_river_distance) <= 1;
-UPDATE osm_buildings set low_lying_area_score = 0.5 WHERE (building_elevation - vertical_river_distance) > 1 and (building_elevation - vertical_river_distance) <= 2;
-UPDATE osm_buildings set low_lying_area_score = 0.1 WHERE (building_elevation - vertical_river_distance) > 2;
-
-
-CREATE OR REPLACE FUNCTION river_distance_mapper () RETURNS trigger LANGUAGE plpgsql
-AS $$
-BEGIN
-     SELECT ST_Distance(ST_Centroid(st_transform(NEW.geometry),3857), st_transform(rt.geometry,3857))
-         INTO   NEW.building_river_distance
-         FROM   osm_waterways AS rt
-         ORDER BY
-                st_transform(NEW.geometry,3857) <-> st_transform(rt.geometry,3857)
-         LIMIT  1;
-
-     RETURN NEW;
-   END
-  $$;
-
-CREATE TRIGGER river_distance_mapper BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    river_distance_mapper ();
-
-
-CREATE OR REPLACE FUNCTION river_distance_recode_mapper () RETURNS trigger LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT
-        CASE
-            WHEN new.building_river_distance > 0 and new.building_river_distance <= 100 THEN 1.0
-            WHEN new.building_river_distance > 100 and new.building_river_distance <= 300  THEN 0.7
-            WHEN new.building_river_distance > 300 and new.building_river_distance <= 500  THEN 0.5
-            WHEN new.building_river_distance > 500 THEN 0.3
-            ELSE 0.3
-        END
-    INTO new.building_river_distance_score
-    FROM osm_buildings
-    ;
-  RETURN NEW;
-
-  END
-  $$;
-
-CREATE TRIGGER st_river_recode BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    river_distance_recode_mapper ();
-
-CREATE OR REPLACE FUNCTION river_elevation_mapper () RETURNS trigger LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT
-            ST_VALUE(rast, geom)
-    INTO new.vertical_river_distance
-    FROM (WITH location as (
-        SELECT ST_X(st_centroid(new.geometry)) as latitude,ST_Y(st_centroid(new.geometry)) as longitude,
-        ST_SetSRID(St_MakePoint(ST_X(st_centroid(new.geometry)),ST_Y(st_centroid(new.geometry))),4326) as geom
-         FROM osm_buildings )
-        SELECT st_line_interpolate_point(b.geometry, 0.5) as geom, e.rast FROM location as a , osm_waterways as b, dem as e
-        WHERE ST_Intersects(e.rast, a.geom)
-        ORDER BY a.geom <-> b.geometry
-        LIMIT  1) foo;
-  RETURN NEW;
-
-  END
-  $$;
-
-CREATE TRIGGER river_elevation_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    river_elevation_mapper () ;
-
-CREATE OR REPLACE FUNCTION building_elevation_mapper () RETURNS trigger LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT
-            height
-    INTO new.building_elevation
-    FROM (WITH centroid as (
- select ST_SetSRID(St_MakePoint(ST_X(st_centroid(new.geometry)),ST_Y(st_centroid(new.geometry))),4326) as geom FROM osm_buildings
- )
- SELECT ST_VALUE(e.rast, b.geom) as height
-  FROM dem e , centroid as b
-    WHERE ST_Intersects(e.rast, b.geom)) foo;
-  RETURN NEW;
-
-  END
-  $$;
-CREATE TRIGGER building_elevation_calc BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    building_elevation_mapper () ;
-
-CREATE OR REPLACE FUNCTION elevation_recode_mapper () RETURNS trigger LANGUAGE plpgsql
-AS $$
-BEGIN
-    SELECT
-        CASE
-            WHEN (new.building_elevation - new.vertical_river_distance) <= 0  THEN 1.0
-            WHEN (new.building_elevation - new.vertical_river_distance) > 0 and (new.building_elevation - new.vertical_river_distance) <= 1   THEN 0.8
-            WHEN (new.building_elevation - new.vertical_river_distance) > 1 and (new.building_elevation - new.vertical_river_distance) <= 2  THEN 0.5
-            WHEN (new.building_elevation - new.vertical_river_distance) > 2 THEN 0.1
-            ELSE 0.3
-        END
-    INTO new.elevation_area_score
-    FROM osm_buildings
-    ;
-  RETURN NEW;
-
-  END
-  $$;
-
-CREATE TRIGGER st_elevation_recoder BEFORE INSERT OR UPDATE ON osm_buildings FOR EACH ROW EXECUTE PROCEDURE
-    elevation_recode_mapper () ;
-
-
--- count number or roads intersecting Surabaya
-CREATE VIEW osm_roads_surabaya_stats as
-SELECT type, COUNT(osm_id) FROM (
-    SELECT DISTINCT ON (a.osm_id) a.osm_id, a.type
-    FROM osm_roads as a
-    INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
-) subquery
-GROUP BY type ;
-
-
--- count number of rivers intersecting surabaya
-CREATE OR REPLACE VIEW osm_rivers_surabaya_stats as
-SELECT waterway, COUNT(osm_id) FROM (
-    SELECT DISTINCT ON (a.osm_id) a.osm_id, a.waterway
-    FROM osm_waterways as a
-    INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
-) subquery
-GROUP BY waterway ;
-
--- count number of buildings intersecting surabaya
-CREATE OR REPLACE VIEW osm_buildings_surabaya_stats as
-SELECT building_type, COUNT(osm_id) FROM (
-    SELECT DISTINCT ON (a.osm_id) a.osm_id, a.building_type
-    FROM osm_buildings as a
-    INNER JOIN osm_admin as b ON ST_Intersects(a.geometry, b.geometry) WHERE b.name = 'Surabaya'
-) subquery
-GROUP BY building_type ;
-
--- Find all the names of admin areas intersecting a flood layer
-
-create view flood_admin_areas_intersect_v as
-select b.name as village_name,c.name as province_name, d.name as district_name,
-e.name as sub_district_name, a.id as flood_id from osm_flood as a join village as b on
-st_intersects(b.geom,a.geometry) join province as c on c.prov_code = b.prov_code
-join district as d on d.dc_code = b.dc_code
-join sub_district as e on e.sub_dc_code = b.sub_dc_code;
 
