@@ -40,12 +40,12 @@
                     </div>
                     <br>
 					<p>Welcome to the InaSAFE Forcast Based Action dashboard.
-					This site is our first prototype implementation for a 
-					forecasted flood impact dashboard.</p>
+					This site is our first prototype of a flood impact based
+					forecast dashboard to trigger Early Action.</p>
 
 					<p>To get started, use the green flood selector icon below to
-					select a date (valid dates have circles around them) for
-					a historical or forecast flood event.</p>
+					select a historical or forecast flood event (valid 
+					dates have circles around them).</p>
 				    
 					<p>This site is developed in collaboration with the <a href="https://www.climatecentre.org">
 					Red Cross Red Crescent Climate Centre</a> with funding from
@@ -58,7 +58,9 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the download button on the top right of the flood summary to download the flood data.
+								Click the download button on the top right of
+								the flood forecast summary to download the flood
+								impact forecast report.
                             </span>
                         </div>
                     </div>
@@ -68,7 +70,8 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the Add flood button on the right side of the Nav bar to Add your flood layer.
+								Click the Add Flood button on the right side of
+								the navigation bar to add your flood forecast layer.
                             </span>
                         </div>
                     </div>
@@ -78,7 +81,8 @@
                         </div>
                         <div class="col-lg-10 text-justify">
                             <span>
-                                Click the Browse Flood button on the bottom right of InaSAFE FBF to Browse Floods.
+								Click the Browse Flood button on the bottom
+								right of InaSAFE FBF to browse flood forecasts.
                             </span>
                         </div>
                     </div>
@@ -87,12 +91,12 @@
             <div class="panel-body-wrapper panel-body panel-flood-scenario" style="display: none">
                 <button class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                 <div class="panel-title">
-                    Add Flood Scenario
+                    Add Flood Forecast 
                 </div>
                 <div class="panel-body">
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="draw-flood" style="display: none;">Draw Flood</button>
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="upload-flood">Upload Flood</button>
-                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="glofas" disabled>Latest GloFAS</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="draw-flood" style="display: none;">Draw Flood Forecast</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="upload-flood">Upload Flood Forecast</button>
+                    <button class="btn btn-warning btn-primary-1 btn-full-width" id="glofas" disabled>Latest GloFAS Forecast</button>
                     <button class="btn btn-warning btn-primary-1 btn-full-width" id="signature-flood" disabled>Latest Signature Flood Event</button>
                     <button class="btn btn-warning btn-primary-1 btn-full-width" id="existing-scenario-flood" disabled>Use Existing Scenario</button>
                 </div>
@@ -101,7 +105,7 @@
                 <div class="form-wrapper panel-draw-flood flood-form panel-body-subwrapper" style="display: none">
                     <button class="btn btn-back pull-left" id="cancel-draw"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                     <div class="panel-title" style="display: none !important;">
-                        Draw Flood
+                        Draw Flood Forecast
                     </div>
                     <div id="draw-flood-form">
                         <form role="form" id="draw-form" enctype="multipart/form-data" class="form-horizontal">
@@ -144,7 +148,7 @@
                 <div class="form-wrapper panel-upload-flood flood-form panel-body-subwrapper" style="display: none">
                     <button type="reset" class="btn btn-back pull-left"><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></button>
                     <div class="panel-title">
-                        Upload Flood
+                        Upload Flood Forecast
                     </div>
                     <div id="upload-flood-form-wrapper">
                         <form role="form" method="post" id="upload-flood-form" enctype="multipart/form-data" class="form-horizontal" action="javascript:void(0)">
@@ -182,7 +186,7 @@
                                 </div>
                                 <br/>
                                 <div  id="upload-progress-bar"  class="progress-status row">
-                                    <div class="alert-info" style="text-align: center;">Uploading Flood Map</div>
+                                    <div class="alert-info" style="text-align: center;">Uploading Flood Forecast Map</div>
                                     <div class="progress">
                                         <div class="progress-bar progress-bar-striped bg-info"></div>
                                     </div>
@@ -203,7 +207,7 @@
                                 </div>
                                 <div class="col-lg-6">
                                     <div style="text-align: center; line-height: 26px; color: white">
-                                        Browse Floods
+                                        Browse Flood Forecasts
                                     </div>
                                 </div>
                                 <div class="col-lg-3 text-right">
@@ -328,9 +332,9 @@
             </a>
         </div>
         <div>
-            <span>Available in </span>
+            <span>Available on </span>
             <a href="https://github.com/kartoza/fbf-project/" target="_blank" style="color: #cc9c43">
-                github</a>
+                GitHub</a>
         </div>
     </div>
 </div>
@@ -343,7 +347,7 @@
             </div>
         </div>
         <div class="col-lg-4 pull-right" style="text-align: right; padding-right: 35px; padding-top: 7px">
-            <button class="btn btn-warning btn-primary-1 add-flood-scenario"><img src="images/add-flood-icon.svg"><span>ADD FLOOD</span></button>
+            <button class="btn btn-warning btn-primary-1 add-flood-scenario"><img src="images/add-flood-icon.svg"><span>ADD FLOOD FORECAST</span></button>
         </div>
     </div>
 </nav>
@@ -380,7 +384,7 @@
 
 <script type="text/template" id="dashboard-template">
     <div class="panel-title" id="main-panel-header">
-        Summary for Flood <%= flood_name %>
+        Flood Forecast Summary: <%= flood_name %>
     </div>
     <div class="flood-summary-info">
         <table>
@@ -447,7 +451,7 @@
 
 <script type="text/template" id="region-title-panel-template">
     <div class="panel-title">
-        <%= region %> Summary
+        <%= region %> Forecast Summary
     </div>
 </script>
 
@@ -462,13 +466,13 @@
         <td class="box-count-left">
             <div class="box-count">
                 <div class="score"><%= flooded_vulnerability_total %></div>
-                <div class="subtext">Vulnerability Score Total</div>
+                <div class="subtext">Total Vulnerability Score</div>
             </div>
         </td>
         <td class="box-count-right">
             <div class="box-count">
                 <div class="score"><%= flooded_building_count %></div>
-                <div class="subtext">Buildings that could be affected</div>
+                <div class="subtext">Potentially affected buildings</div>
             </div>
         </td>
     </tr>
