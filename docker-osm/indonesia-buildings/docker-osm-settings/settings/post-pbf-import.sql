@@ -653,8 +653,8 @@ CREATE FUNCTION activation_status_lead_times () RETURNS trigger
         on b.id=a.flood_event_id
     ),
     times as (select flood_event_id, (CURRENT_DATE - acquisition_date::DATE) as num_days from flood)
-    update flood_event_village_summary a set trigger_status = 2 from times b
-    where b.num_days = 10 and  b.flood_event_id = a.flood_event_id;
+    update flood_event_village_summary a set trigger_status = 'activation' from times b
+    where b.num_days <= 3 and  b.flood_event_id = a.flood_event_id;
     RETURN new;
     end ;
     $$;
@@ -802,6 +802,64 @@ AS
   WHERE a.district_id = b.dc_code
 WITH DATA;
 
+CREATE MATERIALIZED VIEW exposed_buildings_mv as
+    with flood_event as (
+SELECT
+    d.id AS flood_event_id,
+    a.depth_class,
+	a.geometry
+   FROM flooded_area a
+     JOIN flooded_areas b ON a.id = b.flooded_area_id
+     JOIN flood_map c ON c.id = b.flood_map_id
+     JOIN flood_event d ON d.flood_map_id = c.id)
+select row_number() OVER () AS id,b.flood_event_id, b.depth_class,c.total_vulnerability from flood_event b join
+osm_buildings  c on st_intersects(c.geometry,b.geometry) ;
+
+
+-- Populate the flood event buildings - need to convert it to function
+
+ create materialized view flood_event_buildings_mv as
+with intersections as (SELECT a.geometry,d.id AS flood_event_id, a.depth_class FROM flooded_area a
+     JOIN flooded_areas b ON a.id = b.flooded_area_id
+     JOIN flood_map c ON c.id = b.flood_map_id
+     JOIN flood_event d ON d.flood_map_id = c.id)
+select row_number() OVER () AS id,b.osm_id as building_id,a.flood_event_id,a.depth_class,b.district_id,
+       b.sub_district_id,b.village_id, b.building_type,b.total_vulnerability,b.geometry from intersections a
+join osm_buildings b on st_intersects(a.geometry,b.geometry);
+
+CREATE UNIQUE INDEX id_db_mv
+  ON flood_event_buildings_mv (id);
+create index building_id_mv   ON flood_event_buildings_mv (building_id);
+create index flood_event_id_mv   ON flood_event_buildings_mv (flood_event_id);
+create index district_id_mv   ON flood_event_buildings_mv (district_id);
+create index sub_district_id_mv   ON flood_event_buildings_mv (sub_district_id);
+create index village_id_mv   ON flood_event_buildings_mv (village_id);
+
+
+CREATE FUNCTION refresh_flood_event_buildings_mv() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY flood_event_buildings_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER flood_event_buildings_mv_tg AFTER INSERT  ON flood_event
+FOR EACH ROW EXECUTE PROCEDURE refresh_flood_event_buildings_mv();
+
+
+CREATE FUNCTION refresh_exposed_buildings() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    REFRESH MATERIALIZED VIEW exposed_buildings_mv WITH DATA ;
+    RETURN NULL;
+  END
+  $$;
+
+CREATE TRIGGER exposed_buildings_tg AFTER INSERT OR UPDATE ON flood_event
+FOR EACH ROW EXECUTE PROCEDURE refresh_exposed_buildings();
 
 CREATE FUNCTION refresh_village_summary() RETURNS trigger
     LANGUAGE plpgsql
