@@ -43,7 +43,12 @@ define([
             urlRoot: postgresUrl + 'flood_event',
 
             url: function () {
-                return `${this.urlRoot}?id=eq.${this.get('id')}`;
+                if(this.id){
+                    return `${this.urlRoot}?id=eq.${this.id}`;
+                }
+                else {
+                    return this.urlRoot;
+                }
             },
 
             fetchExtent: function () {
