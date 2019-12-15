@@ -18,6 +18,8 @@ define([
     const _forecast_flood_url = postgresUrl + 'flood_event';
     const _flood_event_forecast_list_f_url = postgresUrl + 'rpc/flood_event_forecast_list_f';
     const _flood_event_historical_forecast_list_f_url = postgresUrl + 'rpc/flood_event_historical_forecast_list_f';
+    // We define which column to take because we don't want to fetch the whole spreadsheet blob.
+    const _select_query_param = 'select=id,flood_map_id,acquisition_date,forecast_date,source,notes,link,trigger_status';
     const ForecastEvent = Backbone.Model.extend({
             // attribute placeholder
             _url: {
@@ -117,8 +119,8 @@ define([
                     let acquisition_date_end = acquisition_date_start.clone().add(1, 'days').utc();
                     let forecast_date_start = forecast_date.clone().utc();
                     let forecast_date_end = forecast_date_start.clone().add(1, 'days').utc();
-                    let query_param = `?and=(acquisition_date.gte.${acquisition_date_start.format()},acquisition_date.lt.${acquisition_date_end.format()},forecast_date.gte.${forecast_date_start.format()},forecast_date.lt.${forecast_date_end.format()})`;
-                    AppRequest.get(_forecast_flood_url + query_param)
+                    let query_param = `and=(acquisition_date.gte.${acquisition_date_start.format()},acquisition_date.lt.${acquisition_date_end.format()},forecast_date.gte.${forecast_date_start.format()},forecast_date.lt.${forecast_date_end.format()})`;
+                    AppRequest.get(`${_forecast_flood_url}?${_select_query_param}&${query_param}`)
                         .done(function(data){
                             // we will get array of forecast event
                             let forecast_events = data.map(function(value){
@@ -138,8 +140,8 @@ define([
                 return new Promise(function (resolve, reject) {
                     let forecast_date_start = forecast_date.clone().utc();
                     let forecast_date_end = forecast_date_start.clone().add(1, 'days').utc();
-                    let query_param = `?and=(forecast_date.gte.${forecast_date_start.format()},forecast_date.lt.${forecast_date_end.format()})&order=acquisition_date.desc`;
-                    AppRequest.get(_forecast_flood_url + query_param)
+                    let query_param = `and=(forecast_date.gte.${forecast_date_start.format()},forecast_date.lt.${forecast_date_end.format()})&order=acquisition_date.desc`;
+                    AppRequest.get(`${_forecast_flood_url}?${_select_query_param}&${query_param}`)
                         .done(function (data) {
                             let forecast_events = data.map(function (value) {
                                 return new ForecastEvent(value);
