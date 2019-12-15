@@ -63,7 +63,7 @@ define([
         renderChart2: function (data, main_panel) {
             let that = this;
             let id_key = {
-                'district': 'dc_code',
+                'district': 'district_id',
                 'sub_district': 'sub_district_id',
                 'village': 'village_id'
             };
@@ -103,7 +103,7 @@ define([
             let flood_graph_data = [];
             let backgroundColours = [];
             let unlisted_key = [
-                'id', 'flood_event_id', 'vulnerability_total_score', 'flooded_building_count', 'building_count',
+                'id', 'flood_event_id', 'total_vulnerability_score', 'flooded_building_count', 'building_count',
                 'village_id', 'name', 'region', 'district_id', 'sub_district_id', 'sub_dc_code', 'village_code', 'dc_code',
                 'trigger_status'
             ];
@@ -168,8 +168,8 @@ define([
                     }]
             };
 
-            let vulnerability_total_score = data['vulnerability_total_score'] ? data['vulnerability_total_score'].toFixed(2): 0;
-            $('#vulnerability-score').html(vulnerability_total_score);
+            let total_vulnerability_score = data['total_vulnerability_score'] ? data['total_vulnerability_score'].toFixed(2): 0;
+            $('#vulnerability-score').html(total_vulnerability_score);
             $('#building-count').html(data['flooded_building_count']);
 
             new Chart(ctx, {
@@ -209,13 +209,13 @@ define([
             for(let u=0; u<data.length; u++){
                 let item = data[u];
                 let trigger_status = data[u].trigger_status || 0;
-                let vulnerability_total_score = item['vulnerability_total_score'] ? item['vulnerability_total_score'].toFixed(2) : 0;
+                let total_vulnerability_score = item['total_vulnerability_score'] ? item['total_vulnerability_score'].toFixed(2) : 0;
                 let building_total_score = item['flooded_building_count'] ? item['flooded_building_count'] : '-';
                 $table.append(item_template({
                     region: region,
                     id: item[id_field],
                     name: item['name'],
-                    flooded_vulnerability_total: vulnerability_total_score,
+                    flooded_vulnerability_total: total_vulnerability_score,
                     flooded_building_count: building_total_score,
                     trigger_status: trigger_status
                 }));
@@ -366,7 +366,7 @@ define([
             }
 
             $.get({
-                url: postgresUrl + region + '_extent_v?id_code=eq.' + region_id,
+                url: postgresUrl + `vw_${region}_extent?id_code=eq.${region_id}`,
                 success: function (data) {
                     if(data.length > 0) {
                         let coordinates = [[data[0].y_min, data[0].x_min], [data[0].y_max, data[0].x_max]];

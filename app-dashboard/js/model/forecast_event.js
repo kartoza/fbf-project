@@ -21,7 +21,7 @@ define([
             // attribute placeholder
             _url: {
                 forecast_flood: _forecast_flood_url,
-                forecast_flood_extent: postgresUrl + 'flood_event_extent_v'
+                forecast_flood_extent: postgresUrl + 'vw_flood_event_extent'
             },
             _table_attrs: {
                 forecast_flood: {

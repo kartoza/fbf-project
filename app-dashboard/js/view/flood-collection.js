@@ -321,7 +321,7 @@ define([
             };
 
             let key = {
-                'district': 'dc_code',
+                'district': 'district_id',
                 'sub_district': 'sub_district_id',
                 'village': 'village_id'
             };
@@ -350,9 +350,9 @@ define([
                 delete overall['region_id'];
                 delete overall[region + '_id'];
                 delete overall['name'];
-                delete overall['village_code'];
-                delete overall['sub_dc_code'];
-                delete overall['dc_code'];
+                delete overall['village_id'];
+                delete overall['sub_district_id'];
+                delete overall['district_id'];
                 delete overall['trigger_status'];
             } else {
                 main_panel = false;
@@ -405,7 +405,7 @@ define([
             this.village_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.villageStats = data;
@@ -422,7 +422,7 @@ define([
             this.district_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.districtStats = data;
@@ -439,7 +439,7 @@ define([
             this.subdistrict_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.subDistrictStats = data;
@@ -457,8 +457,8 @@ define([
                 'village': 'village_id'
             };
             let keyParent = {
-                'sub_district': 'dc_code',
-                'village': 'sub_dc_code'
+                'sub_district': 'district_id',
+                'village': 'sub_district_id'
             };
             let that = this;
             let stats = {
