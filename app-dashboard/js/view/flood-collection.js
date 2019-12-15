@@ -14,6 +14,7 @@ define([
     return Backbone.View.extend({
         el: '.panel-browse-flood',
         forecasts_list: [],
+        historical_forecasts_list: [],
         event_date_hash: {},
         selected_flood: null,
         building_type: {},
@@ -84,10 +85,14 @@ define([
                     });
                     html += '</table>';
                     that.$date_legend.html('<div>'+html+'</div>');
-                    that.fetchForecastCollection();
                 })
-                .catch(function () {
+                .always(function () {
                     that.fetchForecastCollection();
+
+                    // fetch historical forecast to 2 months back
+                    let today = moment();
+                    previous_months = today.clone().subtract(2, 'months');
+                    that.fetchHistoricalForecastCollection(previous_months, today);
                 });
         },
         initializeDatePickerBrowse: function () {
@@ -106,7 +111,7 @@ define([
                     let date_string = moment(date).formatDate();
                     let event = that.event_date_hash[date_string];
                     if (cellType === 'day' && event) {
-                        let classes = 'flood-date trigger-status-' + (event.trigger_status ? event.trigger_status : 0);
+                        let classes = 'flood-date trigger-status-' + (event.trigger_status_id ? event.trigger_status_id : 0);
                         if (event.is_historical) {
                             classes += ' trigger-status-historical';
                         }
@@ -116,11 +121,13 @@ define([
                     }
                 },
                 onChangeMonth: function (month, year) {
-                    let today = new moment().utc()
-                    today.year(year);
-                    today.month(month);
-                    today.day(10);
-                    that.fetchForecastCollection(today.subtract(1, 'month').startOf('month').utc());
+                    // fetch historical forecast to 2 months back
+                    let month_start = new moment();
+                    month_start.year(year);
+                    month_start.month(month - 2);
+                    month_start.day(1);
+                    let month_end = month_start.clone().add(3, 'month');
+                    that.fetchHistoricalForecastCollection(month_start, month_end);
                 },
                 onSelect: function (fd, date) {
                     if (date) {
@@ -142,52 +149,36 @@ define([
             this.$datepicker_browse.val('Select forecast date');
             this.datepicker_browse = this.$datepicker_browse.data('datepicker');
         },
-        fetchForecastCollection: function (startDate) {
-            let today = moment().utc();
-            let dateForSummaryFlood = null;
-            if (startDate) {
-                today = startDate;
-            } else {
-                dateForSummaryFlood = today.clone().add(10, 'days').format('YYYY-MM-DD');
+        updateDatePicker: function(){
+            if(this.datepicker_browse){
+                this.datepicker_browse.update();
             }
+            else {
+                // try next update
+                setInterval(this.updateDatePicker, 500);
+            }
+        },
+        fetchHistoricalForecastCollection: function(forecast_date_range_start, forecast_date_range_end){
+            const today = moment().momentDateOnly().utc();
             const that = this;
 
-            let identifier = today.year() + '-' + today.month();
-            if (that.fetchedDate[identifier]) {
-                return;
-            }
-            // Get flood forecast collection
-            // we need to call it per 2 month
-            let startOfMonth = today.clone().subtract(1, 'month').startOf('month').utc();
-            let endOfMonth = today.clone().add(1, 'month').startOf('month').subtract(1, 'day').utc();
-            if (!startDate) {
-                endOfMonth = today.clone().add(2, 'month').startOf('month').subtract(1, 'day').utc();
+            if(forecast_date_range_end.isAfter(today)){
+                // Do not fetch historical context for dates after today.
+                forecast_date_range_end = today;
             }
 
-            //check if it's already called
-            that.fetchedDate[startOfMonth.year() + '-' + startOfMonth.month()] = true;
-            that.fetchedDate[endOfMonth.year() + '-' + endOfMonth.month()] = true;
-            ForecastEvent.getCurrentForecastList(startOfMonth, endOfMonth)
+            ForecastEvent.getHistoricalForecastList(forecast_date_range_start, forecast_date_range_end)
                 .then(function (data) {
-                    that.forecasts_list = that.forecasts_list.concat(data);
-                    // counting flood summary
-                    let floodSummary = {};
 
-                    // create date hash for easier indexing
+                    data = data.map(function (value) {
+                        value.is_historical = true
+                        return value;
+                    });
+
+                    that.historical_forecasts_list = that.historical_forecasts_list.concat(data);
+
                     let date_hash = data.map(function (value) {
                         let date_string = value.forecast_date.local().formatDate();
-
-                        // show flood summary on the load
-                        if (dateForSummaryFlood && !value.is_historical && dateForSummaryFlood >= value.forecast_date.format('YYYY-MM-DD')) {
-                            if (!floodSummary['all']) {
-                                floodSummary['all'] = 0;
-                            }
-                            if (!floodSummary[value.trigger_status]) {
-                                floodSummary[value.trigger_status] = 0;
-                            }
-                            floodSummary['all'] += 1;
-                            floodSummary[value.trigger_status] += 1;
-                        }
                         return {
                             [date_string]: value
                         };
@@ -196,20 +187,62 @@ define([
                         return accumulator;
                     }, {});
 
-                    that.event_date_hash = Object.assign({}, that.event_date_hash, date_hash);
+                    _.extend(that.event_date_hash, date_hash);
 
-                    // decorate the date picker here
-                    if (!startDate) {
-                        dispatcher.trigger('flood:update-forecast-collection', that);
-                        $.each(floodSummary, (key, value) => {
-                            let $element = $('#flood-summary-trigger-status-' + key);
-                            if ($element.length !== 0) {
-                                $element.closest('.flood-count').show();
-                                $element.html(value);
-                            }
-                        })
-                    }
+
+                    // update datepicker
+                    that.updateDatePicker();
                 })
+
+        },
+        fetchForecastCollection: function () {
+            const today = moment().utc();
+            const that = this;
+
+            // Get flood forecast collection
+            ForecastEvent.getCurrentForecastList(today)
+                .then(function(data){
+
+                    that.forecasts_list = data;
+
+                    // create date hash for easier indexing
+                    let date_hash = data.map(function (value) {
+                        let date_string = value.forecast_date.local().formatDate();
+                        return {
+                            [date_string]: value
+                        };
+                    }).reduce(function (accumulator, value) {
+                        _.extend(accumulator, value);
+                        return accumulator;
+                    }, {});
+
+                    _.extend(that.event_date_hash, date_hash);
+
+                    dispatcher.trigger('flood:update-forecast-collection', that);
+                    that.updateForecastsSummary();
+            })
+        },
+        updateForecastsSummary: function(){
+            let flood_summary = {
+                [TriggerStatusCollection.constants.NOT_ACTIVATED]: 0,
+                [TriggerStatusCollection.constants.PRE_ACTIVATION]: 0,
+                [TriggerStatusCollection.constants.ACTIVATION]: 0,
+                all: 0
+            }
+            flood_summary = this.forecasts_list.reduce( function(accumulator, value) {
+                let status_id = value.trigger_status_id || TriggerStatusCollection.constants.NOT_ACTIVATED;
+                accumulator[status_id]++;
+                accumulator.all++;
+                return accumulator;
+            }, flood_summary);
+
+            _.mapObject(flood_summary, function (value, key) {
+                let $element = $('#flood-summary-trigger-status-' + key);
+                if ($element.length !== 0) {
+                    $element.closest('.flood-count').show();
+                    $element.html(value);
+                }
+            });
         },
         updateForecastsList: function (forecasts) {
             if (forecasts.length > 1) {
@@ -280,22 +313,41 @@ define([
                 return;
             }
 
-            // fetch forecasts list for the date
-            forecast_events_aggregate.available_forecasts()
-                .then(function (data) {
-                    if (data && data.length > 0 && optional_forecast_id) {
-                        // if forecast id specified, select that instead of first forecast.
-                        data = data.filter(forecast => forecast.get('id') === optional_forecast_id);
-                    }
-                    if (data && data.length > 0) {
-                        // for now, select first forecast
-                        that.selectForecast(data[0]);
-                    } else {
-                        that.deselectForecast();
-                    }
-                    that.updateForecastsList(data);
-                    that.updateForecastsPager(moment(date));
-                });
+            if(forecast_events_aggregate.is_historical){
+                // fetch historical lists
+                forecast_events_aggregate.forecast_history()
+                    .then(function (data) {
+                        // TODO: behaviour needs to be defined.
+                        // default behaviour now is to fetch the latest
+                        if (data && data.length > 0) {
+                            // for now, select first forecast
+                            that.selectForecast(data[0]);
+                        } else {
+                            that.deselectForecast();
+                        }
+                        that.updateForecastsList(data);
+                        that.updateForecastsPager(moment(date));
+                    });
+            }
+            else {
+                // fetch current day forecast
+                // fetch forecasts list for the date
+                forecast_events_aggregate.available_forecasts()
+                    .then(function (data) {
+                        if (data && data.length > 0 && optional_forecast_id) {
+                            // if forecast id specified, select that instead of first forecast.
+                            data = data.filter(forecast => forecast.get('id') === optional_forecast_id);
+                        }
+                        if (data && data.length > 0) {
+                            // for now, select first forecast
+                            that.selectForecast(data[0]);
+                        } else {
+                            that.deselectForecast();
+                        }
+                        that.updateForecastsList(data);
+                        that.updateForecastsPager(moment(date));
+                    });
+            }
         },
         onFocusOut: function (e) {
             // if(!this.is_browsing) {
@@ -321,7 +373,7 @@ define([
             };
 
             let key = {
-                'district': 'dc_code',
+                'district': 'district_id',
                 'sub_district': 'sub_district_id',
                 'village': 'village_id'
             };
@@ -350,9 +402,9 @@ define([
                 delete overall['region_id'];
                 delete overall[region + '_id'];
                 delete overall['name'];
-                delete overall['village_code'];
-                delete overall['sub_dc_code'];
-                delete overall['dc_code'];
+                delete overall['village_id'];
+                delete overall['sub_district_id'];
+                delete overall['district_id'];
                 delete overall['trigger_status'];
             } else {
                 main_panel = false;
@@ -405,7 +457,7 @@ define([
             this.village_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.villageStats = data;
@@ -422,7 +474,7 @@ define([
             this.district_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.districtStats = data;
@@ -439,7 +491,7 @@ define([
             this.subdistrict_summaries.fetch({
                 data: {
                     flood_event_id: `eq.${flood_event_id}`,
-                    order: 'trigger_status.desc,vulnerability_total_score.desc'
+                    order: 'trigger_status.desc,total_vulnerability_score.desc'
                 }
             }).then(function (data) {
                 that.subDistrictStats = data;
@@ -457,8 +509,8 @@ define([
                 'village': 'village_id'
             };
             let keyParent = {
-                'sub_district': 'dc_code',
-                'village': 'sub_dc_code'
+                'sub_district': 'district_id',
+                'village': 'sub_district_id'
             };
             let that = this;
             let stats = {

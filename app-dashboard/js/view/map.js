@@ -70,7 +70,7 @@ define([
                     let forecast_layer = forecast.leafletLayer();
                     // add layer to leaflet
                     if(that.forecast_layer){
-                        that.map.removeLayer(that.forecast_layer);
+                        that.removeOverlayLayer(that.forecast_layer);
                     }
                     dispatcher.trigger('map:redraw');
                     that.addOverlayLayer(forecast_layer, 'Flood Forecast');
@@ -78,6 +78,9 @@ define([
                     that.map.fitBounds(extent.leaflet_bounds);
                     // register layer to view
                     that.forecast_layer = forecast_layer;
+                    // reset region boundary and exposed flood maps because we are seeing different flood
+                    that.showRegionBoundary(null, null);
+                    that.showExposedBuildings(null, null, null);
                     dispatcher.trigger('side-panel:open-dashboard');
                     if(callback) {
                         callback();
@@ -233,6 +236,11 @@ define([
                 this.region_layer = null;
             }
             dispatcher.trigger('map:redraw');
+
+            if(region == null && region_id == null){
+                return;
+            }
+
             this.region_layer = L.tileLayer.wms(
                 geoserverUrl,
                 {
@@ -257,6 +265,10 @@ define([
                 'district': 'district_id',
                 'sub_district': 'sub_district_id',
                 'village': 'village_id',
+            }
+
+            if(region == null && region_id == null){
+                return;
             }
 
             this.exposed_layers = this.depth_class_collection.map(function (depth_class) {

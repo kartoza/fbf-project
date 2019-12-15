@@ -16,12 +16,13 @@ define([
      *
      */
     const _forecast_flood_url = postgresUrl + 'flood_event';
-    const _flood_event_forecast_list_f_url = postgresUrl + 'rpc/flood_event_newest_forecast_f';
+    const _flood_event_forecast_list_f_url = postgresUrl + 'rpc/flood_event_forecast_list_f';
+    const _flood_event_historical_forecast_list_f_url = postgresUrl + 'rpc/flood_event_historical_forecast_list_f';
     const ForecastEvent = Backbone.Model.extend({
             // attribute placeholder
             _url: {
                 forecast_flood: _forecast_flood_url,
-                forecast_flood_extent: postgresUrl + 'flood_event_extent_v'
+                forecast_flood_extent: postgresUrl + 'vw_flood_event_extent'
             },
             _table_attrs: {
                 forecast_flood: {
@@ -130,6 +131,78 @@ define([
             },
 
             /**
+             * Given a forecast date, retrieve all forecast history of this given date (past forecast result of the same date)
+             * @param forecast_date
+             */
+            getForecastHistory: function(forecast_date){
+                return new Promise(function (resolve, reject) {
+                    let forecast_date_start = forecast_date.clone().utc();
+                    let forecast_date_end = forecast_date_start.clone().add(1, 'days').utc();
+                    let query_param = `?and=(forecast_date.gte.${forecast_date_start.format()},forecast_date.lt.${forecast_date_end.format()})&order=acquisition_date.desc`;
+                    AppRequest.get(_forecast_flood_url + query_param)
+                        .done(function (data) {
+                            let forecast_events = data.map(function (value) {
+                                return new ForecastEvent(value);
+                            });
+                            resolve(forecast_events);
+                        })
+                        .catch(reject);
+                });
+            },
+
+            /**
+             * Given range of forecast dates to inspect, return information of forecast history for each date.
+             *
+             * Each list element is an object with keys:
+             * {
+             *     total_forecast: total past forecast made for this given forecast date (different acquisition date)
+             *     forecast_date: this forecast date, as moment date
+             *     minimum_lead_time: minimum lead time made for this forecast date
+             *     maximum_lead_time: maximum lead time made for this forecast date
+             *     forecast_history(): lazy function to retrieve forecast events (history) list for this date
+             * }
+             * @param forecast_date_range_start
+             * @param forecast_date_range_end
+             * @returns {Promise<any>}
+             */
+            getHistoricalForecastList: function(forecast_date_range_start, forecast_date_range_end){
+                return new Promise(function (resolve, reject) {
+                    // we make range according to local time, but send it in utc for the db
+                    let date_start = forecast_date_range_start.clone().local().momentDateOnly().utc();
+                    let date_end = forecast_date_range_end.clone().local().momentDateOnly().utc();
+
+                    AppRequest.post(
+                        _flood_event_historical_forecast_list_f_url,
+                        {
+                            forecast_date_range_start: date_start,
+                            forecast_date_range_end: date_end
+                        },
+                        null,
+                        null,
+                        'application/json')
+                        .done(function (data) {
+                            // we will get array of forecast event
+                            let forecast_events = data.map(function (value) {
+                                let forecast_date = forecast_date_range_start.clone().add(value.relative_forecast_date, 'days').local();
+                                return {
+                                    total_forecast: value.total_forecast,
+                                    forecast_date: forecast_date,
+                                    minimum_lead_time: value.minimum_lead_time,
+                                    maximum_lead_time: value.maximum_lead_time,
+                                    trigger_status_id: value.trigger_status_id,
+                                    forecast_history: function () {
+                                        return ForecastEvent.getForecastHistory(forecast_date);
+                                    }
+                                };
+                            });
+
+                            resolve(forecast_events);
+                        })
+                        .catch(reject);
+                });
+            },
+
+            /**
              * Given an acquisition date (when the forecast created),
              * return a list of number of forecast for range of dates
              *
@@ -141,46 +214,38 @@ define([
              *     - forecasts_list(): lazy function to evaluate forecasts lists in this date
              * }
              *
-             * @param startDate
-             * @param endDate
+             * @param acquisition_date
+             *      the date (in local time) to inspect the forecast lists for next following days.
              * @returns {Promise<any>}
              */
-            getCurrentForecastList: function (startDate, endDate) {
+            getCurrentForecastList: function (acquisition_date) {
                 return new Promise(function(resolve, reject){
-                    let today = moment().utc().format().split('T')[0];
+                    // we make range according to local time for just one day, but send it in utc for the db
+                    let acquisition_date_start = acquisition_date.clone().local().momentDateOnly().utc();
+                    let acquisition_date_end = acquisition_date_start.clone().add(1, 'days').utc();
                     AppRequest.post(
                         _flood_event_forecast_list_f_url,
                         {
-                            forecast_date_start: startDate.format(),
-                            forecast_date_end: endDate.format()
+                            acquisition_date_start: acquisition_date_start,
+                            acquisition_date_end: acquisition_date_end
                         },
                         null,
                         null,
                         'application/json')
                         .done(function (data) {
                             // we will get array of forecast event
-                            let forecast_events = data.filter(
-                                function (value) {
-                                    let isHistorical = today > value.acquisition_date_str;
-                                    let isForecastInFuture = today <= value.forecast_date_str;
-                                    if (isHistorical && isForecastInFuture) {
-                                        return false;
+                            let forecast_events = data.map(function (value) {
+                                let forecast_date = acquisition_date_start.clone().add(value.lead_time, 'days').local();
+                                return {
+                                    lead_time: value.lead_time,
+                                    total_forecast: value.total_forecast,
+                                    forecast_date: forecast_date,
+                                    trigger_status_id: value.trigger_status_id,
+                                    available_forecasts: function () {
+                                        return ForecastEvent.getAvailableForecast(acquisition_date_start, forecast_date);
                                     }
-                                    value.is_historical = isHistorical;
-                                    return true;
-                                }).map(
-                                function (value) {
-                                    let forecastDate = moment.utc(value.forecast_date_str);
-                                    let acquisitionDate = moment.utc(value.acquisition_date_str);
-                                    return {
-                                        trigger_status: value.trigger_status_id,
-                                        forecast_date: forecastDate,
-                                        is_historical: value.is_historical,
-                                        available_forecasts: function () {
-                                            return ForecastEvent.getAvailableForecast(acquisitionDate, forecastDate);
-                                        }
-                                    };
-                                });
+                                };
+                            });
                             resolve(forecast_events);
                         })
                         .catch(reject);
