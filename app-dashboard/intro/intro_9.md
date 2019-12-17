@@ -1,1 +1,1 @@
-<center><img src="images/story_board/9_spreadsheet_report.png" style="max-height: 100%"></center>
+<center><img src="images/story_board/8_dashboards.png" style="max-height: 100%"></center>
