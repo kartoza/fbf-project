@@ -15,7 +15,8 @@ require.config({
         'airDatepickerEN': 'libs/airdatepicker/js/i18n/datepicker.en',
         'chartjs': 'libs/chart/Chart-2.7.2',
         'markdown': 'libs/markdown-it-10.0.0/markdown-it.min',
-        'filesaver': 'libs/filesaver/FileSaver'
+        'filesaver': 'libs/filesaver/FileSaver',
+        'leafletWMSLegend': 'libs/leaflet-wms-legend/leaflet.wmslegend'
     },
     shim: {
         moment: {
@@ -46,6 +47,9 @@ require.config({
         },
         filesaver: {
             deps: ["jquery"]
+        },
+        leafletWMSLegend: {
+            deps: ['leaflet']
         }
     }
 });

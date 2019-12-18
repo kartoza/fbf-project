@@ -5,10 +5,12 @@ define([
     'js/view/layers.js',
     'js/view/side-panel.js',
     'js/view/intro.js',
-    'js/model/depth_class.js'
-], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection) {
+    'js/model/depth_class.js',
+    'leafletWMSLegend',
+], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection, LeafletWMSLegend) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
+        wmsLegendURI: 'http://78.47.62.69/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=kartoza:exposed_buildings',
         initialize: function () {
             // constructor
             this.map = L.map('map').setView([51.505, -0.09], 13).fitBounds(this.initBounds);
@@ -96,6 +98,9 @@ define([
                 })
         },
         redraw: function () {
+            if(this.wmsLegend) {
+                this.map.removeControl(this.wmsLegend)
+            }
             $.each(this.layers.layers, function (index, layer) {
                 layer.addLayer();
             });
@@ -290,6 +295,7 @@ define([
                 }
             });
             this.exposed_layers.forEach(l => that.addOverlayLayer(l.layer, l.name));
+            this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map);
         }
     });
 });
