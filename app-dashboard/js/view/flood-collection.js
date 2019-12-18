@@ -57,7 +57,8 @@ define([
             dispatcher.on('flood:fetch-forecast-collection', this.fetchForecastCollection, this);
             dispatcher.on('flood:update-forecast-collection', this.initializeDatePickerBrowse, this);
             dispatcher.on('flood:fetch-forecast', this.fetchForecast, this);
-            dispatcher.on('flood:fetch-stats-data', this.fetchStatisticData, this)
+            dispatcher.on('flood:fetch-stats-data', this.fetchStatisticData, this);
+            dispatcher.on('flood:deselect-forecast', this.deselectForecast, this);
 
 
             // get forecast collections

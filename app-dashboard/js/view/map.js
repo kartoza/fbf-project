@@ -61,6 +61,7 @@ define([
             this.map.setZoom(5);
         },
         hideMap: function () {
+            dispatcher.trigger('flood:deselect-forecast');
             $(this.map._container).hide();
         },
         drawForecastLayer: function(forecast, callback){
