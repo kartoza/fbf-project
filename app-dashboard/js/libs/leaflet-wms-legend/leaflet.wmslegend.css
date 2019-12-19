@@ -9,10 +9,15 @@
     cursor: auto;
     text-align: center;
     background-color: #FFFFFF;
-    border: 1px solid #dddddd;
+    border: 2px solid #23657D;
 }
 
 .leaflet-control-wms-legend:hover
 {
     background-color: #F4F4F4;
+}
+
+.wms-legend-icon {
+    font-size: 12pt;
+    line-height: 15pt;
 }
