@@ -45,6 +45,11 @@ define([
 
             urlRoot: postgresUrl + 'flood_event',
 
+            initialize: function(){
+                this.lead_time();
+                this.is_historical();
+            },
+
             url: function () {
                 if(this.id){
                     return `${this.urlRoot}?id=eq.${this.id}`;
@@ -81,6 +86,43 @@ define([
                         })
                         .fail(reject);
                 });
+            },
+
+            /**
+             * Return acquisition_date as moment
+             */
+            acquisition_date: function(){
+                return moment.utc(this.attributes.acquisition_date);
+            },
+
+            /**
+             * Return forecast_date as moment
+             *
+             */
+            forecast_date: function(){
+                return moment.utc(this.attributes.forecast_date);
+            },
+
+            /**
+             * Return Lead Time, which is difference
+             */
+            lead_time: function(){
+                let acquisition_date = this.acquisition_date();
+                let forecast_date = this.forecast_date();
+                let lead_time = forecast_date.diff(acquisition_date, 'days');
+                this.set('lead_time', lead_time);
+                return this.attributes.lead_time;
+            },
+
+            /**
+             * Determine if this is forecast made in the past
+             */
+            is_historical: function(){
+                let acquisition_date = this.acquisition_date();
+                let today = moment().local().momentDateOnly();
+                let is_historical = acquisition_date.isBefore(today);
+                this.set('is_historical', is_historical);
+                return is_historical;
             },
 
             leafletLayer: function () {
