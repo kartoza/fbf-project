@@ -185,7 +185,7 @@ define([
                         .done(function (data) {
                             // we will get array of forecast event
                             let forecast_events = data.map(function (value) {
-                                let forecast_date = forecast_date_range_start.clone().add(value.relative_forecast_date, 'days').local();
+                                let forecast_date = date_start.clone().add(value.relative_forecast_date, 'days').local();
                                 return {
                                     total_forecast: value.total_forecast,
                                     forecast_date: forecast_date,

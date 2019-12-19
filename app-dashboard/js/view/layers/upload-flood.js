@@ -22,7 +22,7 @@ define([
             this.$flood_model_notes = $form.find("input[name='flood_model_notes']");
             this.$source_url = $form.find("input[name='source_url']");
             this.$geojson = $form.find("input[name='geojson']");
-            this.$return_period = $form.find("input[name='return_period']");
+            this.$return_period = $form.find("select[name='return_period']");
             this.$acquisition_date = $form.find("input[name='acquisition_date']");
             this.$forecast_date = $form.find("input[name='forecast_date']");
 
