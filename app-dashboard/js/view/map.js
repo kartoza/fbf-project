@@ -80,7 +80,7 @@ define([
                     if(that.forecast_layer){
                         that.removeOverlayLayer(that.forecast_layer);
                     }
-                    dispatcher.trigger('map:redraw');
+                    that.redraw();
                     that.addOverlayLayer(forecast_layer, 'Flood Forecast');
                     // zoom to bbox
                     that.map.flyToBounds(extent.leaflet_bounds);
@@ -89,6 +89,7 @@ define([
                     // reset region boundary and exposed flood maps because we are seeing different flood
                     that.showRegionBoundary(null, null);
                     that.showExposedBuildings(null, null, null);
+                    that.wmsFloodLegend = L.wmsLegend(that.wmsFloodDepthLegendURI, that.map, 'wms-legend-icon fa fa-map-signs');
                     dispatcher.trigger('side-panel:open-dashboard');
                     if(callback) {
                         callback();
@@ -304,8 +305,8 @@ define([
                 }
             });
             this.exposed_layers.forEach(l => that.addOverlayLayer(l.layer, l.name));
-            this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map, 'wms-legend-icon fa fa-binoculars');
             this.wmsFloodLegend = L.wmsLegend(this.wmsFloodDepthLegendURI, this.map, 'wms-legend-icon fa fa-map-signs');
+            this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map, 'wms-legend-icon fa fa-binoculars');
         },
         addMarker: function (centroid, trigger_status) {
             if(centroid) {
