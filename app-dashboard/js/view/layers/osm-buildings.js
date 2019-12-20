@@ -15,22 +15,6 @@ define([
                 'buildings-filter',
                 this._id, 'building_id', databaseModel, []);
 
-            // call filters from api
-            AppRequest.get(
-                postgresUrl + 'osm_buildings_mv', [], null,
-                function (data) {
-                    $.each(data, (index, row) => {
-                        row['type'] = row['building_type'];
-                        row['type_id'] = row['building_id'];
-                    });
-                    filter.options = data;
-                    filter.render();
-                    that.addLayer();
-                },
-                function (data) {
-                    console.log(data)
-                });
-
             // this filter is for vulnerability buildings
             let vulnerabilityFilters = [
                 new SingleRangeFilter(

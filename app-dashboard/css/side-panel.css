@@ -408,7 +408,7 @@ form label {
     font-weight: 600;
 }
 
-.datepicker--cell.-selected-, .datepicker--cell.-selected-.-current- {
+.datepicker--cell.-selected-, .datepicker--cell.-selected-.-current-, .datepicker--cell.-focus- {
     color: #fff;
     opacity: 0.7;
 }

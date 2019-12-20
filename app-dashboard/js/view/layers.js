@@ -1,8 +1,7 @@
 define([
     'backbone', 'leaflet',
-    'js/view/layers/osm-buildings.js',
-    'js/view/layers/layer-statistic/osm-polygon-statistic.js'], function (
-    Backbone, L, OSMBuildings, PolygonStatistic) {
+    'js/view/layers/osm-buildings.js'], function (
+    Backbone, L, OSMBuildings) {
     return Backbone.View.extend({
         initialize: function (mapView) {
             let buildings = new OSMBuildings(mapView);
@@ -10,7 +9,6 @@ define([
             this.groups = {
                 'Buildings': buildings.group,
             }
-            this.polygonStatistic = new PolygonStatistic([buildings.statistic]);
         },
     });
 });
