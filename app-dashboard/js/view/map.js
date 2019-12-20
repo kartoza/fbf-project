@@ -53,7 +53,7 @@ define([
             dispatcher.trigger('map:redraw');
             this.map.fitBounds(this.initBounds);
             this.map.setZoom(5);
-            dispatcher.trigger('dashboard:reset')
+            dispatcher.trigger('side-panel:open-welcome')
         },
         showMap: function() {
             $(this.map._container).show();
