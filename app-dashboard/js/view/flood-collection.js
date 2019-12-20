@@ -541,8 +541,8 @@ define([
                     .then(function (data) {
                         if (data && data.length > 0) {
                             data[0].fetchExtent().then(function (extent) {
-                                extent = L.latLngBounds(extent.leaflet_bounds);
-                                dispatcher.trigger('map:add-marker', extent.getCenter(), forecast_events_aggregate.trigger_status_id)
+                                let _extent = L.latLngBounds(extent.leaflet_bounds);
+                                dispatcher.trigger('map:add-marker', _extent.getCenter(), forecast_events_aggregate.trigger_status_id)
                             })
                         }
                     });

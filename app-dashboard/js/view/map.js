@@ -83,7 +83,7 @@ define([
                     dispatcher.trigger('map:redraw');
                     that.addOverlayLayer(forecast_layer, 'Flood Forecast');
                     // zoom to bbox
-                    that.map.fitBounds(extent.leaflet_bounds);
+                    that.map.flyToBounds(extent.leaflet_bounds);
                     // register layer to view
                     that.forecast_layer = forecast_layer;
                     // reset region boundary and exposed flood maps because we are seeing different flood
