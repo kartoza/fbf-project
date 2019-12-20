@@ -533,6 +533,7 @@ define([
             return listSubRegion
         },
         getListCentroid: function () {
+            dispatcher.trigger('map:remove-all-markers');
             let that = this;
             $.each(that.forecasts_list, function (index, forecast) {
                 let forecast_events_aggregate = forecast;

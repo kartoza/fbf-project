@@ -39,6 +39,7 @@ define([
             dispatcher.on('map:show-exposed-buildings', this.showExposedBuildings, this);
             dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
             dispatcher.on('map:add-marker', this.addMarker, this);
+            dispatcher.on('map:remove-all-markers', this.removeAllMarkers, this);
         },
         addOverlayLayer: function(layer, name){
             this.layer_control.addOverlay(layer, name);
@@ -318,11 +319,20 @@ define([
             };
 
             let icon = L.AwesomeMarkers.icon({
-                icon: 'coffee',
+                prefix: 'fa',
+                icon: 'crosshairs',
                 markerColor: dictColour[colour_code]
               });
 
             return icon
+        },
+        removeAllMarkers: function () {
+            let that = this;
+            if(that.markers.length > 0){
+                $.each(that.markers, function (index, marker) {
+                    that.map.removeLayer(marker)
+                })
+            }
         }
     });
 });
