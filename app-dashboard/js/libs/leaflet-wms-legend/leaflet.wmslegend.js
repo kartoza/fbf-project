@@ -10,16 +10,21 @@ L.Control.WMSLegend = L.Control.extend({
     },
 
     onAdd: function () {
+        let that = this;
         var controlClassName = 'leaflet-control-wms-legend',
             legendClassName = 'wms-legend',
             legendIconName = 'wms-legend-icon fa fa-binoculars',
-            stop = L.DomEvent.stopPropagation;
+            stop = L.DomEvent.stopPropagation,
+            loadingIconName = 'wms-legend-icon fa fa-spinner fa-spin fa-fw';
         this.container = L.DomUtil.create('div', controlClassName);
         this.icon = L.DomUtil.create('i', legendIconName, this.container);
         this.icon.style.display = 'none';
         this.img = L.DomUtil.create('img', legendClassName, this.container);
         this.img.src = this.options.uri;
         this.img.alt = 'Legend';
+        this.img.style.display = 'none';
+
+        this.loadingIcon = L.DomUtil.create('i', loadingIconName, this.container);
 
         L.DomEvent
             .on(this.img, 'click', this._click, this)
@@ -30,6 +35,12 @@ L.Control.WMSLegend = L.Control.extend({
             .on(this.img, 'click', stop);
         this.height = null;
         this.width = null;
+
+        $(this.img).on('load',function() {
+            that.loadingIcon.style.display = 'none'
+            that.img.style.display = 'block';
+        });
+
         return this.container;
     },
     _click: function (e) {
@@ -53,8 +64,8 @@ L.Control.WMSLegend = L.Control.extend({
                 }
                 this.displayStyle = this.img.style.display;
                 this.img.style.display = 'none';
-                this.container.style.height = '30px';
-                this.container.style.width = '30px';
+                this.container.style.height = '34px';
+                this.container.style.width = '34px';
                 this.icon.style.display = 'block';
             }
         }
