@@ -11,7 +11,8 @@ define([
 ], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection, LeafletWMSLegend, leafletAwesomeIcon) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
-        wmsLegendURI: 'http://78.47.62.69/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=kartoza:exposed_buildings',
+        wmsLegendURI: geoserverUrl + '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=kartoza:exposed_buildings',
+        wmsFloodDepthLegendURI: geoserverUrl + '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=kartoza:flood_forecast_layer',
         markers: [],
         initialize: function () {
             // constructor
@@ -105,6 +106,9 @@ define([
         redraw: function () {
             if(this.wmsLegend) {
                 this.map.removeControl(this.wmsLegend)
+            }
+            if(this.wmsFloodLegend){
+                this.map.removeControl(this.wmsFloodLegend)
             }
             $.each(this.layers.layers, function (index, layer) {
                 layer.addLayer();
@@ -300,7 +304,8 @@ define([
                 }
             });
             this.exposed_layers.forEach(l => that.addOverlayLayer(l.layer, l.name));
-            this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map);
+            this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map, 'wms-legend-icon fa fa-binoculars');
+            this.wmsFloodLegend = L.wmsLegend(this.wmsFloodDepthLegendURI, this.map, 'wms-legend-icon fa fa-map-signs');
         },
         addMarker: function (centroid, trigger_status) {
             if(centroid) {

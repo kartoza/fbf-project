@@ -6,14 +6,15 @@ let dragOn = false;
 L.Control.WMSLegend = L.Control.extend({
     options: {
         position: 'topright',
-        uri: ''
+        uri: '',
+        iconClass: ''
     },
 
     onAdd: function () {
         let that = this;
         var controlClassName = 'leaflet-control-wms-legend',
             legendClassName = 'wms-legend',
-            legendIconName = 'wms-legend-icon fa fa-binoculars',
+            legendIconName = this.options.iconClass,
             stop = L.DomEvent.stopPropagation,
             loadingIconName = 'wms-legend-icon fa fa-spinner fa-spin fa-fw';
         this.container = L.DomUtil.create('div', controlClassName);
@@ -72,12 +73,13 @@ L.Control.WMSLegend = L.Control.extend({
     },
 });
 
-L.wmsLegend = function (uri, map) {
+L.wmsLegend = function (uri, map, iconClass) {
     var wmsLegendControl = new L.Control.WMSLegend;
     wmsLegendControl.options.uri = uri;
+    wmsLegendControl.options.iconClass = iconClass
     map.addControl(wmsLegendControl);
 
-    var draggable = new L.Draggable($('.leaflet-control-wms-legend')[0]);
+    var draggable = new L.Draggable(wmsLegendControl.getContainer());
     draggable.enable();
     draggable.on('dragstart', function () {
         dragOn = true
