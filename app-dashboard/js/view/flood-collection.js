@@ -225,6 +225,7 @@ define([
 
                     dispatcher.trigger('flood:update-forecast-collection', that);
                     that.updateForecastsSummary();
+                    that.getListCentroid()
             })
         },
         updateForecastsSummary: function(){
@@ -530,6 +531,21 @@ define([
                 }
             });
             return listSubRegion
+        },
+        getListCentroid: function () {
+            let that = this;
+            $.each(that.forecasts_list, function (index, forecast) {
+                let forecast_events_aggregate = forecast;
+                forecast_events_aggregate.available_forecasts()
+                    .then(function (data) {
+                        if (data && data.length > 0) {
+                            data[0].fetchExtent().then(function (extent) {
+                                extent = L.latLngBounds(extent.leaflet_bounds);
+                                dispatcher.trigger('map:add-marker', extent.getCenter(), forecast_events_aggregate.trigger_status_id)
+                            })
+                        }
+                    });
+            })
         }
     })
 });

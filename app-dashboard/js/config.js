@@ -16,7 +16,8 @@ require.config({
         'chartjs': 'libs/chart/Chart-2.7.2',
         'markdown': 'libs/markdown-it-10.0.0/markdown-it.min',
         'filesaver': 'libs/filesaver/FileSaver',
-        'leafletWMSLegend': 'libs/leaflet-wms-legend/leaflet.wmslegend'
+        'leafletWMSLegend': 'libs/leaflet-wms-legend/leaflet.wmslegend',
+        'leafletAwesomeIcon': 'libs/leaflet.awesome-markers/js/leaflet.awesome-markers'
     },
     shim: {
         moment: {
@@ -49,6 +50,9 @@ require.config({
             deps: ["jquery"]
         },
         leafletWMSLegend: {
+            deps: ['leaflet']
+        },
+        leafletAwesomeIcon: {
             deps: ['leaflet']
         }
     }

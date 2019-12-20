@@ -7,10 +7,12 @@ define([
     'js/view/intro.js',
     'js/model/depth_class.js',
     'leafletWMSLegend',
-], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection, LeafletWMSLegend) {
+    'leafletAwesomeIcon'
+], function (Backbone, $, Basemap, Layers, SidePanelView, IntroView, DepthClassCollection, LeafletWMSLegend, leafletAwesomeIcon) {
     return Backbone.View.extend({
         initBounds: [[-21.961179941367273,93.86358289827513],[16.948660219367564,142.12675002072507]],
         wmsLegendURI: 'http://78.47.62.69/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=kartoza:exposed_buildings',
+        markers: [],
         initialize: function () {
             // constructor
             this.map = L.map('map').setView([51.505, -0.09], 13).fitBounds(this.initBounds);
@@ -36,6 +38,7 @@ define([
             dispatcher.on('map:show-region-boundary', this.showRegionBoundary, this);
             dispatcher.on('map:show-exposed-buildings', this.showExposedBuildings, this);
             dispatcher.on('map:fit-forecast-layer-bounds', this.fitForecastLayerBounds, this);
+            dispatcher.on('map:add-marker', this.addMarker, this);
         },
         addOverlayLayer: function(layer, name){
             this.layer_control.addOverlay(layer, name);
@@ -297,6 +300,29 @@ define([
             });
             this.exposed_layers.forEach(l => that.addOverlayLayer(l.layer, l.name));
             this.wmsLegend = L.wmsLegend(this.wmsLegendURI, this.map);
+        },
+        addMarker: function (centroid, trigger_status) {
+            if(centroid) {
+                let that = this;
+                let icon = that.getIcon(trigger_status);
+                let marker = L.marker(centroid, {icon: icon}).addTo(that.map);
+                this.markers.push(marker)
+            }
+        },
+        getIcon: function (colour_code) {
+            let dictColour = {
+                0: 'green',
+                1: 'orange',
+                2: 'red',
+                3: 'darkred',
+            };
+
+            let icon = L.AwesomeMarkers.icon({
+                icon: 'coffee',
+                markerColor: dictColour[colour_code]
+              });
+
+            return icon
         }
     });
 });
