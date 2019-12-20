@@ -119,6 +119,10 @@ define([
                         return {
                             classes: classes,
                         };
+                    } else {
+                        return {
+                            classes: 'disabled',
+                        };
                     }
                 },
                 onChangeMonth: function (month, year) {
